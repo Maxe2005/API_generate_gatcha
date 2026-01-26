@@ -1,0 +1,133 @@
+VALID_STATS = "(ATK|DEF|HP|VIT)"
+VALID_ELEMENTS = "(FIRE|WATER|WIND|EARTH)"
+VALID_RANKS = "(COMMON|RARE|EPIC|LEGENDARY)"
+
+
+class GatchaPrompts:
+    SINGLE_PROFILE = (
+        """
+    Generate a creative monster profile for a gacha game based on this user prompt: "{user_prompt}".
+    
+    Output MUST be valid JSON with the following EXACT structure, the number of skills must be between 4 and 6, at least one of the skills must be an ultimate skill with a higher rank:
+    {{
+        "nom": "string (Creative Name)",
+        "element": "string """
+        + VALID_ELEMENTS
+        + """",
+        "rang": "string """
+        + VALID_RANKS
+        + """ - infer from prompt if possible)",
+        "stats": {{
+            "hp": float (50.0-1000.0),
+            "atk": float (10.0-200.0),
+            "def": float (10.0-200.0),
+            "vit": float (10.0-150.0)
+        }},
+        "description_carte": "string (Description visible to player, < 200 chars)",
+        "description_visuelle": "string (Detailed visual description for art generator: style, colors, appearance, background)",
+        "skills": [
+            {{
+                "name": "string (Skill Name)",
+                "description": "string (Skill Description)",
+                "damage": float (0.0-500.0),
+                "ratio": {{
+                    "stat": "string """
+        + VALID_STATS
+        + """",
+                    "percent": float (0.1-2.0)
+                }},
+                "cooldown": float (0-5),
+                "lvlMax": 5.0,
+                "rank": "string (Same as monster rank usually)"
+            }},
+             {{
+                "name": "string (Second Skill Name)",
+                "description": "string",
+                "damage": float (0.0-500.0),
+                "ratio": {{
+                    "stat": "string """
+        + VALID_STATS
+        + """",
+                    "percent": float (0.1-2.0)
+                }},
+                "cooldown": float (0-5),
+                "lvlMax": 5.0,
+                "rank": "string"
+            }}
+        ]
+    }}
+    Do not include markdown code blocks. Just the JSON.
+    """
+    )
+
+    BATCH_BRAINSTORM = (
+        """
+    Brainstorm {n} distinct monsters for a gacha game based on this theme: "{user_prompt}".
+    
+    The monsters must have balanced stats relative to each other.
+    
+    Output MUST be a valid JSON Array containing {n} objects.
+    DO NOT include a "skills" field yet.
+    
+    Structure for each object:
+    {{
+        "nom": "string",
+        "element": "string """
+        + VALID_ELEMENTS
+        + """",
+        "rang": "string """
+        + VALID_RANKS
+        + """ - infer from concept)",
+        "stats": {{
+            "hp": float (50-1000),
+            "atk": float (10-200),
+            "def": float (10-200),
+            "vit": float (10-150)
+        }},
+        "description_carte": "string (<200 chars)",
+        "description_visuelle": "string (Detailed visual description for art generator)"
+    }}
+    
+    Do not include markdown code blocks. Just the JSON Array.
+    """
+    )
+
+    BATCH_SKILLS = (
+        """
+    Here are monster profiles without skills:
+    {monsters_json}
+    
+    Generate a list of balanced skills for each monster. 
+    Return the SAME JSON list with the exact same order, but add the "skills" field to each monster.
+    Each monster should have 4-6 skills. At least one "rank" must be higher than the others.
+    
+    Skill Structure:
+    {{
+        "name": "string",
+        "description": "string",
+        "damage": float,
+        "ratio": {{ "stat": "string """
+        + VALID_STATS
+        + """", "percent": float }},
+        "cooldown": float,
+        "lvlMax": 5.0,
+        "rank": "string"
+    }}
+    
+    Output ONLY the valid JSON Array. Do not include markdown.
+    """
+    )
+
+    # -- IMAGE GENERATION PROMPTS --
+
+    # Default Style (Fantasy Art) - Optimized to avoid text/borders
+    IMAGE_GENERATION = "Full body illustration of {prompt}, set in a detailed and coherent environment fitting the monster's theme. High-quality digital fantasy art, dynamic pose, cinematic lighting, sharp focus. The image must be a clean character illustration WITHOUT any text, writing, numbers, stats, UI elements, borders, card frames, or game interface overlays. Just the monster and the background scenery. Masterpiece, 4k resolution."
+
+    # Alternative 1: Pixel Art Style
+    IMAGE_GENERATION_PIXEL = "High quality pixel art sprite of {prompt}, full body. 16-bit retro game style, vibrant colors, clean and coherent background. No text, no UI, no borders, no stats overlays. Detailed pixel shading."
+
+    # Alternative 2: Anime/Cel-Shaded Style
+    IMAGE_GENERATION_ANIME = "Anime style character illustration of {prompt}. Cel-shaded, vibrant colors, clean lines, anime background. detailed character design. No text, no card borders, no stats, no interface elements. High quality, 4k."
+
+    # Alternative 3: 3D Render/Realistic Style
+    IMAGE_GENERATION_REALISTIC = "3D rendered character of {prompt}, Unreal Engine 5 style, realistic textures, volumetric lighting, photorealistic environment. No text, no game UI, no frames or borders. Cinematic shot."

@@ -1,0 +1,87 @@
+{
+    "nom": "Terra Sentinel",
+    "element": "EARTH",
+    "rang": "RARE",
+    "stats": {
+        "hp": 600,
+        "atk": 70,
+        "def": 130,
+        "vit": 50
+    },
+    "description_carte": "Unyielding protector, uses earth magic to create impenetrable defenses.",
+    "description_visuelle": "A heavily armored knight clad in brown and grey stone-like armor. Small plants and crystals grow on the armor. Wields a massive stone hammer.",
+    "skills": [
+        {
+            "name": "Stone Hammer",
+            "description": "A basic attack with a chance to stun.",
+            "damage": 25,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Earth Shield",
+            "description": "Reinforces defense, reducing damage taken.",
+            "damage": 0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 1.5
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Rock Barrage",
+            "description": "Hurls multiple rocks at the enemy.",
+            "damage": 15,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.4
+            },
+            "cooldown": 7.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Terra's Wrath",
+            "description": "A devastating earthquake that damages and stuns all enemies.",
+            "damage": 40,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.0
+            },
+            "cooldown": 10.0,
+            "lvlMax": 5.0,
+            "rank": "ULTIMATE"
+        },
+        {
+            "name": "Fortify",
+            "description": "Increases maximum HP for a duration",
+            "damage": 0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.3
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Ground Slam",
+            "description": "Slams the ground, dealing damage in an area.",
+            "damage": 20,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        }
+    ]
+}

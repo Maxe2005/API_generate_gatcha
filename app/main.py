@@ -14,9 +14,12 @@ app = FastAPI(
 
 # Ensure static directory exists
 os.makedirs("app/static/images", exist_ok=True)
+os.makedirs("app/static/jsons", exist_ok=True)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(gatcha.router, prefix=f"{settings.API_V1_STR}/monsters", tags=["monsters"])
+
+@app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse(url="/docs")
 

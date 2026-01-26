@@ -1,0 +1,75 @@
+{
+    "nom": "Tatou-Roc, le Titan Ancestral",
+    "element": "EARTH",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 950.0,
+        "atk": 180.0,
+        "def": 190.0,
+        "vit": 60.0
+    },
+    "description_carte": "Un colosse de pierre vivant, gravé de savoir ancestral. Ses tatouages vibrent d'une puissance tellurique.",
+    "description_visuelle": "A massive, ancient earth giant with intricate tribal tattoos glowing with a faint green light. The tattoos depict prehistoric creatures and symbols. Craggy skin of grey and brown stone. Background: A desolate, rocky landscape with glowing green fissures.",
+    "skills": [
+        {
+            "name": "Frappe Sismique",
+            "description": "Inflige des dégâts et réduit la vitesse de l'ennemi.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Peau de Granit",
+            "description": "Augmente la défense du lanceur.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Régénération Tellurique",
+            "description": "Restaure une partie des PV du lanceur.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Courroux Ancestral",
+            "description": "Libère une onde de choc dévastatrice.",
+            "damage": 350.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "MYTHIC"
+        },
+        {
+            "name": "Protection Runique",
+            "description": "Octroie un bouclier absorbant les dégâts.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.3
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        }
+    ]
+}

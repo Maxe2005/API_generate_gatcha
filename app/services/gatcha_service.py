@@ -1,38 +1,77 @@
 import uuid
+from typing import List, Dict, Any
 from app.clients.gemini import GeminiClient
 from app.clients.banana import BananaClient
-from app.schemas.monster import MonsterResponse, MonsterStats
+from app.schemas.monster import MonsterResponse
+from app.utils.file_manager import FileManager
+
 
 class GatchaService:
     def __init__(self):
         self.gemini_client = GeminiClient()
         self.banana_client = BananaClient()
+        self.file_manager = FileManager()
 
-    async def create_monster(self, theme: str, rarity: str = "Common") -> MonsterResponse:
+    async def _process_monster_asset(
+        self, monster_data: Dict[str, Any], fallback_prompt: str
+    ) -> MonsterResponse:
         """
-        Orchestrates the creation of a monster: 
-        1. Gets text profile from Gemini
-        2. Gets image from Banana based on Gemini's visual description
-        3. Returns combined object
+        Handles the asset generation (Image) and file saving for a single monster.
         """
-        
-        # Step 1: Generate Profile (IO Bound)
-        profile_data = await self.gemini_client.generate_monster_profile(theme, rarity)
-        
-        # Extract visual description for the image generator
-        visual_prompt = profile_data.get("visual_description", theme)
-        
-        # Step 2: Generate Image (IO Bound)
-        # We can optimize this later if needed, but sequential is safer for logic flow
-        image_url = await self.banana_client.generate_pixel_art(visual_prompt)
-        
-        # Step 3: Construct Response
-        return MonsterResponse(
-            name=profile_data["name"],
-            element=profile_data["element"],
-            rarity=profile_data["rarity"],
-            lore=profile_data["lore"],
-            stats=MonsterStats(**profile_data["stats"]),
-            image_url=image_url,
-            generation_id=str(uuid.uuid4())
+        # Determine filename base
+        monster_name = monster_data.get("nom", "unknown_monster")
+        filename_base = self.file_manager.sanitize_filename(monster_name)
+        if not filename_base:
+            filename_base = f"monster_{uuid.uuid4().hex[:8]}"
+
+        # Generate Image
+        visual_prompt = monster_data.get("description_visuelle", fallback_prompt)
+        image_url = await self.banana_client.generate_pixel_art(
+            visual_prompt, filename_base
         )
+
+        # Save JSON
+        self.file_manager.save_json(filename_base, monster_data)
+
+        # Get relative path for response
+        json_path_rel = self.file_manager.get_relative_path(filename_base)
+
+        return MonsterResponse(
+            **monster_data, image_path=image_url, json_path=json_path_rel
+        )
+
+    async def create_monster(self, prompt: str) -> MonsterResponse:
+        """
+        Orchestrates the creation of a sinle monster based on user prompt.
+        """
+        # Step 1: Generate Profile
+        profile_data = await self.gemini_client.generate_monster_profile(prompt)
+
+        # Step 2: Assets & Save
+        return await self._process_monster_asset(profile_data, prompt)
+
+    async def create_batch_monsters(self, n: int, prompt: str) -> List[MonsterResponse]:
+        """
+        Generates N monsters in a batch process:
+        1. Brainstorm ideas (all at once)
+        2. Generate skills (in pairs)
+        3. Generate images (sequentially)
+        """
+        # Step 1: Brainstorming
+        monsters_base = await self.gemini_client.generate_batch_brainstorm(n, prompt)
+
+        # Step 2: Skills generation (Chunked)
+        monsters_complete = []
+        chunk_size = 2
+        for i in range(0, len(monsters_base), chunk_size):
+            chunk = monsters_base[i : i + chunk_size]
+            chunk_with_skills = await self.gemini_client.generate_batch_skills(chunk)
+            monsters_complete.extend(chunk_with_skills)
+
+        # Step 3: Image generation & Saving (Sequentially for now to be safe, could be gathered)
+        result_responses = []
+        for monster_data in monsters_complete:
+            response = await self._process_monster_asset(monster_data, prompt)
+            result_responses.append(response)
+
+        return result_responses

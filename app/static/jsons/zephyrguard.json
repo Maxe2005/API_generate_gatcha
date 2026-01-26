@@ -1,0 +1,75 @@
+{
+    "nom": "Zephyr Guard",
+    "element": "WIND",
+    "rang": "RARE",
+    "stats": {
+        "hp": 400,
+        "atk": 100,
+        "def": 50,
+        "vit": 120
+    },
+    "description_carte": "Swift as the wind, strikes with deadly precision and unmatched agility.",
+    "description_visuelle": "A slender knight wearing light green armor that appears almost weightless. Streamers of wind trail from the armor. Wields twin curved daggers.",
+    "skills": [
+        {
+            "name": "Gust Strike",
+            "description": "A quick attack that deals damage and increases own speed.",
+            "damage": 20,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 1.5,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Wind Barrier",
+            "description": "Creates a barrier that absorbs a portion of incoming damage.",
+            "damage": 0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 1.0
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Whirlwind Assault",
+            "description": "Unleashes a flurry of attacks, hitting multiple times.",
+            "damage": 10,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.4
+            },
+            "cooldown": 6.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Zephyr's Fury",
+            "description": "A devastating attack that deals massive damage, fueled by wind magic.",
+            "damage": 50,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.5
+            },
+            "cooldown": 8.0,
+            "lvlMax": 5.0,
+            "rank": "ULTIMATE"
+        },
+        {
+            "name": "Agile Evade",
+            "description": "Increases evasion chance for a short duration",
+            "damage": 0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.2
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        }
+    ]
+}
