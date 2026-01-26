@@ -1,0 +1,75 @@
+{
+    "nom": "Nocturne",
+    "element": "DARKNESS",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 900,
+        "atk": 200,
+        "def": 130,
+        "vit": 110
+    },
+    "description_carte": "The Umbral Weaver. Controls shadows to ensnare foes and drain their life force.",
+    "description_visuelle": "A shadowy humanoid figure with glowing red eyes and clawed hands. Dark mist swirls around him, obscuring his form.",
+    "skills": [
+        {
+            "name": "Shadow Strike",
+            "description": "Strikes an enemy with shadowy claws, dealing damage.",
+            "damage": 120.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.1
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Life Drain",
+            "description": "Drains life force from an enemy, dealing damage and healing Nocturne.",
+            "damage": 80.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Shadow Prison",
+            "description": "Traps an enemy in a prison of shadows, reducing their speed.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": -0.3
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Abyssal Curse",
+            "description": "Inflicts a powerful curse, dealing damage every turn for 3 turns.",
+            "damage": 40.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 6.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Void Eruption",
+            "description": "Unleashes a cataclysmic explosion of dark energy, dealing massive damage to all enemies and absorbing a portion of the damage dealt as HP.",
+            "damage": 280.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 2.0
+            },
+            "cooldown": 8.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        }
+    ]
+}

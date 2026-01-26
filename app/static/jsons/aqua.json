@@ -1,0 +1,75 @@
+{
+    "nom": "Aqua",
+    "element": "WATER",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 800,
+        "atk": 140,
+        "def": 110,
+        "vit": 90
+    },
+    "description_carte": "The Tidal Tempest. Commands the power of the ocean, summoning waves and tidal forces.",
+    "description_visuelle": "A graceful humanoid figure with flowing blue hair and shimmering scales. She holds a trident and is surrounded by swirling water.",
+    "skills": [
+        {
+            "name": "Water Jet",
+            "description": "Fires a high-pressure jet of water.",
+            "damage": 45.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.35
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Tidal Wave",
+            "description": "Summons a wave of water that damages and slows enemies.",
+            "damage": 60.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "UNCOMMON"
+        },
+        {
+            "name": "Healing Rain",
+            "description": "Summons a rain of healing water to restore health.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Aqua Shield",
+            "description": "Creates a water shield, boosting DEF and reflecting some damage.",
+            "damage": 10.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "UNCOMMON"
+        },
+        {
+            "name": "Ocean's Wrath",
+            "description": "Calls upon the ocean's power to unleash a devastating torrent of water, greatly increases atk. Chance to stun target.",
+            "damage": 120.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.0
+            },
+            "cooldown": 8.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

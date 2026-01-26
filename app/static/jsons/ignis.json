@@ -1,20 +1,20 @@
 {
     "nom": "Ignis",
     "element": "FIRE",
-    "rang": "RARE",
+    "rang": "EPIC",
     "stats": {
-        "hp": 450,
-        "atk": 120,
-        "def": 60,
-        "vit": 80
+        "hp": 750,
+        "atk": 160,
+        "def": 90,
+        "vit": 100
     },
-    "description_carte": "A fiery knight fueled by ancient volcanic power. Burns foes with passion.",
-    "description_visuelle": "Knight clad in crimson armor that seems to glow from within. Molten cracks spiderweb across the armor's surface. Wields a flaming greatsword.",
+    "description_carte": "The Blazing Fury. A master of fire magic, capable of unleashing devastating infernos.",
+    "description_visuelle": "A towering humanoid figure composed of living flames. He wields a fiery sword and has a fierce expression.",
     "skills": [
         {
-            "name": "Ember Strike",
-            "description": "A quick strike that ignites the enemy, dealing minor damage.",
-            "damage": 30.0,
+            "name": "Fireball",
+            "description": "Hurls a ball of fire at the enemy.",
+            "damage": 50.0,
             "ratio": {
                 "stat": "ATK",
                 "percent": 0.4
@@ -24,40 +24,52 @@
             "rank": "COMMON"
         },
         {
-            "name": "Fiery Aura",
-            "description": "Surrounds Ignis in flames, increasing defense and dealing damage to attackers.",
-            "damage": 10.0,
-            "ratio": {
-                "stat": "DEF",
-                "percent": 0.2
-            },
-            "cooldown": 3.0,
-            "lvlMax": 5.0,
-            "rank": "RARE"
-        },
-        {
-            "name": "Burning Slash",
-            "description": "A powerful slash that burns the target for several turns.",
-            "damage": 50.0,
+            "name": "Flame Slash",
+            "description": "Slashes with a fiery sword, dealing increased damage.",
+            "damage": 70.0,
             "ratio": {
                 "stat": "ATK",
                 "percent": 0.6
             },
-            "cooldown": 4.0,
+            "cooldown": 2.0,
             "lvlMax": 5.0,
-            "rank": "EPIC"
+            "rank": "UNCOMMON"
         },
         {
-            "name": "Volcanic Eruption",
-            "description": "Unleashes the volcanic power within, dealing massive fire damage to all enemies.",
-            "damage": 120.0,
+            "name": "Inferno",
+            "description": "Unleashes a massive wave of flames, burning all enemies.",
+            "damage": 100.0,
             "ratio": {
                 "stat": "ATK",
-                "percent": 1.0
+                "percent": 0.8
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Blazing Aura",
+            "description": "Increases own ATK and VIT for a short duration",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.25
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "UNCOMMON"
+        },
+        {
+            "name": "Eternal Flames",
+            "description": "Sets the target ablaze, inflicting damage each turn. Also slightly buffs own DEF",
+            "damage": 20.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.1
             },
             "cooldown": 7.0,
             "lvlMax": 5.0,
-            "rank": "ULTIMATE"
+            "rank": "EPIC"
         }
     ]
 }

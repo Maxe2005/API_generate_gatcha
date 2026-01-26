@@ -1,0 +1,63 @@
+{
+    "nom": "Terra",
+    "element": "EARTH",
+    "rang": "RARE",
+    "stats": {
+        "hp": 600,
+        "atk": 100,
+        "def": 180,
+        "vit": 70
+    },
+    "description_carte": "The Grounded Guardian. A stalwart protector who manipulates the earth to defend allies.",
+    "description_visuelle": "A sturdy, rock-like humanoid figure with moss growing on its shoulders. It carries a large shield made of stone.",
+    "skills": [
+        {
+            "name": "Earthquake",
+            "description": "Deals heavy damage to all enemies, stunning them briefly.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Stone Skin",
+            "description": "Increases defense for 3 turns.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Rock Throw",
+            "description": "Deals moderate damage to a single target.",
+            "damage": 75.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Fortify",
+            "description": "Heals a small amount and increases defense slightly.",
+            "damage": -50.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.2
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "UNCOMMON"
+        }
+    ]
+}

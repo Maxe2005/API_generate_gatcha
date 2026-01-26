@@ -1,0 +1,75 @@
+{
+    "nom": "Solara",
+    "element": "LIGHT",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 950,
+        "atk": 180,
+        "def": 150,
+        "vit": 120
+    },
+    "description_carte": "The Radiant Ascendant. Her light heals allies and burns away shadows.",
+    "description_visuelle": "A majestic humanoid figure wreathed in golden light, with feathered wings and a serene expression. Light emanates from her outstretched hands.",
+    "skills": [
+        {
+            "name": "Radiant Beam",
+            "description": "Fires a beam of pure light at the enemy, dealing damage.",
+            "damage": 100.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Healing Light",
+            "description": "Heals an ally for a portion of Solara's HP.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.3
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Divine Shield",
+            "description": "Grants an ally a shield that absorbs damage.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 1.5
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Solar Flare",
+            "description": "Unleashes a massive burst of light, dealing heavy damage to all enemies.",
+            "damage": 250.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.8
+            },
+            "cooldown": 7.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Aegis",
+            "description": "Increases the defense of all allies.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.4
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

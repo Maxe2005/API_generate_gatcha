@@ -1,6 +1,24 @@
 VALID_STATS = "(ATK|DEF|HP|VIT)"
-VALID_ELEMENTS = "(FIRE|WATER|WIND|EARTH)"
+VALID_ELEMENTS = "(FIRE|WATER|WIND|EARTH|LIGHT|DARKNESS)"
 VALID_RANKS = "(COMMON|RARE|EPIC|LEGENDARY)"
+
+# Global Balance Configuration
+MIN_HP = 50.0
+MAX_HP = 1000.0
+MIN_ATK = 10.0
+MAX_ATK = 200.0
+MIN_DEF = 10.0
+MAX_DEF = 200.0
+MIN_VIT = 10.0
+MAX_VIT = 150.0
+
+MIN_DAMAGE = 0.0
+MAX_DAMAGE = 500.0
+MIN_PERCENT = 0.1
+MAX_PERCENT = 2.0
+MIN_COOLDOWN = 0
+MAX_COOLDOWN = 5
+LVL_MAX = 5.0
 
 
 class GatchaPrompts:
@@ -18,10 +36,18 @@ class GatchaPrompts:
         + VALID_RANKS
         + """ - infer from prompt if possible)",
         "stats": {{
-            "hp": float (50.0-1000.0),
-            "atk": float (10.0-200.0),
-            "def": float (10.0-200.0),
-            "vit": float (10.0-150.0)
+            "hp": float ("""
+        + f"{MIN_HP}-{MAX_HP}"
+        + """),
+            "atk": float ("""
+        + f"{MIN_ATK}-{MAX_ATK}"
+        + """),
+            "def": float ("""
+        + f"{MIN_DEF}-{MAX_DEF}"
+        + """),
+            "vit": float ("""
+        + f"{MIN_VIT}-{MAX_VIT}"
+        + """)
         }},
         "description_carte": "string (Description visible to player, < 200 chars)",
         "description_visuelle": "string (Detailed visual description for art generator: style, colors, appearance, background)",
@@ -29,29 +55,45 @@ class GatchaPrompts:
             {{
                 "name": "string (Skill Name)",
                 "description": "string (Skill Description)",
-                "damage": float (0.0-500.0),
+                "damage": float ("""
+        + f"{MIN_DAMAGE}-{MAX_DAMAGE}"
+        + """),
                 "ratio": {{
                     "stat": "string """
         + VALID_STATS
         + """",
-                    "percent": float (0.1-2.0)
+                    "percent": float ("""
+        + f"{MIN_PERCENT}-{MAX_PERCENT}"
+        + """)
                 }},
-                "cooldown": float (0-5),
-                "lvlMax": 5.0,
+                "cooldown": float ("""
+        + f"{MIN_COOLDOWN}-{MAX_COOLDOWN}"
+        + """),
+                "lvlMax": """
+        + f"{LVL_MAX}"
+        + """,
                 "rank": "string (Same as monster rank usually)"
             }},
              {{
                 "name": "string (Second Skill Name)",
                 "description": "string",
-                "damage": float (0.0-500.0),
+                "damage": float ("""
+        + f"{MIN_DAMAGE}-{MAX_DAMAGE}"
+        + """),
                 "ratio": {{
                     "stat": "string """
         + VALID_STATS
         + """",
-                    "percent": float (0.1-2.0)
+                    "percent": float ("""
+        + f"{MIN_PERCENT}-{MAX_PERCENT}"
+        + """)
                 }},
-                "cooldown": float (0-5),
-                "lvlMax": 5.0,
+                "cooldown": float ("""
+        + f"{MIN_COOLDOWN}-{MAX_COOLDOWN}"
+        + """),
+                "lvlMax": """
+        + f"{LVL_MAX}"
+        + """,
                 "rank": "string"
             }}
         ]
@@ -79,10 +121,18 @@ class GatchaPrompts:
         + VALID_RANKS
         + """ - infer from concept)",
         "stats": {{
-            "hp": float (50-1000),
-            "atk": float (10-200),
-            "def": float (10-200),
-            "vit": float (10-150)
+            "hp": float ("""
+        + f"{MIN_HP}-{MAX_HP}"
+        + """),
+            "atk": float ("""
+        + f"{MIN_ATK}-{MAX_ATK}"
+        + """),
+            "def": float ("""
+        + f"{MIN_DEF}-{MAX_DEF}"
+        + """),
+            "vit": float ("""
+        + f"{MIN_VIT}-{MAX_VIT}"
+        + """)
         }},
         "description_carte": "string (<200 chars)",
         "description_visuelle": "string (Detailed visual description for art generator)"
@@ -105,12 +155,20 @@ class GatchaPrompts:
     {{
         "name": "string",
         "description": "string",
-        "damage": float,
+        "damage": float ("""
+        + f"{MIN_DAMAGE}-{MAX_DAMAGE}"
+        + """),
         "ratio": {{ "stat": "string """
         + VALID_STATS
-        + """", "percent": float }},
-        "cooldown": float,
-        "lvlMax": 5.0,
+        + """", "percent": float ("""
+        + f"{MIN_PERCENT}-{MAX_PERCENT}"
+        + """) }},
+        "cooldown": float ("""
+        + f"{MIN_COOLDOWN}-{MAX_COOLDOWN}"
+        + """),
+        "lvlMax": """
+        + f"{LVL_MAX}"
+        + """,
         "rank": "string"
     }}
     
