@@ -149,7 +149,7 @@ class GatchaPrompts:
     
     Generate a list of balanced skills for each monster. 
     Return the SAME JSON list with the exact same order, but add the "skills" field to each monster.
-    Each monster should have 4-6 skills. At least one "rank" must be higher than the others.
+    Each monster should have 4-6 skills. At least one skill must have a "rank" higher than the others.
     
     Skill Structure:
     {{
