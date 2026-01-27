@@ -33,7 +33,7 @@
             },
             "cooldown": 3.0,
             "lvlMax": 5.0,
-            "rank": "UNCOMMON"
+            "rank": "RARE"
         },
         {
             "name": "Healing Rain",
@@ -57,7 +57,7 @@
             },
             "cooldown": 4.0,
             "lvlMax": 5.0,
-            "rank": "UNCOMMON"
+            "rank": "RARE"
         },
         {
             "name": "Ocean's Wrath",

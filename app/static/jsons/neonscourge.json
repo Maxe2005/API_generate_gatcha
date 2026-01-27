@@ -1,0 +1,75 @@
+{
+    "nom": "Neon Scourge",
+    "element": "LIGHT",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 850.0,
+        "atk": 185.0,
+        "def": 150.0,
+        "vit": 120.0
+    },
+    "description_carte": "A cybernetically enhanced dragon, radiating neon energy. Feared throughout the data streams.",
+    "description_visuelle": "Cyberpunk dragon, chrome scales, glowing neon blue circuitry patterns, mechanical wings, cityscape background at night, digital glitch effects, highly detailed, vibrant colors, futuristic style.",
+    "skills": [
+        {
+            "name": "Data Burst",
+            "description": "Unleashes a wave of corrupted data, dealing damage and reducing enemy defense.",
+            "damage": 250.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "System Overload",
+            "description": "Temporarily boosts attack and defense, granting increased damage output and resilience.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Firewall Breach",
+            "description": "Ignores a portion of enemy defense, dealing true damage with each attack.",
+            "damage": 100.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Glitch Storm (Ultimate)",
+            "description": "Summons a devastating storm of digital glitches, dealing massive damage to all enemies.",
+            "damage": 450.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.8
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Adaptive Armor",
+            "description": "Grants a shield that absorbs a portion of incoming damage.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

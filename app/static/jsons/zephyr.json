@@ -33,7 +33,7 @@
             },
             "cooldown": 4.0,
             "lvlMax": 5.0,
-            "rank": "UNCOMMON"
+            "rank": "RARE"
         },
         {
             "name": "Tornado",
@@ -69,7 +69,7 @@
             },
             "cooldown": 4.0,
             "lvlMax": 5.0,
-            "rank": "UNCOMMON"
+            "rank": "RARE"
         }
     ]
 }

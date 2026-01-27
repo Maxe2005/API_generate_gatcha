@@ -26,7 +26,14 @@ class GatchaPrompts:
         """
     Generate a creative monster profile for a gacha game based on this user prompt: "{user_prompt}".
     
-    Output MUST be valid JSON with the following EXACT structure, the number of skills must be between 4 and 6, at least one of the skills must be an ultimate skill with a higher rank:
+    The number of skills must be between 4 and 6.
+    At least one of the skills must be an ultimate skill with a higher rank.
+    The ranks must be restricted to: """
+        + VALID_RANKS
+        + """.
+    The ranks must be balanced with the stats.
+
+    Output MUST be valid JSON with the following EXACT structure :
     {{
         "nom": "string (Creative Name)",
         "element": "string """
@@ -150,6 +157,10 @@ class GatchaPrompts:
     Generate a list of balanced skills for each monster. 
     Return the SAME JSON list with the exact same order, but add the "skills" field to each monster.
     Each monster should have 4-6 skills. At least one skill must have a "rank" higher than the others.
+    The ranks must be restricted to: """
+        + VALID_RANKS
+        + """.
+    The ranks must be balanced with the stats.
     
     Skill Structure:
     {{

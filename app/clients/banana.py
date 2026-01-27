@@ -28,13 +28,13 @@ class BananaClient:
     @staticmethod
     def _optimize_for_web(image_bytes: bytes, max_height: int = 1080) -> io.BytesIO:
         img = Image.open(io.BytesIO(image_bytes))
-        
+
         # Conserver le ratio mais limiter la hauteur
         if img.height > max_height:
             ratio = max_height / float(img.height)
             new_width = int(float(img.width) * float(ratio))
-            img = img.resize((new_width, max_height), Image.LANCZOS)
-        
+            img = img.resize((new_width, max_height), Image.Resampling.LANCZOS)
+
         # Conversion en WebP avec compression (80% est le sweet spot)
         webp_io = io.BytesIO()
         img.save(webp_io, format="WebP", quality=80, lossless=False)
@@ -97,26 +97,28 @@ class BananaClient:
         # The snippet provided iterates over parts. We adapt that logic.
         for part in response.parts:
             # Inline data contains the image
-            if part.inline_data is not None:
-                # The SDK helper .as_image() returns a PIL Image
-                image = part.as_image()
-                if image:
-                    # Convert to bytes
+            if part.inline_data is not None and part.inline_data.data:
+                # Get raw bytes directly
+                raw_bytes = part.inline_data.data
+
+                try:
+                    # Convert/Ensure to PNG using PIL
+                    image = Image.open(io.BytesIO(raw_bytes))
                     img_byte_arr = io.BytesIO()
-                    image.save(img_byte_arr, format='PNG')
+                    image.save(img_byte_arr, format="PNG")
                     img_bytes = img_byte_arr.getvalue()
 
                     # Unique ID for this generation
                     unique_id = uuid.uuid4()
                     filename_raw = f"{filename_base}_{unique_id}.png"
                     filename_asset = f"{filename_base}_{unique_id}.webp"
-                    
+
                     # 1. Upload Master (PNG 4K) to RAW bucket
                     self.minio_client.upload_image(
                         bucket_name=self.settings.MINIO_BUCKET_RAW,
                         filename=f"monsters/{filename_raw}",  # Store in /monsters/ subfolder
                         image_data=img_bytes,
-                        content_type="image/png"
+                        content_type="image/png",
                     )
 
                     # 2. Optimize for Web
@@ -128,9 +130,12 @@ class BananaClient:
                         bucket_name=self.settings.MINIO_BUCKET_ASSETS,
                         filename=filename_asset,
                         image_data=webp_bytes,
-                        content_type="image/webp"
+                        content_type="image/webp",
                     )
                     break
+                except Exception as e:
+                    print(f"Error processing image: {e}")
+                    continue
 
         if not image_url:
             # Fallback or error if no image returned
