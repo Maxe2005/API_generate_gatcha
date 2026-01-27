@@ -13,6 +13,13 @@ class Settings(BaseSettings):
     BANANA_MODEL_KEY: str = ""
     BANANA_API_URL: str = "https://api.banana.dev/start/v4/"
 
+    # MinIO
+    MINIO_ENDPOINT: str = "minio:9000"
+    MINIO_ACCESS_KEY: str = "admin"
+    MINIO_SECRET_KEY: str = "password123"
+    MINIO_BUCKET_NAME: str = "gatcha-assets"
+    MINIO_PUBLIC_URL: str = "http://localhost:9000"
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
 @lru_cache

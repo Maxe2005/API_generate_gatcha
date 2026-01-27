@@ -1,8 +1,11 @@
 from google import genai
 from app.core.config import get_settings
 from app.core.prompts import GatchaPrompts
+from app.clients.minio_client import MinioClientWrapper
 import os
 import asyncio
+import io
+import uuid
 
 
 # We keep the name BananaClient to minimize refactoring in other files,
@@ -19,11 +22,12 @@ class BananaClient:
         # Using Gemini API Key for this "Banana" client since we switched providers
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
         self.output_dir = "app/static/images"
+        self.minio_client = MinioClientWrapper()
 
     async def generate_pixel_art(self, prompt: str, filename_base: str) -> str:
         """
         Generates an image using Google's Gemini-2.5-flash-image model.
-        Returns the local URL of the generated image.
+        Returns the MinIO URL of the generated image.
         args:
             prompt: Visual description
             filename_base: sanitized monster name for the file
@@ -77,16 +81,18 @@ class BananaClient:
         for part in response.parts:
             # Inline data contains the image
             if part.inline_data is not None:
-                # Save the image
-                filename = f"{filename_base}.png"
-                filepath = os.path.join(self.output_dir, filename)
-
                 # The SDK helper .as_image() returns a PIL Image
                 image = part.as_image()
                 if image:
-                    image.save(filepath)
-                    # Construct local URL
-                    image_url = f"/static/images/{filename}"
+                    # Convert to bytes
+                    img_byte_arr = io.BytesIO()
+                    image.save(img_byte_arr, format='PNG')
+                    img_bytes = img_byte_arr.getvalue()
+
+                    filename = f"{filename_base}_{uuid.uuid4()}.png"
+                    
+                    # Upload to MinIO
+                    image_url = self.minio_client.upload_image(filename, img_bytes)
                     break
 
         if not image_url:
