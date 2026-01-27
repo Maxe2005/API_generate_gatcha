@@ -2,6 +2,7 @@ from google import genai
 from app.core.config import get_settings
 from app.core.prompts import GatchaPrompts
 from app.clients.minio_client import MinioClientWrapper
+from PIL import Image
 import os
 import asyncio
 import io
@@ -18,11 +19,27 @@ class BananaClient:
     """
 
     def __init__(self):
-        settings = get_settings()
+        self.settings = get_settings()
         # Using Gemini API Key for this "Banana" client since we switched providers
-        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        self.client = genai.Client(api_key=self.settings.GEMINI_API_KEY)
         self.output_dir = "app/static/images"
         self.minio_client = MinioClientWrapper()
+
+    @staticmethod
+    def _optimize_for_web(image_bytes: bytes, max_height: int = 1080) -> io.BytesIO:
+        img = Image.open(io.BytesIO(image_bytes))
+        
+        # Conserver le ratio mais limiter la hauteur
+        if img.height > max_height:
+            ratio = max_height / float(img.height)
+            new_width = int(float(img.width) * float(ratio))
+            img = img.resize((new_width, max_height), Image.LANCZOS)
+        
+        # Conversion en WebP avec compression (80% est le sweet spot)
+        webp_io = io.BytesIO()
+        img.save(webp_io, format="WebP", quality=80, lossless=False)
+        webp_io.seek(0)
+        return webp_io
 
     async def generate_pixel_art(self, prompt: str, filename_base: str) -> str:
         """
@@ -89,10 +106,30 @@ class BananaClient:
                     image.save(img_byte_arr, format='PNG')
                     img_bytes = img_byte_arr.getvalue()
 
-                    filename = f"{filename_base}_{uuid.uuid4()}.png"
+                    # Unique ID for this generation
+                    unique_id = uuid.uuid4()
+                    filename_raw = f"{filename_base}_{unique_id}.png"
+                    filename_asset = f"{filename_base}_{unique_id}.webp"
                     
-                    # Upload to MinIO
-                    image_url = self.minio_client.upload_image(filename, img_bytes)
+                    # 1. Upload Master (PNG 4K) to RAW bucket
+                    self.minio_client.upload_image(
+                        bucket_name=self.settings.MINIO_BUCKET_RAW,
+                        filename=f"monsters/{filename_raw}",  # Store in /monsters/ subfolder
+                        image_data=img_bytes,
+                        content_type="image/png"
+                    )
+
+                    # 2. Optimize for Web
+                    webp_io = self._optimize_for_web(img_bytes)
+                    webp_bytes = webp_io.getvalue()
+
+                    # 3. Upload Asset (WebP) to ASSETS bucket
+                    image_url = self.minio_client.upload_image(
+                        bucket_name=self.settings.MINIO_BUCKET_ASSETS,
+                        filename=filename_asset,
+                        image_data=webp_bytes,
+                        content_type="image/webp"
+                    )
                     break
 
         if not image_url:

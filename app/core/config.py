@@ -17,7 +17,8 @@ class Settings(BaseSettings):
     MINIO_ENDPOINT: str = "minio:9000"
     MINIO_ACCESS_KEY: str = "admin"
     MINIO_SECRET_KEY: str = "password123"
-    MINIO_BUCKET_NAME: str = "gatcha-assets"
+    MINIO_BUCKET_RAW: str = "raw-assets"
+    MINIO_BUCKET_ASSETS: str = "game-assets"
     MINIO_PUBLIC_URL: str = "http://localhost:9000"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)

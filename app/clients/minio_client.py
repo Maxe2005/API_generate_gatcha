@@ -14,8 +14,13 @@ class MinioClientWrapper:
         self._ensure_bucket()
 
     def _ensure_bucket(self):
-        if not self.client.bucket_exists(self.settings.MINIO_BUCKET_NAME):
-            self.client.make_bucket(self.settings.MINIO_BUCKET_NAME)
+        # Ensure RAW bucket (Private)
+        if not self.client.bucket_exists(self.settings.MINIO_BUCKET_RAW):
+            self.client.make_bucket(self.settings.MINIO_BUCKET_RAW)
+        
+        # Ensure ASSETS bucket (Public)
+        if not self.client.bucket_exists(self.settings.MINIO_BUCKET_ASSETS):
+            self.client.make_bucket(self.settings.MINIO_BUCKET_ASSETS)
             # Set public policy
             policy = f'''{{
                 "Version": "2012-10-17",
@@ -24,21 +29,21 @@ class MinioClientWrapper:
                         "Effect": "Allow",
                         "Principal": {{ "AWS": ["*"] }},
                         "Action": ["s3:GetObject"],
-                        "Resource": ["arn:aws:s3:::{self.settings.MINIO_BUCKET_NAME}/*"]
+                        "Resource": ["arn:aws:s3:::{self.settings.MINIO_BUCKET_ASSETS}/*"]
                     }}
                 ]
             }}'''
-            self.client.set_bucket_policy(self.settings.MINIO_BUCKET_NAME, policy)
+            self.client.set_bucket_policy(self.settings.MINIO_BUCKET_ASSETS, policy)
 
-    def upload_image(self, filename: str, image_data: bytes, content_type: str = "image/png") -> str:
+    def upload_image(self, bucket_name: str, filename: str, image_data: bytes, content_type: str) -> str:
         """
         Uploads image bytes to MinIO and returns the public URL.
         """
         self.client.put_object(
-            self.settings.MINIO_BUCKET_NAME,
+            bucket_name,
             filename,
             io.BytesIO(image_data),
             len(image_data),
             content_type=content_type
         )
-        return f"{self.settings.MINIO_PUBLIC_URL}/{self.settings.MINIO_BUCKET_NAME}/{filename}"
+        return f"{self.settings.MINIO_PUBLIC_URL}/{bucket_name}/{filename}"
