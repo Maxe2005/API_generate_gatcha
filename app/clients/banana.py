@@ -3,10 +3,10 @@ from app.core.config import get_settings
 from app.core.prompts import GatchaPrompts
 from app.clients.minio_client import MinioClientWrapper
 from PIL import Image
-import os
 import asyncio
 import io
 import uuid
+from google.genai.types import ContentListUnionDict
 
 
 # We keep the name BananaClient to minimize refactoring in other files,
@@ -144,3 +144,54 @@ class BananaClient:
             )
 
         return image_url
+
+    async def generate_custom_image(
+        self,
+        prompt: str,
+        aspect_ratio: str,
+        image_size: str,
+        image_input: Image.Image | None = None,
+    ) -> bytes:
+        """
+        Generates an image with custom parameters using Google's GenAI.
+        Returns the raw image bytes (PNG).
+        """
+        # The SDK is synchronous, so we run it in a thread pool to avoid blocking FastAPI
+        loop = asyncio.get_running_loop()
+
+        # Wrapped function for the thread executor
+        def _generate():
+            contents:ContentListUnionDict = [prompt]
+            if image_input:
+                contents.append(image_input)
+
+            response = self.client.models.generate_content(
+                model="gemini-3-pro-image-preview",
+                contents=contents,
+                config=genai.types.GenerateContentConfig(
+                    image_config=genai.types.ImageConfig(
+                        aspect_ratio=aspect_ratio,
+                        image_size=image_size,
+                    )
+                ),
+            )
+            return response
+
+        try:
+            response = await loop.run_in_executor(None, _generate)
+        except Exception as e:
+            raise Exception(f"Custom Image Generation Error: {str(e)}") from e
+
+        if not response or not response.parts:
+            raise Exception("No content parts found in response.")
+
+        for part in response.parts:
+            if part.inline_data is not None and part.inline_data.data:
+                raw_bytes = part.inline_data.data
+                # Convert/Ensure to PNG using PIL
+                image = Image.open(io.BytesIO(raw_bytes))
+                img_byte_arr = io.BytesIO()
+                image.save(img_byte_arr, format="PNG")
+                return img_byte_arr.getvalue()
+
+        raise Exception("No image data found in response.")

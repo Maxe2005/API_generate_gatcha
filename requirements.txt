@@ -7,3 +7,4 @@ python-dotenv>=1.0.0
 google-genai
 Pillow
 minio
+python-multipart
