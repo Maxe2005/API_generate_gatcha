@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
-from app.api.v1.endpoints import gatcha, nano_banana
+from app.api.v1.endpoints import gatcha, nano_banana, admin
 from app.core.config import get_settings
 import os
 
@@ -11,9 +11,10 @@ app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-# Ensure static directory exists
+# Ensure static directories exist
 os.makedirs("app/static/images", exist_ok=True)
 os.makedirs("app/static/jsons", exist_ok=True)
+os.makedirs(settings.DEFECTIVE_JSONS_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(
@@ -23,6 +24,11 @@ app.include_router(
     nano_banana.router,
     prefix=f"{settings.API_V1_STR}/nano-banana",
     tags=["nano-banana"],
+)
+app.include_router(
+    admin.router,
+    prefix=f"{settings.API_V1_STR}/admin",
+    tags=["admin"],
 )
 
 

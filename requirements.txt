@@ -8,3 +8,4 @@ google-genai
 Pillow
 minio
 python-multipart
+pytest

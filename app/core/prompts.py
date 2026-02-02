@@ -1,24 +1,27 @@
-VALID_STATS = "(ATK|DEF|HP|VIT)"
-VALID_ELEMENTS = "(FIRE|WATER|WIND|EARTH|LIGHT|DARKNESS)"
-VALID_RANKS = "(COMMON|RARE|EPIC|LEGENDARY)"
+from .config import ValidationRules
+
+# Import centralized validation rules
+VALID_STATS = "|".join(ValidationRules.VALID_STATS)
+VALID_ELEMENTS = "|".join(ValidationRules.VALID_ELEMENTS)
+VALID_RANKS = "|".join(ValidationRules.VALID_RANKS)
 
 # Global Balance Configuration
-MIN_HP = 50.0
-MAX_HP = 1000.0
-MIN_ATK = 10.0
-MAX_ATK = 200.0
-MIN_DEF = 10.0
-MAX_DEF = 200.0
-MIN_VIT = 10.0
-MAX_VIT = 150.0
+MIN_HP = ValidationRules.MIN_HP
+MAX_HP = ValidationRules.MAX_HP
+MIN_ATK = ValidationRules.MIN_ATK
+MAX_ATK = ValidationRules.MAX_ATK
+MIN_DEF = ValidationRules.MIN_DEF
+MAX_DEF = ValidationRules.MAX_DEF
+MIN_VIT = ValidationRules.MIN_VIT
+MAX_VIT = ValidationRules.MAX_VIT
 
-MIN_DAMAGE = 0.0
-MAX_DAMAGE = 500.0
-MIN_PERCENT = 0.1
-MAX_PERCENT = 2.0
-MIN_COOLDOWN = 0
-MAX_COOLDOWN = 5
-LVL_MAX = 5.0
+MIN_DAMAGE = ValidationRules.MIN_DAMAGE
+MAX_DAMAGE = ValidationRules.MAX_DAMAGE
+MIN_PERCENT = ValidationRules.MIN_PERCENT
+MAX_PERCENT = ValidationRules.MAX_PERCENT
+MIN_COOLDOWN = ValidationRules.MIN_COOLDOWN
+MAX_COOLDOWN = ValidationRules.MAX_COOLDOWN
+LVL_MAX = ValidationRules.LVL_MAX
 
 
 class GatchaPrompts:

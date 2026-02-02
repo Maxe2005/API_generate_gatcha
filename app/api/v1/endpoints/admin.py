@@ -1,0 +1,269 @@
+"""
+Admin endpoints for managing defective monster JSONs
+Allows reviewing, modifying, and approving corrected monsters
+"""
+
+from fastapi import APIRouter, HTTPException, Body
+from pydantic import BaseModel, Field
+from typing import List, Dict, Any
+from app.utils.file_manager import FileManager
+from app.services.validation_service import MonsterValidationService
+import logging
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter()
+
+# Initialize services
+file_manager = FileManager()
+validation_service = MonsterValidationService()
+
+
+# ===== Pydantic Models =====
+
+
+class DefectiveJsonSummary(BaseModel):
+    """Summary of a defective JSON"""
+
+    filename: str
+    created_at: str
+    status: str
+    error_count: int
+    monster_name: str
+
+
+class ValidationErrorDetail(BaseModel):
+    """Detail of a validation error"""
+
+    field: str
+    error_type: str
+    message: str
+
+
+class DefectiveJsonDetail(BaseModel):
+    """Full details of a defective JSON with errors"""
+
+    filename: str
+    created_at: str
+    status: str
+    monster_data: Dict[str, Any]
+    validation_errors: List[ValidationErrorDetail]
+    notes: str
+
+
+class ApproveDefectiveRequest(BaseModel):
+    """Request to approve a corrected defective JSON"""
+
+    corrected_data: Dict[str, Any] = Field(..., description="Corrected monster data")
+    notes: str = Field(default="", description="Optional notes from admin")
+
+
+class RejectDefectiveRequest(BaseModel):
+    """Request to reject a defective JSON"""
+
+    reason: str = Field(..., description="Reason for rejection")
+
+
+# ===== Endpoints =====
+
+
+@router.get("/defective", response_model=List[DefectiveJsonSummary])
+async def list_defective_jsons():
+    """
+    List all defective monster JSONs waiting for review
+    """
+    try:
+        defective_list = file_manager.list_defective_jsons()
+        return defective_list
+    except Exception as e:
+        logger.error(f"Error listing defective JSONs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/defective/{filename}", response_model=DefectiveJsonDetail)
+async def get_defective_json(filename: str):
+    """
+    Get full details of a defective JSON including errors
+    """
+    try:
+        if not filename.endswith(".json"):
+            filename += ".json"
+
+        defective_data = file_manager.get_defective_json(filename)
+
+        if not defective_data:
+            raise HTTPException(status_code=404, detail="Defective JSON not found")
+
+        return DefectiveJsonDetail(
+            filename=filename,
+            created_at=defective_data.get("created_at", ""),
+            status=defective_data.get("status", ""),
+            monster_data=defective_data.get("monster_data", {}),
+            validation_errors=defective_data.get("validation_errors", []),
+            notes=defective_data.get("notes", ""),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching defective JSON {filename}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/defective/{filename}/approve")
+async def approve_defective_json(filename: str, request: ApproveDefectiveRequest):
+    """
+    Approve and correct a defective JSON
+    The corrected data will be validated and moved to valid folder if approved
+    """
+    try:
+        if not filename.endswith(".json"):
+            filename += ".json"
+
+        # Validate the corrected data
+        validation_result = validation_service.validate(request.corrected_data)
+
+        if not validation_result.is_valid:
+            # Return validation errors without moving
+            return {
+                "status": "rejected",
+                "reason": "Corrected data still has validation errors",
+                "errors": validation_result.to_dict()["errors"],
+            }
+
+        # Move from defective to valid folder
+        new_path = file_manager.move_defective_to_valid(
+            filename, request.corrected_data
+        )
+
+        logger.info(f"Defective JSON approved and moved: {filename} -> {new_path}")
+
+        return {
+            "status": "approved",
+            "message": f"Monster approved and saved to valid folder",
+            "new_path": new_path,
+            "notes": request.notes,
+        }
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error approving defective JSON {filename}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/defective/{filename}/reject")
+async def reject_defective_json(filename: str, request: RejectDefectiveRequest):
+    """
+    Reject and delete a defective JSON
+    """
+    try:
+        if not filename.endswith(".json"):
+            filename += ".json"
+
+        success = file_manager.delete_defective_json(filename)
+
+        if not success:
+            raise HTTPException(status_code=404, detail="Defective JSON not found")
+
+        logger.info(
+            f"Defective JSON rejected and deleted: {filename}. Reason: {request.reason}"
+        )
+
+        return {
+            "status": "rejected",
+            "message": f"Monster deleted",
+            "reason": request.reason,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error rejecting defective JSON {filename}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/defective/{filename}/update")
+async def update_defective_json(filename: str, request: ApproveDefectiveRequest):
+    """
+    Update a defective JSON with corrections
+    Does not validate yet - allows admin to make multiple updates before approval
+    """
+    try:
+        if not filename.endswith(".json"):
+            filename += ".json"
+
+        updated_path = file_manager.update_defective_json(
+            filename,
+            request.corrected_data,
+            new_status="pending_review",
+            notes=request.notes,
+        )
+
+        if not updated_path:
+            raise HTTPException(status_code=404, detail="Defective JSON not found")
+
+        logger.info(f"Defective JSON updated: {filename}")
+
+        return {
+            "status": "updated",
+            "message": "Monster data updated",
+            "path": updated_path,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating defective JSON {filename}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/defective/{filename}/validate")
+async def validate_defective_json(filename: str):
+    """
+    Validate a defective JSON without approving it
+    Useful to check if corrections are valid
+    """
+    try:
+        if not filename.endswith(".json"):
+            filename += ".json"
+
+        defective_data = file_manager.get_defective_json(filename)
+
+        if not defective_data:
+            raise HTTPException(status_code=404, detail="Defective JSON not found")
+
+        monster_data = defective_data.get("monster_data", {})
+        validation_result = validation_service.validate(monster_data)
+
+        return {
+            "filename": filename,
+            "is_valid": validation_result.is_valid,
+            "validation": validation_result.to_dict(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error validating defective JSON {filename}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/validation-rules")
+async def get_validation_rules():
+    """
+    Get all validation rules for reference
+    Useful for frontend to know constraints
+    """
+    from app.core.config import ValidationRules
+
+    return {
+        "valid_stats": list(ValidationRules.VALID_STATS),
+        "valid_elements": list(ValidationRules.VALID_ELEMENTS),
+        "valid_ranks": list(ValidationRules.VALID_RANKS),
+        "stat_limits": {
+            k: {"min": v[0], "max": v[1]}
+            for k, v in ValidationRules.STAT_LIMITS.items()
+        },
+        "skill_limits": {
+            k: {"min": v[0], "max": v[1]}
+            for k, v in ValidationRules.SKILL_LIMITS.items()
+        },
+        "lvl_max": ValidationRules.LVL_MAX,
+        "max_card_description_length": ValidationRules.MAX_CARD_DESCRIPTION_LENGTH,
+    }

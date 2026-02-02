@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List
+from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Optional, Any
 
 
 class SkillRatio(BaseModel):
@@ -60,8 +60,30 @@ class BatchMonsterRequest(BaseModel):
     )
 
 
+class ValidationErrorDetail(BaseModel):
+    """Detail of a validation error"""
+
+    field: str
+    error_type: str
+    message: str
+
+
 class MonsterResponse(MonsterBase):
     """Complete response with generated assets"""
 
     image_path: str = Field(..., description="Local path to the generated image")
     json_path: str = Field(..., description="Local path to the generated json")
+
+    model_config = ConfigDict(extra="allow")
+
+
+class MonsterWithValidationStatus(BaseModel):
+    """Monster response with validation status"""
+
+    monster: MonsterResponse
+    is_valid: bool = Field(
+        ..., description="Whether the monster passed all validations"
+    )
+    validation_errors: Optional[List[ValidationErrorDetail]] = Field(
+        default=None, description="List of validation errors if is_valid is False"
+    )

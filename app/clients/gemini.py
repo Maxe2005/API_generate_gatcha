@@ -18,7 +18,7 @@ class GeminiClient:
         self.model_name = "gemini-2.0-flash"
 
     async def _execute_prompt(
-        self, prompt: str, retries: int = 3
+        self, prompt: str, retries: int = 5
     ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Generic internal method to execute a prompt and return parsed JSON.
@@ -55,7 +55,8 @@ class GeminiClient:
                     "429" in error_str or "RESOURCE_EXHAUSTED" in error_str
                 ) and attempt < retries - 1:
                     sleep_time = base_delay * (2**attempt)
-                    print(f"⚠️ Gemini Rate Limit. Retrying in {sleep_time}s...")
+                    logger_msg = f"⚠️ Gemini Rate Limit (Attempt {attempt + 1}/{retries}). Retrying in {sleep_time}s..."
+                    print(logger_msg)
                     await asyncio.sleep(sleep_time)
                     continue
 
