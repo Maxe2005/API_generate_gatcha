@@ -1,0 +1,63 @@
+{
+    "nom": "Sagittarius, the Twisted Archer",
+    "element": "FIRE",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 620.0,
+        "atk": 185.0,
+        "def": 85.0,
+        "vit": 130.0
+    },
+    "description_carte": "Once a noble archer, Sagittarius now fires arrows of pure malice, inflicting eternal wounds.",
+    "description_visuelle": "A centaur-like creature with a skeletal horse body and a humanoid torso wreathed in flames. Its bow is made of bone, and its arrows are tipped with dark energy.",
+    "skills": [
+        {
+            "name": "Burning Arrow",
+            "description": "Deals fire damage and applies a burning effect.",
+            "damage": 130.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Piercing Shot",
+            "description": "Deals physical damage and ignores a portion of the target's defense.",
+            "damage": 90.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Volley of Malice",
+            "description": "Attacks all enemies with multiple arrows.",
+            "damage": 70.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.4
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Eternal Wound",
+            "description": "Deals massive fire damage and reduces target's healing.",
+            "damage": 260.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.4
+            },
+            "cooldown": 4.5,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

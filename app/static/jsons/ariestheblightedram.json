@@ -1,0 +1,75 @@
+{
+    "nom": "Aries, the Blighted Ram",
+    "element": "FIRE",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 750.0,
+        "atk": 180.0,
+        "def": 120.0,
+        "vit": 80.0
+    },
+    "description_carte": "Aries, once a symbol of courage, now a monstrous ram consumed by infernal flames and driven by wrath.",
+    "description_visuelle": "A massive, charred ram engulfed in black flames. Its horns are broken and twisted, and its eyes glow with malevolent red light. Ash constantly falls from its fur.",
+    "skills": [
+        {
+            "name": "Infernal Charge",
+            "description": "Aries charges forward, wreathed in flames, dealing heavy damage to the target.",
+            "damage": 220.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Burning Fury",
+            "description": "Aries unleashes a wave of fire around him, damaging all nearby enemies.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Blighted Breath",
+            "description": "Aries exhales a cloud of toxic fumes, poisoning the target and reducing their defense.",
+            "damage": 80.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.3
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Wrathful Rampage",
+            "description": "Aries enters a state of uncontrollable rage, greatly increasing his attack and speed for a short duration.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Cinder Coat",
+            "description": "Aries hardens his burning fur, reducing incoming damage.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.4
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}

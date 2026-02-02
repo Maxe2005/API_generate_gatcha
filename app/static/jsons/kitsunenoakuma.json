@@ -1,0 +1,75 @@
+{
+    "nom": "Kitsune No Akuma",
+    "element": "FIRE",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 750.0,
+        "atk": 180.0,
+        "def": 120.0,
+        "vit": 110.0
+    },
+    "description_carte": "A cunning fox demon, wreathed in hellfire, delights in toying with mortals' desires. Beware her illusions!",
+    "description_visuelle": "Anime style, nine-tailed fox demon. Fiery red fur with black markings, piercing yellow eyes. Wearing ornate gold jewelry. Background: A burning, desolate landscape with twisted trees and swirling embers.",
+    "skills": [
+        {
+            "name": "Foxfire Frenzy",
+            "description": "Unleashes a barrage of fireballs, burning the target and dealing damage over time.",
+            "damage": 120.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Illusionary Shift",
+            "description": "Teleports to a random location, increasing evasion chance for 2 turns.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.3
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Whispers of Temptation",
+            "description": "Charms the target, reducing their attack and defense for 1 turn.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Infernal Tail Sweep (ULTIMATE)",
+            "description": "Summons all nine tails to strike, dealing massive fire damage to all enemies.",
+            "damage": 350.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Agile Movement",
+            "description": "Increases own speed for 2 turns.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.4
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}

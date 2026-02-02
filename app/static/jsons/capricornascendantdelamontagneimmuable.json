@@ -1,0 +1,63 @@
+{
+    "nom": "Capricorn, Ascendant de la Montagne Immuable",
+    "element": "EARTH",
+    "rang": "RARE",
+    "stats": {
+        "hp": 950.0,
+        "atk": 90.0,
+        "def": 180.0,
+        "vit": 40.0
+    },
+    "description_carte": "L'Ascendant de la Montagne, symbole de persévérance et d'ambition. Sa détermination est sans faille.",
+    "description_visuelle": "Capricorn is a mountain goat with scales and a fishtail, standing atop a towering, snow-capped peak.",
+    "skills": [
+        {
+            "name": "Charge Rocheuse",
+            "description": "Inflige des dégâts à un ennemi.",
+            "damage": 120.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Défense Immuable",
+            "description": "Augmente considérablement la défense de Capricorn.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.8
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Croc de la Montagne",
+            "description": "Inflige des dégâts basés sur sa défense à un ennemi.",
+            "damage": 80.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.4
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Avalanche",
+            "description": "Inflige des dégâts à tous les ennemis et réduit leur vitesse.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        }
+    ]
+}

@@ -1,0 +1,63 @@
+{
+    "nom": "Cancer, Protecteur des Marées Lunaires",
+    "element": "WATER",
+    "rang": "RARE",
+    "stats": {
+        "hp": 750.0,
+        "atk": 110.0,
+        "def": 140.0,
+        "vit": 60.0
+    },
+    "description_carte": "Le Protecteur des Marées Lunaires, gardien des océans et des secrets qu'ils recèlent. Ses pinces sont acérées.",
+    "description_visuelle": "Cancer is a giant crab with a shell adorned with pearls and coral. He controls the tides with his powerful claws.",
+    "skills": [
+        {
+            "name": "Pince Broyeuse",
+            "description": "Attaque avec les pinces qui inflige des dégâts et peut réduire la défense.",
+            "damage": 75.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 1.5,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Bouclier d'Eau",
+            "description": "Crée un bouclier d'eau qui absorbe les dégâts.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Vague de Fond",
+            "description": "Inflige des dégâts et ralentit les ennemis.",
+            "damage": 60.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.4
+            },
+            "cooldown": 2.5,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Marée Lunaire",
+            "description": "Une vague massive qui inflige des dégâts et repousse les ennemis.",
+            "damage": 180.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.9
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

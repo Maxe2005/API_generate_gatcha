@@ -1,0 +1,75 @@
+{
+    "nom": "Scorpio, Seigneur des Abysses Venimeuses",
+    "element": "DARKNESS",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 800.0,
+        "atk": 175.0,
+        "def": 110.0,
+        "vit": 100.0
+    },
+    "description_carte": "Le Seigneur des Abysses, maître du venin et des ombres. Sa piqûre est mortelle.",
+    "description_visuelle": "Scorpio is a giant scorpion with a dark, chitinous exoskeleton and glowing red eyes. He lurks in a shadowy abyss, ready to strike.",
+    "skills": [
+        {
+            "name": "Piqûre Venimeuse",
+            "description": "Inflige des dégâts et empoisonne un ennemi.",
+            "damage": 200.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Ombres Rampantes",
+            "description": "Augmente l'attaque de Scorpio et réduit la défense d'un ennemi.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Armure Chitinous",
+            "description": "Augmente la défense de Scorpio et lui confère une résistance aux dégâts.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.7
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Torrent de Venin",
+            "description": "Inflige des dégâts massifs à tous les ennemis et les empoisonne.",
+            "damage": 320.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.1
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Regard des Abysses",
+            "description": "Réduit la vitesse de tous les ennemis.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.3
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        }
+    ]
+}

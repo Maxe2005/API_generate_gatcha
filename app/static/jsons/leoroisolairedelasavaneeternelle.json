@@ -1,0 +1,63 @@
+{
+    "nom": "Leo, Roi Solaire de la Savane Éternelle",
+    "element": "FIRE",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 900.0,
+        "atk": 190.0,
+        "def": 130.0,
+        "vit": 90.0
+    },
+    "description_carte": "Le Roi Solaire, souverain de la savane éternelle. Son rugissement fait trembler les cieux.",
+    "description_visuelle": "Leo is a majestic lion with a mane of pure sunlight and piercing golden eyes. He roars from a high rocky outcrop.",
+    "skills": [
+        {
+            "name": "Griffe de Feu",
+            "description": "Attaque rapide avec les griffes enflammées.",
+            "damage": 100.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Rugissement Solaire",
+            "description": "Un rugissement qui augmente l'attaque des alliés.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.3
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Crinière Flamboyante",
+            "description": "Augmente la résistance au feu et inflige des dégâts aux attaquants.",
+            "damage": 40.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Jugement Solaire",
+            "description": "Une explosion de lumière solaire qui inflige des dégâts massifs et aveugle les ennemis.",
+            "damage": 350.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.4
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        }
+    ]
+}

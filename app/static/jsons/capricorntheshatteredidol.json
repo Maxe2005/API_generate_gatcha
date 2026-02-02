@@ -1,0 +1,75 @@
+{
+    "nom": "Capricorn, the Shattered Idol",
+    "element": "EARTH",
+    "rang": "RARE",
+    "stats": {
+        "hp": 850.0,
+        "atk": 80.0,
+        "def": 160.0,
+        "vit": 20.0
+    },
+    "description_carte": "Capricorn, a fallen deity, guards ancient secrets and crushing despair within its crumbling form.",
+    "description_visuelle": "A towering statue of a goat-headed figure, cracked and broken. Moss and fungi grow across its surface. Its eyes glow with a faint, unsettling light.",
+    "skills": [
+        {
+            "name": "Stone Shard",
+            "description": "Deals earth damage and has a chance to apply bleed.",
+            "damage": 60.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 1.5,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Earthen Bulwark",
+            "description": "Increases Capricorn's defense.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.6
+            },
+            "cooldown": 2.5,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Crushing Despair",
+            "description": "Deals earth damage based on Capricorn's HP and DEF.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Idol's Fall",
+            "description": "Deals earth damage to all enemies and reduces their vit.",
+            "damage": 100.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.8
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Unmoving Stance",
+            "description": "Increases Capricorn's defense and reduces vit.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.4
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}

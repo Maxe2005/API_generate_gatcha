@@ -1,0 +1,63 @@
+{
+    "nom": "Cancer, the Carapace King",
+    "element": "WATER",
+    "rang": "RARE",
+    "stats": {
+        "hp": 800.0,
+        "atk": 90.0,
+        "def": 150.0,
+        "vit": 40.0
+    },
+    "description_carte": "Cancer dwells in the abyssal depths, a monstrous crab whose shell is adorned with the faces of the drowned.",
+    "description_visuelle": "A giant, bioluminescent crab with a shell covered in screaming, ghostly faces. Its claws drip with corrosive seawater.",
+    "skills": [
+        {
+            "name": "Crushing Claw",
+            "description": "Cancer delivers a powerful claw strike, dealing heavy damage and applying a bleed effect.",
+            "damage": 120.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Corrosive Spray",
+            "description": "Cancer sprays a jet of corrosive seawater, dealing damage over time.",
+            "damage": 60.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.4
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Haunted Shell",
+            "description": "The faces on Cancer's shell unleash a wave of fear, reducing the target's attack.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Abyssal Fortification",
+            "description": "Cancer hardens his shell, greatly increasing his defense.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.6
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

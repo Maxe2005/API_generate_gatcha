@@ -1,0 +1,63 @@
+{
+    "nom": "Virgo, the Corrupted Harvest",
+    "element": "EARTH",
+    "rang": "RARE",
+    "stats": {
+        "hp": 650.0,
+        "atk": 100.0,
+        "def": 130.0,
+        "vit": 70.0
+    },
+    "description_carte": "Virgo watches over a blighted harvest. Where she treads, only thorns and rot remain.",
+    "description_visuelle": "A gaunt woman with thorny vines coiling around her limbs. Her eyes are hollow, and she carries a scythe dripping with black ichor. Dead flowers sprout from her hair.",
+    "skills": [
+        {
+            "name": "Rotting Touch",
+            "description": "Deals earth damage and applies a poison effect.",
+            "damage": 80.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Thorny Embrace",
+            "description": "Deals damage based on defense and heals Virgo.",
+            "damage": 50.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Withering Gaze",
+            "description": "Reduces the target's attack.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.3
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Harvest of Despair",
+            "description": "Deals massive earth damage to all enemies, with a chance to apply poison.",
+            "damage": 200.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.0
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

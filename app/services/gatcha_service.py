@@ -121,25 +121,57 @@ class GatchaService:
         3. Generate images (sequentially)
         All with validation
         """
+        logger.info(
+            f"🚀 Starting batch generation for {n} monsters (Prompt: '{prompt}')."
+        )
+
         # Step 1: Brainstorming
+        logger.info("Step 1/3: Brainstorming concepts...")
         monsters_base = await self.gemini_client.generate_batch_brainstorm(n, prompt)
+        logger.info(
+            f"✅ Brainstorming complete: {len(monsters_base)} concepts generated."
+        )
 
         # Step 2: Skills generation (Chunked)
+        logger.info("Step 2/3: Generating Details & Skills (Chunked)...")
         monsters_complete = []
-        chunk_size = 2
-        for i in range(0, len(monsters_base), chunk_size):
-            # Add delay between chunks to avoid rate limits
-            if i > 0:
-                await asyncio.sleep(2)
+        chunk_size = 5
+        total_base = len(monsters_base)
+
+        for i in range(0, total_base, chunk_size):
+            # Progress Log
+            chunk_num = (i // chunk_size) + 1
+            total_chunks = (total_base + chunk_size - 1) // chunk_size
+            percent = int((i / total_base) * 100)
+            bar = "▓" * (percent // 5) + "░" * (20 - (percent // 5))
+            logger.info(
+                f"   Skills Progress: [{bar}] {percent}% (Chunk {chunk_num}/{total_chunks})"
+            )
 
             chunk = monsters_base[i : i + chunk_size]
             chunk_with_skills = await self.gemini_client.generate_batch_skills(chunk)
             monsters_complete.extend(chunk_with_skills)
 
+        logger.info(f"   Skills Progress: [{'▓' * 20}] 100% - Skills generated.")
+
         # Step 3: Image generation & Saving (Sequentially for now to be safe, could be gathered)
+        logger.info("Step 3/3: Generating Images & Saving...")
         result_responses = []
-        for monster_data in monsters_complete:
+        total_monsters = len(monsters_complete)
+
+        for idx, monster_data in enumerate(monsters_complete, 1):
+            # Progress Log
+            percent = int(((idx - 1) / total_monsters) * 100)
+            bar = "▓" * (percent // 5) + "░" * (20 - (percent // 5))
+            monster_name = monster_data.get("nom", "Unknown")
+            logger.info(
+                f"   Assets Progress: [{bar}] {percent}% - Processing '{monster_name}' ({idx}/{total_monsters})"
+            )
+
             response = await self._process_monster_asset(monster_data, prompt)
             result_responses.append(response)
+
+        logger.info(f"   Assets Progress: [{'▓' * 20}] 100% - Batch Complete.")
+        logger.info("🎉 Batch generation finished successfully.")
 
         return result_responses

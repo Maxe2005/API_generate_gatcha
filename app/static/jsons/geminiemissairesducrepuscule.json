@@ -1,0 +1,63 @@
+{
+    "nom": "Gemini, Émissaires du Crépuscule",
+    "element": "DARKNESS",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 600.0,
+        "atk": 160.0,
+        "def": 80.0,
+        "vit": 140.0
+    },
+    "description_carte": "Les Émissaires du Crépuscule, deux êtres liés par un destin obscur. Leur dualité est leur force.",
+    "description_visuelle": "Gemini are two ethereal figures, one bathed in shadows, the other in starlight, connected by a swirling vortex of darkness. They emanate mystery.",
+    "skills": [
+        {
+            "name": "Danse des Ombres",
+            "description": "Attaque rapide avec une chance d'infliger des dégâts supplémentaires.",
+            "damage": 80.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Lien Astral",
+            "description": "Partage une partie des dégâts subis avec un allié.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.2
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Voile de Ténèbres",
+            "description": "Augmente l'évasion temporairement.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.5
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Convergence Nocturne",
+            "description": "Une attaque combinée qui inflige d'énormes dégâts et réduit la vitesse de l'ennemi.",
+            "damage": 250.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.5
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

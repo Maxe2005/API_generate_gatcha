@@ -1,0 +1,75 @@
+{
+    "nom": "Ophiuchus, the Forgotten Serpent",
+    "element": "WIND",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 500.0,
+        "atk": 200.0,
+        "def": 50.0,
+        "vit": 150.0
+    },
+    "description_carte": "A constellation forgotten, Ophiuchus strikes from nowhere. Venomous fangs hide in a whirlwind of death.",
+    "description_visuelle": "A serpentine figure shrouded in a cyclone of dark, swirling wind. Only its glowing red eyes and venomous fangs are visible within the storm.",
+    "skills": [
+        {
+            "name": "Venomous Strike",
+            "description": "A quick attack that poisons the target.",
+            "damage": 80.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.9
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Cyclone Shield",
+            "description": "Creates a swirling shield of wind, increasing VIT and evasion.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.3
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Forgotten Fury",
+            "description": "Unleashes a flurry of attacks, dealing moderate damage to a single target.",
+            "damage": 50.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Serpent's Gaze",
+            "description": "Paralyzes the target with a hypnotic stare.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.5
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Wind of Oblivion",
+            "description": "Summons a devastating windstorm that deals massive damage to all enemies and reduces their ATK.",
+            "damage": 180.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.0
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        }
+    ]
+}

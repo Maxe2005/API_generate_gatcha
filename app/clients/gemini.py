@@ -16,6 +16,7 @@ class GeminiClient:
         settings = get_settings()
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
         self.model_name = "gemini-2.0-flash"
+        self._lock = asyncio.Lock()
 
     async def _execute_prompt(
         self, prompt: str, retries: int = 5
@@ -33,37 +34,38 @@ class GeminiClient:
                 contents=prompt,
             )
 
-        for attempt in range(retries):
-            try:
-                # Use executor to avoid blocking the event loop
-                response = await loop.run_in_executor(None, _generate)
+        async with self._lock:
+            for attempt in range(retries):
+                try:
+                    # Use executor to avoid blocking the event loop
+                    response = await loop.run_in_executor(None, _generate)
 
-                if not response.text:
-                    raise ValueError("Empty response from Gemini")
+                    if not response.text:
+                        raise ValueError("Empty response from Gemini")
 
-                # Parse and Clean JSON
-                text_response = response.text
-                clean_json = (
-                    text_response.replace("```json", "").replace("```", "").strip()
-                )
-                return json.loads(clean_json)
+                    # Parse and Clean JSON
+                    text_response = response.text
+                    clean_json = (
+                        text_response.replace("```json", "").replace("```", "").strip()
+                    )
+                    return json.loads(clean_json)
 
-            except Exception as e:
-                error_str = str(e)
-                # Retry logic for Rate Limits or server errors
-                if (
-                    "429" in error_str or "RESOURCE_EXHAUSTED" in error_str
-                ) and attempt < retries - 1:
-                    sleep_time = base_delay * (2**attempt)
-                    logger_msg = f"⚠️ Gemini Rate Limit (Attempt {attempt + 1}/{retries}). Retrying in {sleep_time}s..."
-                    print(logger_msg)
-                    await asyncio.sleep(sleep_time)
-                    continue
+                except Exception as e:
+                    error_str = str(e)
+                    # Retry logic for Rate Limits or server errors
+                    if (
+                        "429" in error_str or "RESOURCE_EXHAUSTED" in error_str
+                    ) and attempt < retries - 1:
+                        sleep_time = base_delay * (2**attempt)
+                        logger_msg = f"⚠️ Gemini Rate Limit (Attempt {attempt + 1}/{retries}). Retrying in {sleep_time}s..."
+                        print(logger_msg)
+                        await asyncio.sleep(sleep_time)
+                        continue
 
-                if attempt == retries - 1:
-                    raise Exception(
-                        f"Gemini Execution Error after {retries} attempts: {str(e)}"
-                    ) from e
+                    if attempt == retries - 1:
+                        raise Exception(
+                            f"Gemini Execution Error after {retries} attempts: {str(e)}"
+                        ) from e
 
         raise Exception("Gemini Execution failed unexpectedly")
 

@@ -1,0 +1,63 @@
+{
+    "nom": "Virgo, Déesse de la Moisson Céleste",
+    "element": "EARTH",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 650.0,
+        "atk": 140.0,
+        "def": 100.0,
+        "vit": 120.0
+    },
+    "description_carte": "La Déesse de la Moisson, garante de la fertilité et de l'abondance. Sa présence est source de vie.",
+    "description_visuelle": "Virgo is a graceful woman with wings made of wheat stalks, carrying a cornucopia overflowing with fruits and flowers. She radiates serenity.",
+    "skills": [
+        {
+            "name": "Bénédiction de la Terre",
+            "description": "Soigne tous les alliés avec la puissance de la terre.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Moisson Abondante",
+            "description": "Inflige des dégâts à un ennemi et soigne Virgo.",
+            "damage": 220.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Don de Fertilité",
+            "description": "Augmente l'attaque et la défense de tous les alliés.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.3
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Colère de la Moisson",
+            "description": "Inflige d'énormes dégâts à tous les ennemis. Peut infliger Saignement.",
+            "damage": 350.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.0
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

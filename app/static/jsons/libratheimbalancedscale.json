@@ -1,0 +1,75 @@
+{
+    "nom": "Libra, the Imbalanced Scale",
+    "element": "DARKNESS",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 550.0,
+        "atk": 160.0,
+        "def": 90.0,
+        "vit": 100.0
+    },
+    "description_carte": "Libra judges with a corrupted scale. Justice is a forgotten concept in her dark domain.",
+    "description_visuelle": "A blindfolded figure holding a pair of scales. One side is overflowing with gold and jewels, the other is empty and stained with blood. Black smoke emanates from the scales.",
+    "skills": [
+        {
+            "name": "Dark Judgment",
+            "description": "Deals darkness damage based on target's missing HP.",
+            "damage": 120.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 1.5,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Siphon Life",
+            "description": "Deals darkness damage and heals Libra.",
+            "damage": 70.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.4
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Veil of Shadows",
+            "description": "Increases Libra's vit and evasion chance.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Balance of Souls",
+            "description": "Deals massive darkness damage and applies a debuff that increases damage taken.",
+            "damage": 250.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 4.5,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Whispers of Doubt",
+            "description": "Reduces the target's attack and defense.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.2
+            },
+            "cooldown": 3.5,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}

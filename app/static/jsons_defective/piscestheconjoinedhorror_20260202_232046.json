@@ -1,0 +1,87 @@
+{
+    "created_at": "2026-02-02T23:20:46.248685",
+    "status": "pending_review",
+    "monster_data": {
+        "nom": "Pisces, the Conjoined Horror",
+        "element": "DARKNESS",
+        "rang": "EPIC",
+        "stats": {
+            "hp": 720.0,
+            "atk": 140.0,
+            "def": 110.0,
+            "vit": 60.0
+        },
+        "description_carte": "Two fish, eternally bound and twisted into a single, monstrous entity. Their minds are a vortex of madness.",
+        "description_visuelle": "Two decaying fish fused together at the tail, forming a grotesque spiral. Their eyes are milky white, and they emit a constant, chilling gurgle.",
+        "skills": [
+            {
+                "name": "Dual Bite",
+                "description": "Attacks twice, dealing moderate damage each time.",
+                "damage": 60.0,
+                "ratio": {
+                    "stat": "ATK",
+                    "percent": 0.6
+                },
+                "cooldown": 1.0,
+                "lvlMax": 5.0,
+                "rank": "COMMON"
+            },
+            {
+                "name": "Psychic Gurgle",
+                "description": "Inflicts a mental attack, causing confusion and reducing ATK.",
+                "damage": 30.0,
+                "ratio": {
+                    "stat": "VIT",
+                    "percent": 0.4
+                },
+                "cooldown": 2.0,
+                "lvlMax": 5.0,
+                "rank": "RARE"
+            },
+            {
+                "name": "Shadow Mend",
+                "description": "Drains health to restore HP.",
+                "damage": -100.0,
+                "ratio": {
+                    "stat": "HP",
+                    "percent": 0.1
+                },
+                "cooldown": 3.0,
+                "lvlMax": 5.0,
+                "rank": "EPIC"
+            },
+            {
+                "name": "Abyssal Scream",
+                "description": "A terrifying scream that deals massive damage to all enemies and lowers their DEF.",
+                "damage": 120.0,
+                "ratio": {
+                    "stat": "ATK",
+                    "percent": 1.5
+                },
+                "cooldown": 5.0,
+                "lvlMax": 5.0,
+                "rank": "EPIC"
+            },
+            {
+                "name": "Conjoined Agony",
+                "description": "Deals massive damage and applies bleed to a single target.",
+                "damage": 250.0,
+                "ratio": {
+                    "stat": "ATK",
+                    "percent": 0.7
+                },
+                "cooldown": 4.0,
+                "lvlMax": 5.0,
+                "rank": "LEGENDARY"
+            }
+        ]
+    },
+    "validation_errors": [
+        {
+            "field": "skills[2].damage",
+            "error_type": "value_out_of_range",
+            "message": "Value -100.0 out of range [0.0, 500.0]"
+        }
+    ],
+    "notes": ""
+}

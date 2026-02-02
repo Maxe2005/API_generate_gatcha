@@ -1,0 +1,63 @@
+{
+    "nom": "Ophiuchus, Serpentaire du Firmament",
+    "element": "WIND",
+    "rang": "COMMON",
+    "stats": {
+        "hp": 400.0,
+        "atk": 100.0,
+        "def": 50.0,
+        "vit": 60.0
+    },
+    "description_carte": "Ophiuchus, guérisseur et gardien du temps. Son lien avec le serpent céleste lui confère un pouvoir mystérieux.",
+    "description_visuelle": "A hooded figure intertwined with a large, iridescent serpent, holding a staff topped with a celestial jewel. His gaze is knowing and serene.",
+    "skills": [
+        {
+            "name": "Caresse du Serpent",
+            "description": "Une attaque rapide du serpent qui inflige des dégâts légers.",
+            "damage": 80.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.4
+            },
+            "cooldown": 0.5,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Souffle Vital",
+            "description": "Soigne un allié avec un souffle de vie régénérant.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.2
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Sagesse du Temps",
+            "description": "Augmente la défense d'un allié en manipulant le flux du temps.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.4
+            },
+            "cooldown": 2.5,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Étreinte Astrale",
+            "description": "Le serpent enserre un ennemi, infligeant des dégâts et réduisant son attaque.",
+            "damage": 120.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 3.5,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        }
+    ]
+}

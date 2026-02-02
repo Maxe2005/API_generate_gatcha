@@ -1,0 +1,75 @@
+{
+    "nom": "Taurus, the Ironclad Bull",
+    "element": "EARTH",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 900.0,
+        "atk": 150.0,
+        "def": 170.0,
+        "vit": 30.0
+    },
+    "description_carte": "Taurus, imprisoned in corrupted earth, embodies stubbornness and impenetrable defense. Its hide is living stone.",
+    "description_visuelle": "A colossal bull made of dark, jagged obsidian. Metallic veins pulse beneath its rocky hide. Its eyes are deep pits of shadow.",
+    "skills": [
+        {
+            "name": "Earth Shatter",
+            "description": "Taurus slams the ground, creating a shockwave that damages and stuns nearby enemies.",
+            "damage": 180.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Ironclad Stance",
+            "description": "Taurus hardens his rocky hide, greatly increasing his defense for a short duration.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.8
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Obsidian Charge",
+            "description": "Taurus charges forward, dealing damage and knocking back the target.",
+            "damage": 140.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Living Bulwark",
+            "description": "Taurus uses his immense defenses to protect an ally, absorbing a portion of the damage they take.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Stone Skin",
+            "description": "Passively increases Taurus's defense.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.2
+            },
+            "cooldown": 0.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}

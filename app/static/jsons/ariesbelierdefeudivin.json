@@ -1,0 +1,63 @@
+{
+    "nom": "Aries, Bélier de Feu Divin",
+    "element": "FIRE",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 850.0,
+        "atk": 185.0,
+        "def": 120.0,
+        "vit": 110.0
+    },
+    "description_carte": "Le Bélier de Feu Divin, incarnation de la volonté et de la passion. Sa charge enflammée détruit tout sur son passage.",
+    "description_visuelle": "Aries is a majestic ram engulfed in divine flames, with golden horns and a determined expression. He stands on a volcanic landscape.",
+    "skills": [
+        {
+            "name": "Charge Ardente",
+            "description": "Une charge rapide qui inflige des dégâts de feu.",
+            "damage": 120.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Brasier Divin",
+            "description": "Crée une zone de feu intense qui brûle les ennemis.",
+            "damage": 80.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Volonté de Fer",
+            "description": "Augmente temporairement la défense et la vitesse.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.4
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Flammes Purificatrices",
+            "description": "Une puissante attaque de feu qui inflige des dégâts massifs et réduit la défense de l'ennemi.",
+            "damage": 300.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        }
+    ]
+}

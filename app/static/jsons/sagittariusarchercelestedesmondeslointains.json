@@ -1,0 +1,75 @@
+{
+    "nom": "Sagittarius, Archer Céleste des Mondes Lointains",
+    "element": "WIND",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 500.0,
+        "atk": 200.0,
+        "def": 70.0,
+        "vit": 150.0
+    },
+    "description_carte": "L'Archer Céleste, voyageur infatigable à travers les mondes. Sa flèche ne manque jamais sa cible.",
+    "description_visuelle": "Sagittarius is a centaur archer with a bow made of starlight. He fires arrows towards distant galaxies.",
+    "skills": [
+        {
+            "name": "Flèche Étoilée",
+            "description": "Inflige des dégâts massifs à un ennemi.",
+            "damage": 250.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.0
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Vitesse Céleste",
+            "description": "Augmente la vitesse de Sagittarius.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.5
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Pluie de Comètes",
+            "description": "Inflige des dégâts à tous les ennemis.",
+            "damage": 180.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Tir Transcendantal",
+            "description": "Inflige d'énormes dégâts à un ennemi, ignorant sa défense.",
+            "damage": 400.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.5
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Vent Guérisseur",
+            "description": "Soigne un allié avec l'énergie du vent.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.4
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}

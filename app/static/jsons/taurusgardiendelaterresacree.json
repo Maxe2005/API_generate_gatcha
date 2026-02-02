@@ -1,0 +1,63 @@
+{
+    "nom": "Taurus, Gardien de la Terre Sacrée",
+    "element": "EARTH",
+    "rang": "RARE",
+    "stats": {
+        "hp": 700.0,
+        "atk": 130.0,
+        "def": 150.0,
+        "vit": 50.0
+    },
+    "description_carte": "Le Gardien de la Terre Sacrée, protecteur de la nature et de ses richesses. Sa force est inébranlable.",
+    "description_visuelle": "Taurus is a muscular bull with moss-covered skin and glowing green eyes. He guards a lush, hidden grove.",
+    "skills": [
+        {
+            "name": "Coup de Corne",
+            "description": "Une attaque physique puissante.",
+            "damage": 90.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Mur de Pierre",
+            "description": "Augmente considérablement la défense.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.7
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Rugissement Tellurique",
+            "description": "Un rugissement qui étourdit les ennemis proches.",
+            "damage": 30.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Colère de la Terre",
+            "description": "Une attaque dévastatrice qui inflige des dégâts basés sur la défense.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 1.1
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

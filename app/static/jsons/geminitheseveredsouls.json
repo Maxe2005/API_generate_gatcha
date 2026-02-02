@@ -1,0 +1,75 @@
+{
+    "nom": "Gemini, the Severed Souls",
+    "element": "DARKNESS",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 600.0,
+        "atk": 190.0,
+        "def": 80.0,
+        "vit": 120.0
+    },
+    "description_carte": "Two entities bound by shadow, Gemini represent duality and deception. Their forms flicker in and out of existence.",
+    "description_visuelle": "Two ghostly figures connected at the spine by tendrils of darkness. One is gaunt and skeletal, the other bloated and decaying. They whisper constantly to each other.",
+    "skills": [
+        {
+            "name": "Shadow Barrage",
+            "description": "The Gemini launch a flurry of shadowy projectiles at the target.",
+            "damage": 120.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.4
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Soul Drain",
+            "description": "The Gemini siphon life force from the target, dealing damage and healing themselves.",
+            "damage": 100.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.3
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Phantom Shift",
+            "description": "The Gemini briefly become invulnerable, dodging the next attack.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.1
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Dark Pact",
+            "description": "One Gemini sacrifices a portion of their HP to empower the other, greatly increasing their attack.",
+            "damage": 50.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.9
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Whispers of Doubt",
+            "description": "The Gemini assault the target's mind, reducing their attack.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.2
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}

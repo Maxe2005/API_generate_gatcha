@@ -1,0 +1,63 @@
+{
+    "nom": "Libra, Juge des Étoiles Équilibrées",
+    "element": "LIGHT",
+    "rang": "RARE",
+    "stats": {
+        "hp": 550.0,
+        "atk": 120.0,
+        "def": 120.0,
+        "vit": 110.0
+    },
+    "description_carte": "Le Juge des Étoiles, gardien de l'équilibre cosmique. Sa justice est implacable.",
+    "description_visuelle": "Libra is a pair of scales made of celestial metal, perfectly balanced, floating in a starry void. A blindfolded figure stands behind them.",
+    "skills": [
+        {
+            "name": "Jugement Lumineux",
+            "description": "Inflige des dégâts de lumière à un ennemi.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Balance Cosmique",
+            "description": "Réduit l'attaque d'un ennemi et augmente la défense d'un allié.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.4
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Équilibre Parfait",
+            "description": "Soigne tous les alliés d'un montant basé sur sa défense.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.6
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Verdict Céleste",
+            "description": "Inflige des dégâts massifs à un ennemi et réduit sa vitesse.",
+            "damage": 280.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        }
+    ]
+}

@@ -1,0 +1,75 @@
+{
+    "nom": "Aquarius, Porteur des Eaux de la Sagesse",
+    "element": "WATER",
+    "rang": "LEGENDARY",
+    "stats": {
+        "hp": 700.0,
+        "atk": 150.0,
+        "def": 90.0,
+        "vit": 130.0
+    },
+    "description_carte": "Le Porteur des Eaux, dispensateur de sagesse et de connaissance. Ses flots purifient les âmes.",
+    "description_visuelle": "Aquarius is a humanoid figure pouring water from a celestial urn, creating rivers of starlight. He embodies enlightenment.",
+    "skills": [
+        {
+            "name": "Cascade de Lumière",
+            "description": "Une vague d'eau céleste inflige des dégâts et augmente la défense.",
+            "damage": 180.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Purification des Âmes",
+            "description": "Soigne les alliés avec l'eau sacrée et élimine les effets négatifs.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.3
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Flux de la Sagesse",
+            "description": "Augmente la vitesse de toute l'équipe grâce à la puissance de l'eau.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.4
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Déluge Étoilé",
+            "description": "Un torrent d'eau cosmique dévaste les ennemis avec la puissance des étoiles.",
+            "damage": 350.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Armure Aquatique",
+            "description": "Confère un bouclier d'eau protecteur à un allié.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.8
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}

@@ -1,0 +1,63 @@
+{
+    "nom": "Aquarius, the Drowned Deliverer",
+    "element": "WATER",
+    "rang": "RARE",
+    "stats": {
+        "hp": 580.0,
+        "atk": 110.0,
+        "def": 120.0,
+        "vit": 110.0
+    },
+    "description_carte": "Aquarius brings not salvation, but a flood of despair. His waters drown all hope.",
+    "description_visuelle": "A humanoid figure draped in seaweed and decaying cloth. Water streams endlessly from a cracked urn he carries. His face is obscured by barnacles and coral.",
+    "skills": [
+        {
+            "name": "Tidal Surge",
+            "description": "Unleashes a powerful wave, damaging the target and reducing their VIT.",
+            "damage": 75.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Drowning Grasp",
+            "description": "Attempts to drown the target, dealing damage over time.",
+            "damage": 20.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.2
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Murky Veil",
+            "description": "Creates a veil of murky water, increasing DEF for a short time.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Abyssal Torrent",
+            "description": "Summons a massive torrent from the deep, dealing massive damage to all enemies.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        }
+    ]
+}

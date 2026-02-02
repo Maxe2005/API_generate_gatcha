@@ -1,0 +1,75 @@
+{
+    "nom": "Leo, the Shadowmane",
+    "element": "DARKNESS",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 700.0,
+        "atk": 170.0,
+        "def": 100.0,
+        "vit": 90.0
+    },
+    "description_carte": "Leo, a king dethroned, now stalks the shadows. His roar brings despair, his claws rend souls.",
+    "description_visuelle": "A lion wreathed in shadows, with glowing red eyes and a mane of pure darkness. Spectral claws extend from its paws.",
+    "skills": [
+        {
+            "name": "Shadow Claw",
+            "description": "Leo strikes with claws of pure darkness, dealing significant damage.",
+            "damage": 190.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Despair Roar",
+            "description": "Leo lets out a deafening roar that weaken all enemies reducing their damage.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.2
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Night Stalker",
+            "description": "Leo enters the shadows, becoming invisible for a short time.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.1
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Soul Rend",
+            "description": "Leo's claws tear at the soul, dealing damage and weakening the target's defenses.",
+            "damage": 130.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 4.0,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Shadowmane Aura",
+            "description": "Leo passively gains increased attack damage.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.2
+            },
+            "cooldown": 0.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}

@@ -1,0 +1,75 @@
+{
+    "nom": "Pisces, Danseurs des Rêves Aquatiques",
+    "element": "WATER",
+    "rang": "EPIC",
+    "stats": {
+        "hp": 600.0,
+        "atk": 135.0,
+        "def": 85.0,
+        "vit": 145.0
+    },
+    "description_carte": "Les Danseurs des Rêves, êtres insaisissables qui naviguent dans les songes. Leur harmonie est envoûtante.",
+    "description_visuelle": "Pisces are two ethereal fish swimming in opposite directions, connected by a shimmering thread of moonlight. They represent dreams and intuition.",
+    "skills": [
+        {
+            "name": "Valse des Rêves",
+            "description": "Attaque en tournoyant, infligeant des dégâts et diminuant la précision.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 1.5,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Harmonie Lunaire",
+            "description": "Soigne légèrement toute l'équipe en partageant l'énergie des rêves.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.25
+            },
+            "cooldown": 2.5,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Illusion Aquatique",
+            "description": "Crée une illusion qui attire les attaques ennemies.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5.0,
+            "rank": "RARE"
+        },
+        {
+            "name": "Marée Onirique",
+            "description": "Une vague de rêves submerge les ennemis, causant d'énormes dégâts et les endormant.",
+            "damage": 300.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.1
+            },
+            "cooldown": 4.5,
+            "lvlMax": 5.0,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Nage Rapide",
+            "description": "Augmente temporairement la vitesse d'un allié.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.7
+            },
+            "cooldown": 1.0,
+            "lvlMax": 5.0,
+            "rank": "COMMON"
+        }
+    ]
+}
