@@ -1,11 +1,20 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
-from app.api.v1.endpoints import gatcha, nano_banana, admin
+from app.api.v1.endpoints import gatcha, nano_banana, admin, transmission
 from app.core.config import get_settings
 import os
+import logging
 
 settings = get_settings()
+
+# Setup logging
+os.makedirs("logs", exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("logs/app.log"), logging.StreamHandler()],
+)
 
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
@@ -15,6 +24,7 @@ app = FastAPI(
 os.makedirs("app/static/images", exist_ok=True)
 os.makedirs("app/static/jsons", exist_ok=True)
 os.makedirs(settings.DEFECTIVE_JSONS_DIR, exist_ok=True)
+os.makedirs(settings.METADATA_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(
@@ -29,6 +39,11 @@ app.include_router(
     admin.router,
     prefix=f"{settings.API_V1_STR}/admin",
     tags=["admin"],
+)
+app.include_router(
+    transmission.router,
+    prefix=f"{settings.API_V1_STR}/transmission",
+    tags=["transmission"],
 )
 
 
