@@ -5,6 +5,7 @@ __pycache__/
 venv/
 env/
 .env
+.env.docker
 .DS_Store
 .coverage
 htmlcov/
@@ -13,3 +14,4 @@ build/
 *.egg-info/
 minio_data/
 classic_images_generated/
+logs/
