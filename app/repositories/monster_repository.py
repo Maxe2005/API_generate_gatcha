@@ -2,64 +2,70 @@
 Module: monster_repository
 
 Description:
-Gère la persistance des monstres et de leurs métadonnées.
-
-Author: Copilot
-Date: 2026-02-08
+Gère la persistance des monstres et de leurs métadonnées via PostgreSQL.
 """
 
-import json
-from pathlib import Path
 from typing import Optional, List, Dict, Any
-from datetime import datetime
 import logging
+from datetime import datetime
+from sqlalchemy.orm import Session
+from sqlalchemy import func
 
-from app.schemas.metadata import MonsterMetadata, MonsterWithMetadata
+from app.schemas.metadata import MonsterMetadata, MonsterWithMetadata, StateTransition
 from app.schemas.monster import MonsterState
+from app.models.monster_model import Monster, StateTransitionModel, MonsterStateEnum
 
 logger = logging.getLogger(__name__)
 
 
 class MonsterRepository:
     """
-    Gère la persistance des monstres et de leurs métadonnées.
-    Actuellement utilise JSON, mais architecture prête pour une vraie DB.
+    Gère la persistance des monstres et de leurs métadonnées via PostgreSQL.
     """
 
-    def __init__(self, base_path: str = "app/static"):
-        self.base_path = Path(base_path)
-        self.metadata_dir = self.base_path / "metadata"
-        self.images_dir = self.base_path / "images"
+    def __init__(self, db: Session):
+        """
+        Initialise le repository avec une session de base de données.
 
-        # Dossiers par état
-        self.jsons_dir = self.base_path / "jsons"
-        self.state_dirs = {
-            MonsterState.GENERATED: self.jsons_dir / "generated",
-            MonsterState.DEFECTIVE: self.jsons_dir / "defective",
-            MonsterState.CORRECTED: self.jsons_dir / "corrected",
-            MonsterState.PENDING_REVIEW: self.jsons_dir / "pending_review",
-            MonsterState.APPROVED: self.jsons_dir / "approved",
-            MonsterState.TRANSMITTED: self.jsons_dir / "transmitted",
-            MonsterState.REJECTED: self.jsons_dir / "rejected",
-        }
+        Args:
+            db: Session SQLAlchemy
+        """
+        self.db = db
 
-        self._ensure_directories()
+    def _db_to_metadata(self, db_monster: Monster) -> MonsterMetadata:  # pyright: ignore
+        """Convertit un modèle DB en MonsterMetadata Pydantic"""
+        # Convertir les transitions d'état
+        history = [
+            StateTransition(
+                from_state=MonsterState(t.from_state.value) if t.from_state else None,
+                to_state=MonsterState(t.to_state.value),
+                timestamp=t.timestamp,
+                actor=t.actor,
+                note=t.note,
+            )
+            for t in db_monster.history
+        ]
 
-    def _ensure_directories(self):
-        """Crée tous les dossiers nécessaires"""
-        self.metadata_dir.mkdir(parents=True, exist_ok=True)
-        self.images_dir.mkdir(parents=True, exist_ok=True)
-        for state_dir in self.state_dirs.values():
-            state_dir.mkdir(parents=True, exist_ok=True)
-
-    def _get_metadata_path(self, monster_id: str) -> Path:
-        """Retourne le chemin du fichier de métadonnées"""
-        return self.metadata_dir / f"{monster_id}_metadata.json"
-
-    def _get_monster_path(self, metadata: MonsterMetadata) -> Path:
-        """Retourne le chemin du fichier JSON du monstre selon son état"""
-        state_dir = self.state_dirs.get(metadata.state)
-        return state_dir / metadata.filename
+        return MonsterMetadata(
+            monster_id=db_monster.monster_id,  # type: ignore
+            filename=db_monster.filename,  # type: ignore
+            state=MonsterState(db_monster.state.value),
+            created_at=db_monster.created_at,  # type: ignore
+            updated_at=db_monster.updated_at,  # type: ignore
+            generated_by=db_monster.generated_by,  # type: ignore
+            generation_prompt=db_monster.generation_prompt,  # type: ignore
+            is_valid=db_monster.is_valid,  # type: ignore
+            validation_errors=db_monster.validation_errors,  # type: ignore
+            reviewed_by=db_monster.reviewed_by,  # type: ignore
+            review_date=db_monster.review_date,  # type: ignore
+            review_notes=db_monster.review_notes,  # type: ignore
+            transmitted_at=db_monster.transmitted_at,  # type: ignore
+            transmission_attempts=db_monster.transmission_attempts,  # type: ignore
+            last_transmission_error=db_monster.last_transmission_error,  # type: ignore
+            invocation_api_id=db_monster.invocation_api_id,  # type: ignore
+            history=history,
+            metadata=db_monster.metadata_extra or {},  # type: ignore
+        )
 
     def save(self, metadata: MonsterMetadata, monster_data: Dict[str, Any]) -> bool:
         """
@@ -67,55 +73,86 @@ class MonsterRepository:
 
         Args:
             metadata: Métadonnées du monstre
-            monster_data: Données du monstre
+            monster_data: Données du monstre (nom, stats, skills, etc.)
 
         Returns:
             True si succès
         """
         try:
-            # Sauvegarder les métadonnées
-            metadata_path = self._get_metadata_path(metadata.monster_id)
-            with open(metadata_path, "w", encoding="utf-8") as f:
-                json.dump(
-                    metadata.model_dump(mode="json"), f, indent=2, ensure_ascii=False
+            # Vérifier si le monstre existe déjà
+            existing = (
+                self.db.query(Monster)
+                .filter(Monster.monster_id == metadata.monster_id)
+                .first()
+            )
+
+            if existing:  # type: ignore
+                # Mise à jour
+                existing.filename = metadata.filename  # type: ignore
+                existing.state = MonsterStateEnum(metadata.state.value)  # type: ignore
+                existing.monster_data = monster_data  # type: ignore
+                existing.generated_by = metadata.generated_by  # type: ignore
+                existing.generation_prompt = metadata.generation_prompt  # type: ignore
+                existing.is_valid = metadata.is_valid  # type: ignore
+                existing.validation_errors = metadata.validation_errors  # type: ignore
+                existing.reviewed_by = metadata.reviewed_by  # type: ignore
+                existing.review_date = metadata.review_date  # type: ignore
+                existing.review_notes = metadata.review_notes  # type: ignore
+                existing.transmitted_at = metadata.transmitted_at  # type: ignore
+                existing.transmission_attempts = metadata.transmission_attempts  # type: ignore
+                existing.last_transmission_error = metadata.last_transmission_error  # type: ignore
+                existing.invocation_api_id = metadata.invocation_api_id  # type: ignore
+                existing.metadata_extra = metadata.metadata  # type: ignore
+                existing.updated_at = datetime.now()  # type: ignore
+
+                logger.info(f"Updated monster {metadata.monster_id}")
+            else:
+                # Création
+                db_monster = Monster(  # type: ignore
+                    monster_id=metadata.monster_id,
+                    filename=metadata.filename,
+                    state=MonsterStateEnum(metadata.state.value),
+                    monster_data=monster_data,  # type: ignore
+                    generated_by=metadata.generated_by,
+                    generation_prompt=metadata.generation_prompt,
+                    is_valid=metadata.is_valid,
+                    validation_errors=metadata.validation_errors,  # type: ignore
+                    reviewed_by=metadata.reviewed_by,
+                    review_date=metadata.review_date,
+                    review_notes=metadata.review_notes,
+                    transmitted_at=metadata.transmitted_at,
+                    transmission_attempts=metadata.transmission_attempts,
+                    last_transmission_error=metadata.last_transmission_error,
+                    invocation_api_id=metadata.invocation_api_id,
+                    metadata_extra=metadata.metadata,  # type: ignore
                 )
+                self.db.add(db_monster)
+                logger.info(f"Created monster {metadata.monster_id}")
 
-            # Sauvegarder les données du monstre
-            monster_path = self._get_monster_path(metadata)
-            with open(monster_path, "w", encoding="utf-8") as f:
-                json.dump(monster_data, f, indent=2, ensure_ascii=False)
-
-            logger.info(f"Saved monster {metadata.monster_id} to {monster_path}")
+            self.db.commit()
             return True
 
         except Exception as e:
             logger.error(f"Failed to save monster {metadata.monster_id}: {e}")
+            self.db.rollback()
             return False
 
     def get(self, monster_id: str) -> Optional[MonsterWithMetadata]:
         """Récupère un monstre avec ses métadonnées"""
         try:
-            # Charger les métadonnées
-            metadata_path = self._get_metadata_path(monster_id)
-            if not metadata_path.exists():
+            db_monster = (
+                self.db.query(Monster).filter(Monster.monster_id == monster_id).first()
+            )
+
+            if not db_monster:
                 return None
 
-            with open(metadata_path, "r", encoding="utf-8") as f:
-                metadata_dict = json.load(f)
-                metadata = MonsterMetadata(**metadata_dict)
+            metadata = self._db_to_metadata(db_monster)
 
-            # Charger les données du monstre
-            monster_path = self._get_monster_path(metadata)
-            if not monster_path.exists():
-                logger.warning(
-                    f"Metadata exists but monster file not found: {monster_path}"
-                )
-                return None
-
-            with open(monster_path, "r", encoding="utf-8") as f:
-                monster_data = json.load(f)
-
-            return MonsterWithMetadata(metadata=metadata, monster_data=monster_data)
+            return MonsterWithMetadata(
+                metadata=metadata,
+                monster_data=db_monster.monster_data,  # type: ignore
+            )
 
         except Exception as e:
             logger.error(f"Failed to get monster {monster_id}: {e}")
@@ -126,25 +163,16 @@ class MonsterRepository:
     ) -> List[MonsterMetadata]:
         """Liste les monstres par état"""
         try:
-            metadata_files = sorted(
-                self.metadata_dir.glob("*_metadata.json"),
-                key=lambda p: p.stat().st_mtime,
-                reverse=True,
+            db_monsters = (
+                self.db.query(Monster)
+                .filter(Monster.state == MonsterStateEnum(state.value))
+                .order_by(Monster.updated_at.desc())
+                .limit(limit)
+                .offset(offset)
+                .all()
             )
 
-            results = []
-            for metadata_file in metadata_files[offset:]:
-                if len(results) >= limit:
-                    break
-
-                with open(metadata_file, "r", encoding="utf-8") as f:
-                    metadata_dict = json.load(f)
-                    metadata = MonsterMetadata(**metadata_dict)
-
-                    if metadata.state == state:
-                        results.append(metadata)
-
-            return results
+            return [self._db_to_metadata(m) for m in db_monsters]
 
         except Exception as e:
             logger.error(f"Failed to list monsters by state {state}: {e}")
@@ -153,87 +181,125 @@ class MonsterRepository:
     def list_all(self, limit: int = 50, offset: int = 0) -> List[MonsterMetadata]:
         """Liste tous les monstres"""
         try:
-            metadata_files = sorted(
-                self.metadata_dir.glob("*_metadata.json"),
-                key=lambda p: p.stat().st_mtime,
-                reverse=True,
+            db_monsters = (
+                self.db.query(Monster)
+                .order_by(Monster.updated_at.desc())
+                .limit(limit)
+                .offset(offset)
+                .all()
             )
 
-            results = []
-            for metadata_file in metadata_files[offset : offset + limit]:
-                with open(metadata_file, "r", encoding="utf-8") as f:
-                    metadata_dict = json.load(f)
-                    metadata = MonsterMetadata(**metadata_dict)
-                    results.append(metadata)
-
-            return results
+            return [self._db_to_metadata(m) for m in db_monsters]
 
         except Exception as e:
             logger.error(f"Failed to list all monsters: {e}")
             return []
 
     def move_to_state(self, monster_id: str, new_state: MonsterState) -> bool:
-        """Déplace le fichier JSON d'un monstre vers le dossier de son nouvel état"""
+        """Change l'état d'un monstre"""
         try:
-            monster = self.get(monster_id)
-            if not monster:
+            db_monster = (
+                self.db.query(Monster).filter(Monster.monster_id == monster_id).first()
+            )
+
+            if not db_monster:
                 return False
 
-            old_path = self._get_monster_path(monster.metadata)
+            old_state = db_monster.state
+            db_monster.state = MonsterStateEnum(new_state.value)  # type: ignore
+            db_monster.updated_at = datetime.now()  # type: ignore
 
-            # Mettre à jour l'état dans les métadonnées
-            monster.metadata.state = new_state
-            new_path = self._get_monster_path(monster.metadata)
+            # Ajouter une transition dans l'historique
+            transition = StateTransitionModel(
+                monster_db_id=db_monster.id,
+                from_state=old_state,
+                to_state=MonsterStateEnum(new_state.value),
+                actor="system",
+                note=f"State changed from {old_state.value} to {new_state.value}",
+            )
+            self.db.add(transition)
 
-            # Déplacer le fichier
-            if old_path.exists():
-                old_path.rename(new_path)
-                logger.info(f"Moved monster file: {old_path} → {new_path}")
-
+            self.db.commit()
+            logger.info(f"Moved monster {monster_id} to state {new_state}")
             return True
 
         except Exception as e:
             logger.error(
                 f"Failed to move monster {monster_id} to state {new_state}: {e}"
             )
+            self.db.rollback()
             return False
 
     def delete(self, monster_id: str) -> bool:
         """Supprime un monstre et ses métadonnées"""
         try:
-            monster = self.get(monster_id)
-            if not monster:
+            db_monster = (
+                self.db.query(Monster).filter(Monster.monster_id == monster_id).first()
+            )
+
+            if not db_monster:
                 return False
 
-            # Supprimer le fichier JSON
-            monster_path = self._get_monster_path(monster.metadata)
-            if monster_path.exists():
-                monster_path.unlink()
-
-            # Supprimer les métadonnées
-            metadata_path = self._get_metadata_path(monster_id)
-            if metadata_path.exists():
-                metadata_path.unlink()
+            self.db.delete(db_monster)
+            self.db.commit()
 
             logger.info(f"Deleted monster {monster_id}")
             return True
 
         except Exception as e:
             logger.error(f"Failed to delete monster {monster_id}: {e}")
+            self.db.rollback()
             return False
 
     def count_by_state(self) -> Dict[str, int]:
         """Compte les monstres par état"""
-        counts = {state.value: 0 for state in MonsterState}
-
         try:
-            for metadata_file in self.metadata_dir.glob("*_metadata.json"):
-                with open(metadata_file, "r", encoding="utf-8") as f:
-                    metadata_dict = json.load(f)
-                    state = metadata_dict.get("state")
-                    if state in counts:
-                        counts[state] += 1
+            results = (
+                self.db.query(Monster.state, func.count(Monster.id))
+                .group_by(Monster.state)
+                .all()
+            )
+
+            counts = {state.value: 0 for state in MonsterState}
+            for state_enum, count in results:
+                counts[state_enum.value] = count
+
+            return counts
+
         except Exception as e:
             logger.error(f"Failed to count by state: {e}")
+            return {state.value: 0 for state in MonsterState}
 
-        return counts
+    def add_transition(
+        self,
+        monster_id: str,
+        from_state: Optional[MonsterState],
+        to_state: MonsterState,
+        actor: str,
+        note: Optional[str] = None,
+    ) -> bool:
+        """Ajoute une transition d'état à l'historique"""
+        try:
+            db_monster = (
+                self.db.query(Monster).filter(Monster.monster_id == monster_id).first()
+            )
+
+            if not db_monster:
+                return False
+
+            transition = StateTransitionModel(
+                monster_db_id=db_monster.id,
+                from_state=MonsterStateEnum(from_state.value) if from_state else None,
+                to_state=MonsterStateEnum(to_state.value),
+                actor=actor,
+                note=note,
+            )
+            self.db.add(transition)
+            self.db.commit()
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to add transition for monster {monster_id}: {e}")
+            self.db.rollback()
+            return False

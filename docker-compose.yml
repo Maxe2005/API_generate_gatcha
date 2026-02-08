@@ -10,8 +10,44 @@ services:
       - .env
     depends_on:
       - minio
+      - postgres
     networks:
       - gatcha_network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gatcha_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: gatcha_user
+      POSTGRES_PASSWORD: gatcha_password
+      POSTGRES_DB: gatcha_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gatcha_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gatcha_user -d gatcha_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: gatcha_pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gatcha.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - gatcha_network
+    depends_on:
+      - postgres
 
   minio:
     image: minio/minio
@@ -34,3 +70,5 @@ networks:
 
 volumes:
   minio_data:
+  postgres_data:
+  pgadmin_data:

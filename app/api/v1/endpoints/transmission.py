@@ -3,19 +3,21 @@ Transmission endpoints for sending monsters to invocation API
 """
 
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 import logging
 
 from app.services.transmission_service import TransmissionService
 from app.core.config import get_settings
+from app.models.base import get_db
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 settings = get_settings()
 
 
-def get_transmission_service() -> TransmissionService:
+def get_transmission_service(db: Session = Depends(get_db)) -> TransmissionService:
     """Dependency injection"""
-    return TransmissionService(invocation_api_url=settings.INVOCATION_API_URL)
+    return TransmissionService(db, invocation_api_url=settings.INVOCATION_API_URL)
 
 
 @router.post("/transmit/{monster_id}")

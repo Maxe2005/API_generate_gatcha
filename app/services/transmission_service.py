@@ -11,6 +11,7 @@ Date: 2026-02-08
 from typing import Optional, List
 from datetime import datetime
 import logging
+from sqlalchemy.orm import Session
 
 from app.clients.invocation_api import InvocationApiClient, InvocationApiError
 from app.repositories.monster_repository import MonsterRepository
@@ -23,9 +24,9 @@ logger = logging.getLogger(__name__)
 class TransmissionService:
     """Service de transmission des monstres vers l'API d'invocation"""
 
-    def __init__(self, invocation_api_url: str = "http://localhost:8085"):
+    def __init__(self, db: Session, invocation_api_url: str = "http://localhost:8085"):
         self.invocation_client = InvocationApiClient(base_url=invocation_api_url)
-        self.repository = MonsterRepository()
+        self.repository = MonsterRepository(db)
         self.state_manager = MonsterStateManager()
 
     async def transmit_monster(self, monster_id: str, force: bool = False) -> dict:

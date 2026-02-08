@@ -11,6 +11,7 @@ Date: 2026-02-08
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import logging
+from sqlalchemy.orm import Session
 
 from app.repositories.monster_repository import MonsterRepository
 from app.services.state_manager import MonsterStateManager
@@ -25,8 +26,8 @@ logger = logging.getLogger(__name__)
 class AdminService:
     """Service d'administration des monstres"""
 
-    def __init__(self):
-        self.repository = MonsterRepository()
+    def __init__(self, db: Session):
+        self.repository = MonsterRepository(db)
         self.state_manager = MonsterStateManager()
         self.validation_service = MonsterValidationService()
 

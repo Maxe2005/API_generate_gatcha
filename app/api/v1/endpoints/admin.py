@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import logging
+from sqlalchemy.orm import Session
 
 from app.services.admin_service import AdminService
 from app.schemas.admin import (
@@ -18,6 +19,7 @@ from app.schemas.admin import (
 from app.schemas.monster import MonsterState
 from app.utils.file_manager import FileManager
 from app.services.validation_service import MonsterValidationService
+from app.models.base import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +33,9 @@ validation_service = MonsterValidationService()
 # ===== Dependency Injection =====
 
 
-def get_admin_service() -> AdminService:
+def get_admin_service(db: Session = Depends(get_db)) -> AdminService:
     """Dependency injection"""
-    return AdminService()
+    return AdminService(db)
 
 
 # ===== New Lifecycle Management Endpoints =====

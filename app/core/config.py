@@ -57,6 +57,13 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     BANANA_API_KEY: str = ""
 
+    # PostgreSQL
+    POSTGRES_HOST: str = "postgres"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str = "gatcha_user"
+    POSTGRES_PASSWORD: str = "gatcha_password"
+    POSTGRES_DB: str = "gatcha_db"
+
     # MinIO
     MINIO_ENDPOINT: str = "minio:9000"
     MINIO_ACCESS_KEY: str = "admin"
