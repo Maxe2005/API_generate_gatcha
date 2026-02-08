@@ -68,6 +68,20 @@ class Settings(BaseSettings):
     # Defective JSONs folder
     DEFECTIVE_JSONS_DIR: str = "app/static/jsons_defective"
 
+    # API Invocation
+    INVOCATION_API_URL: str = "http://localhost:8085"
+    INVOCATION_API_TIMEOUT: int = 30
+    INVOCATION_API_MAX_RETRIES: int = 3
+    INVOCATION_API_RETRY_DELAY: int = 2
+
+    # Transmission automatique
+    AUTO_TRANSMIT_ENABLED: bool = False
+    AUTO_TRANSMIT_INTERVAL_SECONDS: int = 300
+
+    # Chemins
+    MONSTERS_BASE_PATH: str = "app/static"
+    METADATA_DIR: str = "app/static/metadata"
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
 

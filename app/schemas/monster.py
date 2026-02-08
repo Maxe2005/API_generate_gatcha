@@ -1,5 +1,27 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Any
+from enum import Enum
+
+
+class MonsterState(str, Enum):
+    """États possibles d'un monstre dans son cycle de vie"""
+
+    GENERATED = "GENERATED"
+    DEFECTIVE = "DEFECTIVE"
+    CORRECTED = "CORRECTED"
+    PENDING_REVIEW = "PENDING_REVIEW"
+    APPROVED = "APPROVED"
+    TRANSMITTED = "TRANSMITTED"
+    REJECTED = "REJECTED"
+
+
+class TransitionAction(str, Enum):
+    """Actions possibles pour les transitions"""
+
+    APPROVE = "approve"
+    REJECT = "reject"
+    CORRECT = "correct"
+    TRANSMIT = "transmit"
 
 
 class SkillRatio(BaseModel):
