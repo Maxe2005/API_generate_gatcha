@@ -60,7 +60,7 @@ Une fois lancée, la documentation interactive est disponible aux adresses suiva
 ## Bases de données
 
 Une fois lancée, l'API utilise une base de données postgreSQL ainsi qu'une base de donnée minio pour stocker les images générées. Les données de connexion sont configurables via le fichier `.env`.
-- **PostgreSQL** : http://localhost:5432 (utilisateur : `postgres`, mot de passe : `password`, base : `gatcha_db`)
+- **PostgreSQL(pgAdmin)** : http://localhost:5050 (utilisateur : `admin`, mot de passe : `admin`, base de données : `gatcha_db`)
 - **MinIO** : http://localhost:9000 (utilisateur : `minioadmin`, mot de passe : `minioadmin`)
 
 ## 🧪 Exemple d'Appel

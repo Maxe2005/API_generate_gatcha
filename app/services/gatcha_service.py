@@ -55,6 +55,12 @@ class GatchaService:
         validation_result = self.validation_service.validate(monster_data)
 
         if not validation_result.is_valid:
+            # Still generate image for review purposes
+            image_url = await self._generate_image(
+                monster_data, fallback_prompt, filename_base
+            )
+            monster_data["ImageUrl"] = image_url
+
             # Save to defective folder
             logger.warning(f"Monster validation failed: {monster_name}")
             logger.warning(validation_result.get_error_summary())
@@ -72,11 +78,6 @@ class GatchaService:
                 ],
             )
 
-            # Still generate image for review purposes
-            image_url = await self._generate_image(
-                monster_data, fallback_prompt, filename_base
-            )
-
             defective_filename = Path(defective_path).name
             json_path_rel = f"/static/jsons_defective/{defective_filename}"
 
@@ -92,6 +93,8 @@ class GatchaService:
         image_url = await self._generate_image(
             monster_data, fallback_prompt, filename_base
         )
+
+        monster_data["ImageUrl"] = image_url
 
         # Save JSON (only if valid)
         self.file_manager.save_json(filename_base, monster_data)
