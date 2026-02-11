@@ -1,18 +1,20 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
+from sqlalchemy.orm import Session
 from app.schemas.monster import (
     MonsterCreateRequest,
     MonsterResponse,
     BatchMonsterRequest,
 )
 from app.services.gatcha_service import GatchaService
+from app.models.base import get_db
 
 router = APIRouter()
 
 
 # Dependency Injection for the service
-async def get_gatcha_service():
-    return GatchaService()
+async def get_gatcha_service(db: Session = Depends(get_db)):
+    return GatchaService(db)
 
 
 @router.post("/generate", response_model=MonsterResponse)

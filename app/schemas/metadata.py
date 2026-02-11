@@ -25,7 +25,6 @@ class MonsterMetadata(BaseModel):
     """Métadonnées complètes d'un monstre"""
 
     monster_id: str = Field(..., description="UUID unique du monstre")
-    filename: str = Field(..., description="Nom du fichier JSON")
     state: MonsterState
     created_at: datetime
     updated_at: datetime
@@ -51,9 +50,6 @@ class MonsterMetadata(BaseModel):
 
     # Historique
     history: List[StateTransition] = Field(default_factory=list)
-
-    # Chemins
-    metadata: Dict[str, str] = Field(default_factory=dict)
 
 
 class MonsterWithMetadata(BaseModel):

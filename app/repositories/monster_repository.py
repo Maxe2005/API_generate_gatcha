@@ -48,7 +48,6 @@ class MonsterRepository:
 
         return MonsterMetadata(
             monster_id=db_monster.monster_id,  # type: ignore
-            filename=db_monster.filename,  # type: ignore
             state=MonsterState(db_monster.state.value),
             created_at=db_monster.created_at,  # type: ignore
             updated_at=db_monster.updated_at,  # type: ignore
@@ -64,7 +63,6 @@ class MonsterRepository:
             last_transmission_error=db_monster.last_transmission_error,  # type: ignore
             invocation_api_id=db_monster.invocation_api_id,  # type: ignore
             history=history,
-            metadata=db_monster.metadata_extra or {},  # type: ignore
         )
 
     def save(self, metadata: MonsterMetadata, monster_data: Dict[str, Any]) -> bool:
@@ -88,7 +86,6 @@ class MonsterRepository:
 
             if existing:  # type: ignore
                 # Mise à jour
-                existing.filename = metadata.filename  # type: ignore
                 existing.state = MonsterStateEnum(metadata.state.value)  # type: ignore
                 existing.monster_data = monster_data  # type: ignore
                 existing.generated_by = metadata.generated_by  # type: ignore
@@ -102,7 +99,6 @@ class MonsterRepository:
                 existing.transmission_attempts = metadata.transmission_attempts  # type: ignore
                 existing.last_transmission_error = metadata.last_transmission_error  # type: ignore
                 existing.invocation_api_id = metadata.invocation_api_id  # type: ignore
-                existing.metadata_extra = metadata.metadata  # type: ignore
                 existing.updated_at = datetime.now()  # type: ignore
 
                 logger.info(f"Updated monster {metadata.monster_id}")
@@ -110,7 +106,6 @@ class MonsterRepository:
                 # Création
                 db_monster = Monster(  # type: ignore
                     monster_id=metadata.monster_id,
-                    filename=metadata.filename,
                     state=MonsterStateEnum(metadata.state.value),
                     monster_data=monster_data,  # type: ignore
                     generated_by=metadata.generated_by,
@@ -124,7 +119,6 @@ class MonsterRepository:
                     transmission_attempts=metadata.transmission_attempts,
                     last_transmission_error=metadata.last_transmission_error,
                     invocation_api_id=metadata.invocation_api_id,
-                    metadata_extra=metadata.metadata,  # type: ignore
                 )
                 self.db.add(db_monster)
                 logger.info(f"Created monster {metadata.monster_id}")

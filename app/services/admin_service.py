@@ -50,7 +50,6 @@ class AdminService:
                 summaries.append(
                     MonsterSummary(
                         monster_id=metadata.monster_id,
-                        filename=metadata.filename,
                         name=monster.monster_data.get("nom", "Unknown"),
                         element=monster.monster_data.get("element", "Unknown"),
                         rank=monster.monster_data.get("rang", "Unknown"),
@@ -72,7 +71,7 @@ class AdminService:
             return None
 
         # Construire l'URL de l'image
-        image_url = monster.metadata.metadata.get("image_url", "")
+        image_url = monster.monster_data.get("ImageUrl", "")
 
         # Validation report si erreurs
         validation_report = None
@@ -219,11 +218,15 @@ class AdminService:
 
         for metadata in all_metadata:
             if metadata.history:
+                monster = self.repository.get(metadata.monster_id)
+                monster_name = (
+                    monster.monster_data.get("nom", "Unknown") if monster else "Unknown"
+                )
                 last_transition = metadata.history[-1]
                 recent_activity.append(
                     {
                         "monster_id": metadata.monster_id,
-                        "monster_name": metadata.filename.replace(".json", ""),
+                        "monster_name": monster_name,
                         "transition": f"{last_transition.from_state} → {last_transition.to_state}",
                         "timestamp": last_transition.timestamp,
                         "actor": last_transition.actor,

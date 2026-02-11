@@ -27,7 +27,6 @@ class MonsterSummary(BaseModel):
     """Résumé d'un monstre pour la liste"""
 
     monster_id: str
-    filename: str
     name: str
     element: str
     rank: str

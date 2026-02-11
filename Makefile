@@ -1,4 +1,4 @@
-.PHONY: help install run clean docker-up docker-down db-migrate db-shell db-backup db-reset pgadmin backup-all restore-all backup-list
+.PHONY: help install run clean docker-up docker-down db-migrate db-shell db-backup db-reset db-alembic-revision db-alembic-up db-alembic-down pgadmin backup-all restore-all backup-list
 
 # Variables
 PYTHON = python3
@@ -74,6 +74,17 @@ db-reset: ## Reset complet de la base (⚠️  supprime toutes les données)
 	else \
 		echo "❌ Opération annulée"; \
 	fi
+
+# ===== Alembic Migrations =====
+
+db-alembic-revision: ## Cree une migration Alembic (usage: make db-alembic-revision MSG="description")
+	@bash scripts/db_migrate.sh "$(MSG)"
+
+db-alembic-up: ## Applique les migrations Alembic (usage: make db-alembic-up REV=head)
+	@bash scripts/db_upgrade.sh "$(REV)"
+
+db-alembic-down: ## Revert une migration Alembic (usage: make db-alembic-down REV=-1)
+	@bash scripts/db_downgrade.sh "$(REV)"
 
 db-stats: ## Affiche des statistiques sur la base
 	@echo "📊 Statistiques de la base de données:"

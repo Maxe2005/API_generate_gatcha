@@ -46,7 +46,6 @@ class Monster(Base):
     # Identifiants
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     monster_id = Column(String, unique=True, index=True, nullable=False)  # UUID
-    filename = Column(String, nullable=False)
 
     # État et lifecycle
     state = Column(
@@ -90,7 +89,6 @@ class Monster(Base):
 
     # Chemins et métadonnées additionnelles
     image_path = Column(String, nullable=True)
-    metadata_extra = Column(JSON, default=dict, nullable=False)
 
     # Relations
     history = relationship(

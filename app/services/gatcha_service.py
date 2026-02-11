@@ -1,23 +1,29 @@
 import uuid
-import asyncio
-from pathlib import Path
+from datetime import datetime, timezone
 from typing import List, Dict, Any
+import logging
+from sqlalchemy.orm import Session
+
 from app.clients.gemini import GeminiClient
 from app.clients.banana import BananaClient
-from app.schemas.monster import MonsterResponse
+from app.schemas.monster import MonsterResponse, MonsterState
+from app.schemas.metadata import MonsterMetadata
+from app.repositories.monster_repository import MonsterRepository
 from app.utils.file_manager import FileManager
 from app.services.validation_service import MonsterValidationService
-import logging
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
 
 class GatchaService:
-    def __init__(self):
+    def __init__(self, db: Session):
         self.gemini_client = GeminiClient()
         self.banana_client = BananaClient()
         self.file_manager = FileManager()
         self.validation_service = MonsterValidationService()
+        self.repository = MonsterRepository(db)
+        self.settings = get_settings()
 
     def _get_filename_base(self, monster_data: Dict[str, Any]) -> str:
         """Build a safe filename base from monster name."""
@@ -44,63 +50,69 @@ class GatchaService:
         self, monster_data: Dict[str, Any], fallback_prompt: str
     ) -> MonsterResponse:
         """
-        Handles the asset generation (Image) and file saving for a single monster.
+        Handles the asset generation (Image) and PostgreSQL persistence for a single monster.
         Validates JSON before saving.
         """
-        # Determine filename base
-        monster_name = monster_data.get("nom", "unknown_monster")
-        filename_base = self._get_filename_base(monster_data)
+        filename = self._get_filename_base(monster_data)
+        monster_id = str(uuid.uuid4())
 
         # VALIDATION STEP: Validate monster JSON
         validation_result = self.validation_service.validate(monster_data)
 
-        if not validation_result.is_valid:
-            # Still generate image for review purposes
-            image_url = await self._generate_image(
-                monster_data, fallback_prompt, filename_base
-            )
-            monster_data["ImageUrl"] = image_url
-
-            # Save to defective folder
-            logger.warning(f"Monster validation failed: {monster_name}")
-            logger.warning(validation_result.get_error_summary())
-
-            defective_path = self.file_manager.save_defective_json(
-                filename_base,
-                monster_data,
-                [
-                    {
-                        "field": e.field,
-                        "error_type": e.error_type,
-                        "message": e.message,
-                    }
-                    for e in validation_result.errors
-                ],
-            )
-
-            defective_filename = Path(defective_path).name
-            json_path_rel = f"/static/jsons_defective/{defective_filename}"
-
-            # Return response but mark as invalid
-            response = MonsterResponse(
-                **monster_data,
-                image_path=image_url,
-                json_path=json_path_rel,
-            )
-            return response
-
-        # Generate Image
-        image_url = await self._generate_image(
-            monster_data, fallback_prompt, filename_base
-        )
-
+        # Generate image even if invalid for review
+        image_url = await self._generate_image(monster_data, fallback_prompt, filename)
         monster_data["ImageUrl"] = image_url
 
-        # Save JSON (only if valid)
-        self.file_manager.save_json(filename_base, monster_data)
+        validation_errors = [
+            {
+                "field": e.field,
+                "error_type": e.error_type,
+                "message": e.message,
+            }
+            for e in validation_result.errors
+        ]
 
-        # Get relative path for response
-        json_path_rel = self.file_manager.get_relative_path(filename_base)
+        initial_state = (
+            MonsterState.DEFECTIVE if not validation_result.is_valid else MonsterState.GENERATED
+        )
+
+        now = datetime.now(timezone.utc)
+        json_path_rel = (
+            f"{self.settings.API_V1_STR}/admin/monsters/{monster_id}"
+        )
+
+        metadata = MonsterMetadata(
+            monster_id=monster_id,
+            state=initial_state,
+            created_at=now,
+            updated_at=now,
+            generated_by="gemini",
+            generation_prompt=fallback_prompt,
+            is_valid=validation_result.is_valid,
+            validation_errors=validation_errors if validation_errors else None,
+        )
+
+        # Persist initial monster state
+        self.repository.save(metadata, monster_data)
+        self.repository.add_transition(
+            monster_id,
+            None,
+            initial_state,
+            actor="system",
+            note="Created",
+        )
+
+        # Auto-transition valid monsters to PENDING_REVIEW
+        if validation_result.is_valid:
+            self.repository.move_to_state(monster_id, MonsterState.PENDING_REVIEW)
+            metadata.state = MonsterState.PENDING_REVIEW
+            metadata.updated_at = datetime.now(timezone.utc)
+
+        if not validation_result.is_valid:
+            logger.warning(
+                "Monster validation failed: %s", monster_data.get("nom", "unknown")
+            )
+            logger.warning(validation_result.get_error_summary())
 
         return MonsterResponse(
             **monster_data, image_path=image_url, json_path=json_path_rel
