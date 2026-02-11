@@ -6,7 +6,7 @@ Service d'administration des monstres - Orchestration des workflows admin
 """
 
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 from sqlalchemy.orm import Session
 
@@ -127,7 +127,7 @@ class AdminService:
 
         # Mettre à jour les métadonnées
         monster.metadata.reviewed_by = admin_name
-        monster.metadata.review_date = datetime.utcnow()
+        monster.metadata.review_date = datetime.now(timezone.utc)
         monster.metadata.review_notes = notes
 
         # Transition d'état
@@ -252,3 +252,124 @@ class AdminService:
             avg_review_time_hours=avg_review_time,
             recent_activity=recent_activity[:10],
         )
+
+    def process_generated_monsters(self) -> Dict[str, Any]:
+        """
+        Traite tous les monstres en état GENERATED.
+
+        Pour chaque monstre:
+        - Valide les données
+        - Si valide: transition vers PENDING_REVIEW
+        - Si invalide: transition vers DEFECTIVE
+
+        Returns:
+            Dictionnaire avec le résumé du traitement
+        """
+        # Récupérer tous les monstres en état GENERATED
+        generated_monsters = self.repository.list_by_state(
+            MonsterState.GENERATED,
+            limit=1000,  # Large limite pour tout traiter
+            offset=0,
+        )
+
+        total_processed = len(generated_monsters)
+        moved_to_pending_review = 0
+        moved_to_defective = 0
+        details = []
+
+        logger.info(f"Processing {total_processed} monsters in GENERATED state")
+
+        for metadata in generated_monsters:
+            monster_id = metadata.monster_id
+
+            try:
+                # Récupérer les données complètes du monstre
+                monster = self.repository.get(monster_id)
+                if not monster:
+                    logger.warning(f"Monster {monster_id} not found, skipping")
+                    continue
+
+                # Valider les données
+                validation_result = self.validation_service.validate(
+                    monster.monster_data
+                )
+
+                if validation_result.is_valid:
+                    # Déplacer vers PENDING_REVIEW
+                    self.repository.move_to_state(
+                        monster_id, MonsterState.PENDING_REVIEW
+                    )
+                    # Mettre à jour les métadonnées locales
+                    monster.metadata.state = MonsterState.PENDING_REVIEW
+                    monster.metadata.updated_at = datetime.now(timezone.utc)
+
+                    moved_to_pending_review += 1
+
+                    details.append(
+                        {
+                            "monster_id": monster_id,
+                            "name": monster.monster_data.get("nom", "Unknown"),
+                            "action": "moved_to_pending_review",
+                            "is_valid": True,
+                        }
+                    )
+
+                    logger.info(
+                        f"Monster {monster_id} validated and moved to PENDING_REVIEW"
+                    )
+
+                else:
+                    # Préparer les erreurs de validation
+                    validation_errors = [
+                        {
+                            "field": e.field,
+                            "error_type": e.error_type,
+                            "message": e.message,
+                        }
+                        for e in validation_result.errors
+                    ]
+
+                    # Mettre à jour les métadonnées avec les erreurs
+                    monster.metadata.is_valid = False
+                    monster.metadata.validation_errors = validation_errors
+                    monster.metadata.state = MonsterState.DEFECTIVE
+                    monster.metadata.updated_at = datetime.now(timezone.utc)
+
+                    # Sauvegarder les métadonnées mises à jour
+                    self.repository.save(monster.metadata, monster.monster_data)
+
+                    # Déplacer vers DEFECTIVE
+                    self.repository.move_to_state(monster_id, MonsterState.DEFECTIVE)
+                    moved_to_defective += 1
+
+                    details.append(
+                        {
+                            "monster_id": monster_id,
+                            "name": monster.monster_data.get("nom", "Unknown"),
+                            "action": "moved_to_defective",
+                            "is_valid": False,
+                            "error_count": len(validation_errors),
+                        }
+                    )
+
+                    logger.warning(
+                        f"Monster {monster_id} invalid and moved to DEFECTIVE"
+                    )
+
+            except Exception as e:
+                logger.error(f"Error processing monster {monster_id}: {e}")
+                details.append(
+                    {"monster_id": monster_id, "action": "error", "error": str(e)}
+                )
+
+        logger.info(
+            f"Processing complete: {moved_to_pending_review} to PENDING_REVIEW, "
+            f"{moved_to_defective} to DEFECTIVE"
+        )
+
+        return {
+            "total_processed": total_processed,
+            "moved_to_pending_review": moved_to_pending_review,
+            "moved_to_defective": moved_to_defective,
+            "details": details,
+        }

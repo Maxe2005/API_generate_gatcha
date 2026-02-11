@@ -84,7 +84,7 @@ class MinioClientWrapper:
             )
 
             webp_io = optimize_for_web(raw_bytes)
-            webp_filename = f"{raw_prefix}/{file_path.stem}.webp"
+            webp_filename = f"{file_path.stem}.webp"
             self.upload_image(
                 bucket_name=self.settings.MINIO_BUCKET_ASSETS,
                 filename=webp_filename,

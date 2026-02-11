@@ -9,7 +9,7 @@ import json
 import uuid
 import sys
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add parent directory to path to import app modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -51,7 +51,7 @@ def migrate_existing_monsters():
                     updated_at=datetime.fromtimestamp(json_file.stat().st_mtime),
                     generated_by="gemini",
                     is_valid=True,
-                    transmitted_at=datetime.utcnow(),
+                    transmitted_at=datetime.now(timezone.utc),
                     metadata={
                         "image_url": monster_data.get("image_url", ""),
                         "json_path": f"/static/jsons/transmitted/{json_file.name}",
@@ -60,7 +60,7 @@ def migrate_existing_monsters():
                         StateTransition(
                             from_state=None,
                             to_state=MonsterState.TRANSMITTED,
-                            timestamp=datetime.utcnow(),
+                            timestamp=datetime.now(timezone.utc),
                             actor="system",
                             note="Migrated from existing system",
                         )
@@ -125,7 +125,7 @@ def migrate_existing_monsters():
                         StateTransition(
                             from_state=None,
                             to_state=MonsterState.DEFECTIVE,
-                            timestamp=datetime.utcnow(),
+                            timestamp=datetime.now(timezone.utc),
                             actor="system",
                             note="Migrated from existing system (defective)",
                         )

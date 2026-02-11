@@ -206,6 +206,38 @@ async def get_dashboard_stats(service: AdminService = Depends(get_admin_service)
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/monsters/process-generated")
+async def process_generated_monsters(
+    service: AdminService = Depends(get_admin_service),
+):
+    """
+    Traite tous les monstres en état GENERATED.
+
+    Pour chaque monstre:
+    - Valide les données
+    - Si valide: déplace vers PENDING_REVIEW
+    - Si invalide: déplace vers DEFECTIVE avec les erreurs
+
+    Utile pour:
+    - Traiter les monstres bloqués en GENERATED
+    - Gérer les imports externes de monstres
+    - Corriger des échecs de transition automatique
+    """
+    try:
+        result = service.process_generated_monsters()
+
+        return {
+            "status": "success",
+            "total_processed": result["total_processed"],
+            "moved_to_pending_review": result["moved_to_pending_review"],
+            "moved_to_defective": result["moved_to_defective"],
+            "details": result["details"],
+        }
+    except Exception as e:
+        logger.error(f"Error processing generated monsters: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ===== Legacy Endpoints (kept for backward compatibility) =====
 
 

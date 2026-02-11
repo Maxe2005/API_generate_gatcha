@@ -6,7 +6,7 @@ Service de transmission des monstres vers l'API d'invocation.
 """
 
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 from sqlalchemy.orm import Session
 
@@ -65,7 +65,7 @@ class TransmissionService:
             response = await self.invocation_client.create_monster(monster.monster_data)
 
             # Mettre à jour les métadonnées
-            monster.metadata.transmitted_at = datetime.utcnow()
+            monster.metadata.transmitted_at = datetime.now(timezone.utc)
             monster.metadata.transmission_attempts += 1
             monster.metadata.last_transmission_error = None
             monster.metadata.invocation_api_id = response.get("id")
@@ -96,7 +96,7 @@ class TransmissionService:
             # Enregistrer l'erreur
             monster.metadata.transmission_attempts += 1
             monster.metadata.last_transmission_error = str(e)
-            monster.metadata.updated_at = datetime.utcnow()
+            monster.metadata.updated_at = datetime.now(timezone.utc)
 
             self.repository.save(monster.metadata, monster.monster_data)
 

@@ -6,7 +6,7 @@ Gère les états des monstres et les transitions valides.
 """
 
 from typing import Optional, Dict
-from datetime import datetime
+from datetime import datetime, timezone
 from app.schemas.monster import MonsterState
 from app.schemas.metadata import MonsterMetadata, StateTransition
 import logging
@@ -28,7 +28,7 @@ class MonsterStateManager:
 
     # Définition des transitions valides
     VALID_TRANSITIONS: Dict[MonsterState, list] = {
-        MonsterState.GENERATED: [MonsterState.PENDING_REVIEW],
+        MonsterState.GENERATED: [MonsterState.PENDING_REVIEW, MonsterState.DEFECTIVE],
         MonsterState.DEFECTIVE: [MonsterState.CORRECTED, MonsterState.REJECTED],
         MonsterState.CORRECTED: [MonsterState.PENDING_REVIEW],
         MonsterState.PENDING_REVIEW: [MonsterState.APPROVED, MonsterState.REJECTED],
@@ -74,14 +74,14 @@ class MonsterStateManager:
         transition = StateTransition(
             from_state=current_state,
             to_state=to_state,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             actor=actor,
             note=note,
         )
 
         # Mettre à jour les métadonnées
         metadata.state = to_state
-        metadata.updated_at = datetime.utcnow()
+        metadata.updated_at = datetime.now(timezone.utc)
         metadata.history.append(transition)
 
         logger.info(
