@@ -1,0 +1,64 @@
+{
+    "nom": "Flamèche",
+    "element": "FIRE",
+    "rang": "COMMON",
+    "stats": {
+        "hp": 250.0,
+        "atk": 50.0,
+        "def": 30.0,
+        "vit": 60.0
+    },
+    "description_carte": "Un petit esprit de feu curieux, toujours prêt à jouer avec les flammes.",
+    "description_visuelle": "A small, cute fire spirit with big, innocent eyes. Bright orange and yellow flames flicker around its body. The background is a simple, grassy field with a few wildflowers.",
+    "skills": [
+        {
+            "name": "Étincelle",
+            "description": "Lance une petite étincelle sur l'ennemi.",
+            "damage": 40.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 0.0,
+            "lvlMax": 5,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Danse de la Flamme",
+            "description": "Augmente légèrement la vitesse.",
+            "damage": 0.0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.2
+            },
+            "cooldown": 2.0,
+            "lvlMax": 5,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Vague de Chaleur",
+            "description": "Inflige des dégâts de zone réduits.",
+            "damage": 25.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 3.0,
+            "lvlMax": 5,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Brasier Infernal",
+            "description": "ULTIMATE. Déchaîne une colonne de feu dévastatrice sur l'ennemi.",
+            "damage": 150.0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 5.0,
+            "lvlMax": 5,
+            "rank": "RARE"
+        }
+    ],
+    "ImageUrl": "http://localhost:9000/game-assets/flameche_50bf3ed5-f6f1-4534-8fb5-a6ddaeac26f9.webp"
+}

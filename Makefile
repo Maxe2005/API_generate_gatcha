@@ -1,4 +1,4 @@
-.PHONY: help install run clean docker-up docker-down db-migrate db-shell db-backup db-reset pgadmin
+.PHONY: help install run clean docker-up docker-down db-migrate db-shell db-backup db-reset pgadmin backup-all restore-all backup-list
 
 # Variables
 PYTHON = python3
@@ -89,3 +89,14 @@ pgadmin: ## Ouvre pgAdmin dans le navigateur
 	@echo "Email: admin@gatcha.local"
 	@echo "Password: admin"
 	@xdg-open http://localhost:5050 2>/dev/null || open http://localhost:5050 2>/dev/null || echo "Ouvrez manuellement: http://localhost:5050"
+
+# ===== Backups (Postgres + MinIO) =====
+
+backup-all: ## Sauvegarde Postgres et MinIO (usage: make backup-all BACKUP_NAME=nom)
+	@bash scripts/backup.sh
+
+restore-all: ## Restaure Postgres et MinIO (usage: make restore-all BACKUP_NAME=nom)
+	@bash scripts/restore.sh $(BACKUP_NAME)
+
+backup-list: ## Liste les sauvegardes disponibles
+	@ls -1 backups 2>/dev/null || echo "No backups found"

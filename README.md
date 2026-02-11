@@ -63,6 +63,34 @@ Une fois lancée, l'API utilise une base de données postgreSQL ainsi qu'une bas
 - **PostgreSQL(pgAdmin)** : http://localhost:5050 (utilisateur : `admin`, mot de passe : `admin`, base de données : `gatcha_db`)
 - **MinIO** : http://localhost:9000 (utilisateur : `minioadmin`, mot de passe : `minioadmin`)
 
+## Sauvegardes (PostgreSQL + MinIO)
+
+Les sauvegardes sont stockees dans le dossier `backups/` avec un nom horodate.
+
+Creer une sauvegarde complete :
+```bash
+make backup-all
+```
+
+Creer une sauvegarde avec un nom explicite :
+```bash
+make backup-all BACKUP_NAME=avant_test
+```
+
+Lister les sauvegardes :
+```bash
+make backup-list
+```
+
+Restaurer une sauvegarde :
+```bash
+make restore-all BACKUP_NAME=avant_test
+```
+
+Notes :
+- Par defaut, la restauration MinIO n efface pas les fichiers existants. Pour forcer une synchro stricte, utilisez `MINIO_REMOVE=true`.
+- Les identifiants et le reseau Docker sont ceux de `docker-compose.yml` et peuvent etre modifies via des variables d environnement.
+
 ## 🧪 Exemple d'Appel
 
 **Endpoint** : `POST /api/v1/monsters/generate`
