@@ -3,9 +3,6 @@ Module: admin
 
 Description:
 Schémas pour l'API d'administration des monstres
-
-Author: Copilot
-Date: 2026-02-08
 """
 
 from pydantic import BaseModel, Field

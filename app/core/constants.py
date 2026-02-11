@@ -3,9 +3,6 @@ Module: constants
 
 Description:
 Constantes globales de l'application
-
-Author: Copilot
-Date: 2026-02-08
 """
 
 # Messages d'erreur

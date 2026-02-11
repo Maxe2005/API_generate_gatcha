@@ -3,9 +3,6 @@ Module: admin_service
 
 Description:
 Service d'administration des monstres - Orchestration des workflows admin
-
-Author: Copilot
-Date: 2026-02-08
 """
 
 from typing import List, Optional, Dict, Any

@@ -3,14 +3,11 @@ Module: state_manager
 
 Description:
 Gère les états des monstres et les transitions valides.
-
-Author: Copilot
-Date: 2026-02-08
 """
 
 from typing import Optional, Dict
 from datetime import datetime
-from app.schemas.monster import MonsterState, TransitionAction
+from app.schemas.monster import MonsterState
 from app.schemas.metadata import MonsterMetadata, StateTransition
 import logging
 

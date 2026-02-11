@@ -3,14 +3,11 @@ Module: invocation_api
 
 Description:
 Client pour communiquer avec l'API d'invocation.
-
-Author: Copilot
-Date: 2026-02-08
 """
 
 import httpx
 import asyncio
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import logging
 
 from app.clients.base import BaseClient

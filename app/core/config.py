@@ -11,41 +11,41 @@ class ValidationRules:
     VALID_ELEMENTS: Set[str] = {"FIRE", "WATER", "WIND", "EARTH", "LIGHT", "DARKNESS"}
     VALID_RANKS: Set[str] = {"COMMON", "RARE", "EPIC", "LEGENDARY"}
 
-    # Stat limits
-    STAT_LIMITS: Dict[str, Tuple[float, float]] = {
-        "hp": (50.0, 1000.0),
-        "atk": (10.0, 200.0),
-        "def": (10.0, 200.0),
-        "vit": (10.0, 150.0),
-    }
-
-    # Skill limits
-    SKILL_LIMITS: Dict[str, Tuple[float, float]] = {
-        "damage": (0.0, 500.0),
-        "percent": (0.1, 2.0),
-        "cooldown": (0, 5),
-    }
-
-    # Individual stat boundaries
-    MIN_HP: float = 50.0
-    MAX_HP: float = 1000.0
-    MIN_ATK: float = 10.0
-    MAX_ATK: float = 200.0
-    MIN_DEF: float = 10.0
-    MAX_DEF: float = 200.0
-    MIN_VIT: float = 10.0
-    MAX_VIT: float = 150.0
+     # Individual stat boundaries
+    MIN_HP: int = 50
+    MAX_HP: int = 1000
+    MIN_ATK: int = 10
+    MAX_ATK: int = 200
+    MIN_DEF: int = 10
+    MAX_DEF: int = 200
+    MIN_VIT: int = 10
+    MAX_VIT: int = 150
 
     # Damage and skill boundaries
-    MIN_DAMAGE: float = 0.0
-    MAX_DAMAGE: float = 500.0
+    MIN_DAMAGE: int = 0
+    MAX_DAMAGE: int = 500
     MIN_PERCENT: float = 0.1
     MAX_PERCENT: float = 2.0
     MIN_COOLDOWN: int = 0
     MAX_COOLDOWN: int = 5
 
+    # Stat limits
+    STAT_LIMITS: Dict[str, Tuple[int, int]] = {
+        "hp": (MIN_HP, MAX_HP),
+        "atk": (MIN_ATK, MAX_ATK),
+        "def": (MIN_DEF, MAX_DEF),
+        "vit": (MIN_VIT, MAX_VIT),
+    }
+
+    # Skill limits
+    SKILL_LIMITS: Dict[str, Tuple[int , int] | Tuple[float , float]] = {
+        "damage": (MIN_DAMAGE, MAX_DAMAGE),
+        "percent": (MIN_PERCENT, MAX_PERCENT),
+        "cooldown": (MIN_COOLDOWN, MAX_COOLDOWN),
+    }
+
     # Other limits
-    LVL_MAX: float = 5.0
+    LVL_MAX: int = 5
     MAX_CARD_DESCRIPTION_LENGTH: int = 200
 
 

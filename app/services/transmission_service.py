@@ -3,12 +3,9 @@ Module: transmission_service
 
 Description:
 Service de transmission des monstres vers l'API d'invocation.
-
-Author: Copilot
-Date: 2026-02-08
 """
 
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
 import logging
 from sqlalchemy.orm import Session
@@ -130,7 +127,7 @@ class TransmissionService:
 
         for metadata in approved_monsters:
             try:
-                result = await self.transmit_monster(metadata.monster_id)
+                await self.transmit_monster(metadata.monster_id)
                 results["success"] += 1
                 results["details"].append(
                     {"monster_id": metadata.monster_id, "status": "success"}

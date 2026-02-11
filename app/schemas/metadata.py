@@ -3,9 +3,6 @@ Module: metadata
 
 Description:
 Schémas de métadonnées pour la gestion du cycle de vie des monstres
-
-Author: Copilot
-Date: 2026-02-08
 """
 
 from pydantic import BaseModel, Field
