@@ -3,6 +3,7 @@ from app.core.config import get_settings
 from app.core.prompts import GatchaPrompts
 from app.clients.minio_client import MinioClientWrapper
 from PIL import Image
+from app.utils.image_utils import optimize_for_web
 import asyncio
 import io
 import uuid
@@ -24,22 +25,6 @@ class BananaClient:
         self.client = genai.Client(api_key=self.settings.GEMINI_API_KEY)
         self.output_dir = "app/static/images"
         self.minio_client = MinioClientWrapper()
-
-    @staticmethod
-    def _optimize_for_web(image_bytes: bytes, max_height: int = 1080) -> io.BytesIO:
-        img = Image.open(io.BytesIO(image_bytes))
-
-        # Conserver le ratio mais limiter la hauteur
-        if img.height > max_height:
-            ratio = max_height / float(img.height)
-            new_width = int(float(img.width) * float(ratio))
-            img = img.resize((new_width, max_height), Image.Resampling.LANCZOS)
-
-        # Conversion en WebP avec compression (80% est le sweet spot)
-        webp_io = io.BytesIO()
-        img.save(webp_io, format="WebP", quality=80, lossless=False)
-        webp_io.seek(0)
-        return webp_io
 
     async def generate_pixel_art(self, prompt: str, filename_base: str) -> str:
         """
@@ -122,7 +107,7 @@ class BananaClient:
                     )
 
                     # 2. Optimize for Web
-                    webp_io = self._optimize_for_web(img_bytes)
+                    webp_io = optimize_for_web(img_bytes)
                     webp_bytes = webp_io.getvalue()
 
                     # 3. Upload Asset (WebP) to ASSETS bucket
@@ -161,7 +146,7 @@ class BananaClient:
 
         # Wrapped function for the thread executor
         def _generate():
-            contents:ContentListUnionDict = [prompt]
+            contents: ContentListUnionDict = [prompt]
             if image_input:
                 contents.append(image_input)
 

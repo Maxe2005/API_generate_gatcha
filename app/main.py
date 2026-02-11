@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from app.api.v1.endpoints import gatcha, nano_banana, admin, transmission
 from app.core.config import get_settings
 from app.models.base import init_db
+from app.clients.minio_client import MinioClientWrapper
 import os
 import logging
 
@@ -32,6 +33,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         raise
+
+    try:
+        minio_client = MinioClientWrapper()
+        uploaded = minio_client.ensure_default_images()
+        if uploaded:
+            logger.info(f"MinIO seeded with {uploaded} default images")
+    except Exception as e:
+        logger.error(f"Failed to seed MinIO with default images: {e}")
 
     yield
 
