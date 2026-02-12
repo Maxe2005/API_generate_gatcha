@@ -152,6 +152,16 @@ class MonsterRepository:
             logger.error(f"Failed to get monster {monster_id}: {e}")
             return None
 
+    def get_db_monster(self, monster_id: str) -> Optional[Monster]:
+        """Récupère l'objet DB Monster directement"""
+        try:
+            return (
+                self.db.query(Monster).filter(Monster.monster_id == monster_id).first()
+            )
+        except Exception as e:
+            logger.error(f"Failed to get DB monster {monster_id}: {e}")
+            return None
+
     def list_by_state(
         self, state: MonsterState, limit: int = 50, offset: int = 0
     ) -> List[MonsterMetadata]:

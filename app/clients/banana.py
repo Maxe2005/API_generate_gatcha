@@ -26,13 +26,17 @@ class BananaClient:
         self.output_dir = "app/static/images"
         self.minio_client = MinioClientWrapper()
 
-    async def generate_pixel_art(self, prompt: str, filename_base: str) -> str:
+    async def generate_pixel_art(self, prompt: str, filename_base: str) -> dict:
         """
         Generates an image using Google's Gemini-2.5-flash-image model.
-        Returns the MinIO URL of the generated image.
+        Returns a dict with the MinIO URL and the raw image key.
         args:
             prompt: Visual description
             filename_base: sanitized monster name for the file
+        Returns:
+            dict with keys:
+                - image_url: URL of the optimized WebP image
+                - raw_image_key: Object key of the 4K PNG image (internal use only)
         """
         full_prompt = GatchaPrompts.IMAGE_GENERATION.format(prompt=prompt)
 
@@ -75,6 +79,7 @@ class BananaClient:
                 raise Exception(f"Image Generation Error: {str(e)}") from e
 
         image_url = ""
+        raw_image_key = ""
 
         if not response or not response.parts:
             raise Exception("No content parts found in response.")
@@ -98,10 +103,13 @@ class BananaClient:
                     filename_raw = f"{filename_base}_{unique_id}.png"
                     filename_asset = f"{filename_base}_{unique_id}.webp"
 
+                    # Store the raw image key for internal use
+                    raw_image_key = f"monsters/{filename_raw}"
+
                     # 1. Upload Master (PNG 4K) to RAW bucket
                     self.minio_client.upload_image(
                         bucket_name=self.settings.MINIO_BUCKET_RAW,
-                        filename=f"monsters/{filename_raw}",  # Store in /monsters/ subfolder
+                        filename=raw_image_key,
                         image_data=img_bytes,
                         content_type="image/png",
                     )
@@ -128,7 +136,7 @@ class BananaClient:
                 "No image data found in response. Ensure the model supports image generation."
             )
 
-        return image_url
+        return {"image_url": image_url, "raw_image_key": raw_image_key}
 
     async def generate_custom_image(
         self,

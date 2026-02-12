@@ -9,9 +9,11 @@ from app.clients.banana import BananaClient
 from app.schemas.monster import MonsterResponse, MonsterState
 from app.schemas.metadata import MonsterMetadata
 from app.repositories.monster_repository import MonsterRepository
+from app.repositories.monster_image_repository import MonsterImageRepository
 from app.utils.file_manager import FileManager
 from app.services.validation_service import MonsterValidationService
 from app.core.config import get_settings
+from app.core.prompts import GatchaPrompts
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,9 @@ class GatchaService:
         self.file_manager = FileManager()
         self.validation_service = MonsterValidationService()
         self.repository = MonsterRepository(db)
+        self.image_repository = MonsterImageRepository(db)
         self.settings = get_settings()
+        self.db = db
 
     def _get_filename_base(self, monster_data: Dict[str, Any]) -> str:
         """Build a safe filename base from monster name."""
@@ -35,16 +39,22 @@ class GatchaService:
 
     async def _generate_image(
         self, monster_data: Dict[str, Any], fallback_prompt: str, filename_base: str
-    ) -> str:
-        """Generate image for a monster, safe-failing on errors."""
+    ) -> tuple[str, str]:
+        """
+        Generate image for a monster, safe-failing on errors.
+
+        Returns:
+            tuple: (image_url, raw_image_key)
+        """
         visual_prompt = monster_data.get("description_visuelle", fallback_prompt)
         try:
-            return await self.banana_client.generate_pixel_art(
+            result = await self.banana_client.generate_pixel_art(
                 visual_prompt, filename_base
             )
+            return result["image_url"], result["raw_image_key"]
         except Exception as e:
             logger.error(f"Failed to generate image: {e}")
-            return ""
+            return "", ""
 
     async def _process_monster_asset(
         self, monster_data: Dict[str, Any], fallback_prompt: str
@@ -60,7 +70,9 @@ class GatchaService:
         validation_result = self.validation_service.validate(monster_data)
 
         # Generate image even if invalid for review
-        image_url = await self._generate_image(monster_data, fallback_prompt, filename)
+        image_url, raw_image_key = await self._generate_image(
+            monster_data, fallback_prompt, filename
+        )
         monster_data["ImageUrl"] = image_url
 
         # VALIDATION STEP: Validate ImageUrl presence and format
@@ -114,6 +126,32 @@ class GatchaService:
             actor="system",
             note="Created",
         )
+
+        # Create default image entry in monster_images table
+        if image_url:
+            try:
+                saved_monster = self.repository.get_db_monster(monster_id)
+                if saved_monster:
+                    visual_prompt = monster_data.get(
+                        "description_visuelle", fallback_prompt
+                    )
+                    full_prompt = GatchaPrompts.IMAGE_GENERATION.format(
+                        prompt=visual_prompt
+                    )
+
+                    self.image_repository.create_image(
+                        monster_db_id=int(saved_monster.id),  # type: ignore
+                        image_name=filename,
+                        image_url=image_url,
+                        raw_image_key=raw_image_key,
+                        prompt=full_prompt,
+                        is_default=True,
+                    )
+                    logger.info(f"Default image entry created for monster {monster_id}")
+            except Exception as e:
+                logger.error(
+                    f"Failed to create image entry for monster {monster_id}: {e}"
+                )
 
         # Auto-transition valid monsters to PENDING_REVIEW
         if validation_result.is_valid:

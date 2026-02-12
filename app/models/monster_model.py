@@ -97,6 +97,12 @@ class Monster(Base):
         cascade="all, delete-orphan",
         order_by="StateTransitionModel.timestamp",
     )
+    images = relationship(
+        "MonsterImage",
+        back_populates="monster",
+        cascade="all, delete-orphan",
+        order_by="MonsterImage.created_at",
+    )
 
     def __repr__(self):
         return f"<Monster(monster_id='{self.monster_id}', state='{self.state}', nom='{self.monster_data.get('nom', 'N/A')}')>"
