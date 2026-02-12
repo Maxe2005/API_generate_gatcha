@@ -8,6 +8,7 @@ from typing import Dict, Any, List, Tuple, Optional
 from dataclasses import dataclass
 from app.core.config import ValidationRules
 import logging
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +122,43 @@ class RangeValidator:
             return False, f"Value {value} out of range [{min_val}, {max_val}]"
 
         return True, ""
+
+
+class URLValidator:
+    """Validates URL format and presence"""
+
+    @staticmethod
+    def validate_url(value: Any) -> Tuple[bool, str]:
+        """
+        Validate a URL is present and properly formatted
+        Returns (is_valid, error_message)
+        """
+        # Check if value exists and is not empty
+        if not value:
+            return False, "Image URL is missing or empty"
+
+        # Check if it's a string
+        if not isinstance(value, str):
+            return False, f"Expected string, got {type(value).__name__}"
+
+        # Basic URL validation
+        try:
+            result = urlparse(value)
+            # Check for required URL components
+            if not all([result.scheme, result.netloc]):
+                return (
+                    False,
+                    f"Invalid URL format: '{value}' (missing scheme or domain)",
+                )
+            # Check if it starts with http or https
+            if result.scheme not in ["http", "https"]:
+                return (
+                    False,
+                    f"URL must use http or https scheme, got '{result.scheme}'",
+                )
+            return True, ""
+        except Exception as e:
+            return False, f"Invalid URL format: {str(e)}"
 
 
 class MonsterStructureValidator:
@@ -445,3 +483,17 @@ class MonsterValidationService:
         combined_result.is_valid = len(combined_result.errors) == 0
 
         return combined_result
+
+    def validate_image_url(self, image_url: str) -> ValidationResult:
+        """
+        Validate the presence and validity of an image URL
+        Returns ValidationResult with errors if invalid
+        """
+        result = ValidationResult(True)
+
+        is_valid, error_msg = URLValidator.validate_url(image_url)
+        if not is_valid:
+            result.add_error("ImageUrl", "invalid_url", error_msg)
+
+        result.is_valid = len(result.errors) == 0
+        return result

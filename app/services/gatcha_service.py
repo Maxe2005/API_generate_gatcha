@@ -63,6 +63,9 @@ class GatchaService:
         image_url = await self._generate_image(monster_data, fallback_prompt, filename)
         monster_data["ImageUrl"] = image_url
 
+        # VALIDATION STEP: Validate ImageUrl presence and format
+        image_url_validation = self.validation_service.validate_image_url(image_url)
+
         validation_errors = [
             {
                 "field": e.field,
@@ -72,14 +75,24 @@ class GatchaService:
             for e in validation_result.errors
         ]
 
-        initial_state = (
-            MonsterState.DEFECTIVE if not validation_result.is_valid else MonsterState.GENERATED
-        )
+        # Add image URL validation errors if any
+        if not image_url_validation.is_valid:
+            validation_errors.extend(
+                [
+                    {
+                        "field": e.field,
+                        "error_type": e.error_type,
+                        "message": e.message,
+                    }
+                    for e in image_url_validation.errors
+                ]
+            )
+            validation_result.is_valid = False
+
+        initial_state = MonsterState.GENERATED
 
         now = datetime.now(timezone.utc)
-        json_path_rel = (
-            f"{self.settings.API_V1_STR}/admin/monsters/{monster_id}"
-        )
+        json_path_rel = f"{self.settings.API_V1_STR}/admin/monsters/{monster_id}"
 
         metadata = MonsterMetadata(
             monster_id=monster_id,
@@ -107,8 +120,10 @@ class GatchaService:
             self.repository.move_to_state(monster_id, MonsterState.PENDING_REVIEW)
             metadata.state = MonsterState.PENDING_REVIEW
             metadata.updated_at = datetime.now(timezone.utc)
-
-        if not validation_result.is_valid:
+        else:
+            self.repository.move_to_state(monster_id, MonsterState.DEFECTIVE)
+            metadata.state = MonsterState.DEFECTIVE
+            metadata.updated_at = datetime.now(timezone.utc)
             logger.warning(
                 "Monster validation failed: %s", monster_data.get("nom", "unknown")
             )
