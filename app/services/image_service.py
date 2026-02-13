@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 from app.repositories.monster_image_repository import MonsterImageRepository
 from app.repositories.monster_repository import MonsterRepository
 from app.clients.banana import BananaClient
-from app.core.prompts import GatchaPrompts
 from app.schemas.image import MonsterImageResponse, MonsterImageListResponse
 
 logger = logging.getLogger(__name__)
@@ -52,9 +51,6 @@ class ImageService:
         Raises:
             Exception: En cas d'erreur de génération ou de stockage
         """
-        # Générer le prompt complet
-        full_prompt = GatchaPrompts.IMAGE_GENERATION.format(prompt=description_visuelle)
-
         logger.info(
             f"Génération de l'image par défaut pour le monstre {monster_name} (ID: {monster_db_id})"
         )
@@ -71,7 +67,7 @@ class ImageService:
             image_name=image_name,
             image_url=result["image_url"],
             raw_image_key=result["raw_image_key"],
-            prompt=full_prompt,
+            prompt=description_visuelle,
             is_default=True,
         )
 
@@ -100,9 +96,6 @@ class ImageService:
         if not monster:
             raise ValueError(f"Monstre avec ID {monster_id} non trouvé")
 
-        # Générer le prompt complet (custom_prompt sera injecté dans IMAGE_GENERATION)
-        full_prompt = GatchaPrompts.IMAGE_GENERATION.format(prompt=custom_prompt)
-
         logger.info(
             f"Génération d'une image personnalisée '{image_name}' pour le monstre {monster_id}"
         )
@@ -121,7 +114,7 @@ class ImageService:
             image_name=safe_image_name,
             image_url=image_url,
             raw_image_key=raw_image_key,
-            prompt=full_prompt,
+            prompt=custom_prompt,
             is_default=False,
         )
 
@@ -183,6 +176,13 @@ class ImageService:
             image_id=image_id,
             monster_db_id=int(monster.id),  # type: ignore
         )
+
+        # Mettre à jour les données du monstre avec la nouvelle image
+        if monster.monster_data:  # type: ignore
+            monster.monster_data["description_visuelle"] = db_image.prompt  # type: ignore
+            monster.monster_data["ImageUrl"] = db_image.image_url  # type: ignore
+            self.db.commit()
+            logger.info("Données du monstre mises à jour avec la nouvelle image par défaut")
 
         logger.info(
             f"Image {image_id} définie comme défaut pour le monstre {monster_id}"

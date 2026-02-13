@@ -135,16 +135,13 @@ class GatchaService:
                     visual_prompt = monster_data.get(
                         "description_visuelle", fallback_prompt
                     )
-                    full_prompt = GatchaPrompts.IMAGE_GENERATION.format(
-                        prompt=visual_prompt
-                    )
 
                     self.image_repository.create_image(
                         monster_db_id=int(saved_monster.id),  # type: ignore
                         image_name=filename,
                         image_url=image_url,
                         raw_image_key=raw_image_key,
-                        prompt=full_prompt,
+                        prompt=visual_prompt,
                         is_default=True,
                     )
                     logger.info(f"Default image entry created for monster {monster_id}")

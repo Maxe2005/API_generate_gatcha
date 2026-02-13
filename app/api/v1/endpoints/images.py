@@ -21,7 +21,7 @@ from app.schemas.image import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/images", tags=["Monster Images"])
+router = APIRouter(prefix="/images")
 
 
 def get_image_service(db: Session = Depends(get_db)) -> ImageService:
