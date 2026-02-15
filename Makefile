@@ -41,27 +41,8 @@ d-restart: ## Redémarre tous les conteneurs
 
 # ===== PostgreSQL =====
 
-db-migrate: ## Migre les données JSON vers PostgreSQL
-	@echo "🔄 Migration des données JSON vers PostgreSQL..."
-	$(PYTHON) scripts/migrate_json_to_postgres.py
-	@echo "✅ Migration terminée"
-
-db-migrate-dry: ## Test de migration (dry-run)
-	@echo "🔍 Test de migration (dry-run)..."
-	$(PYTHON) scripts/migrate_json_to_postgres.py --dry-run
-
 db-shell: ## Ouvre un shell psql dans le conteneur PostgreSQL
 	docker exec -it $(POSTGRES_CONTAINER) psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
-
-db-backup: ## Sauvegarde la base de données
-	@echo "💾 Backup de la base de données..."
-	docker exec $(POSTGRES_CONTAINER) pg_dump -U $(POSTGRES_USER) $(POSTGRES_DB) > backup_$(shell date +%Y%m%d_%H%M%S).sql
-	@echo "✅ Backup créé"
-
-db-restore: ## Restaure la base de données (usage: make db-restore FILE=backup.sql)
-	@echo "📥 Restauration de la base de données..."
-	docker exec -i $(POSTGRES_CONTAINER) psql -U $(POSTGRES_USER) $(POSTGRES_DB) < $(FILE)
-	@echo "✅ Base restaurée"
 
 db-reset: ## Reset complet de la base (⚠️  supprime toutes les données)
 	@echo "⚠️  ATTENTION: Cette commande va supprimer toutes les données PostgreSQL!"
@@ -82,6 +63,9 @@ db-alembic-revision: ## Cree une migration Alembic (usage: make db-alembic-revis
 
 db-alembic-up: ## Applique les migrations Alembic (usage: make db-alembic-up REV=head)
 	@bash scripts/db_upgrade.sh "$(REV)"
+
+db-alembic-up-one: ## Applique la prochaine migration Alembic (usage: make db-alembic-up-one)
+	@bash scripts/db_upgrade.sh "head"
 
 db-alembic-down: ## Revert une migration Alembic (usage: make db-alembic-down REV=-1)
 	@bash scripts/db_downgrade.sh "$(REV)"

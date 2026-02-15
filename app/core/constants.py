@@ -29,6 +29,13 @@ class MonsterStateEnum(str, enum.Enum):
     TRANSMITTED = "TRANSMITTED"
     REJECTED = "REJECTED"
 
+class TransitionActionEnum(str, enum.Enum):
+    """Actions possibles pour les transitions"""
+
+    APPROVE = "APPROVE"
+    REJECT = "REJECT"
+    CORRECT = "CORRECT"
+    TRANSMIT = "TRANSMIT"
 
 class ElementEnum(str, enum.Enum):
     """Éléments possibles pour un monstre"""

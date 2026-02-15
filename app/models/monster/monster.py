@@ -10,7 +10,6 @@ from sqlalchemy import (
     Column,
     String,
     Integer,
-    Float,
     DateTime,
     Text,
     Enum as SQLEnum,
@@ -55,10 +54,10 @@ class Monster(Base):
     rang = Column(SQLEnum(RankEnum), nullable=False, index=True)
 
     # Stats
-    hp = Column(Float, nullable=False)
-    atk = Column(Float, nullable=False)
-    def_ = Column(Float, nullable=False)  # defense
-    vit = Column(Float, nullable=False)  # vitesse
+    hp = Column(Integer, nullable=False)
+    atk = Column(Integer, nullable=False)
+    def_ = Column(Integer, nullable=False)  # defense
+    vit = Column(Integer, nullable=False)  # vitesse
 
     # Descriptions
     description_carte = Column(Text, nullable=False)

@@ -43,9 +43,9 @@ class Skill(Base):
     # Informations de la compétence
     name = Column(String, nullable=False)
     description = Column(Text, nullable=False)
-    damage = Column(Float, nullable=False)
-    cooldown = Column(Float, nullable=False)
-    lvl_max = Column(Float, nullable=False)
+    damage = Column(Integer, nullable=False)
+    cooldown = Column(Integer, nullable=False)
+    lvl_max = Column(Integer, nullable=False)
     rank = Column(SQLEnum(RankEnum), nullable=False)
 
     # Ratio de la compétence
