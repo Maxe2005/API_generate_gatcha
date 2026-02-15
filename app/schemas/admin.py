@@ -8,8 +8,7 @@ Schémas pour l'API d'administration des monstres
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from app.core.constants import MonsterStateEnum
-from app.schemas.monster import TransitionAction
+from app.core.constants import ElementEnum, MonsterStateEnum, RankEnum, TransitionActionEnum
 from app.schemas.metadata import MonsterMetadata
 
 
@@ -20,13 +19,16 @@ class RequestContext(BaseModel):
     admin_name: str = Field(
         default="Admin", description="Nom de l'administrateur effectuant l'action"
     )
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=datetime.now)
 
 
 class MonsterListFilter(BaseModel):
     """Filtres pour la liste des monstres"""
 
     state: Optional[MonsterStateEnum] = None
+    element: Optional[ElementEnum] = None
+    rank: Optional[RankEnum] = None
+    is_valid: Optional[bool] = None
     limit: int = Field(default=50, ge=1, le=200)
     offset: int = Field(default=0, ge=0)
     sort_by: str = Field(default="created_at")
@@ -37,10 +39,10 @@ class MonsterListFilter(BaseModel):
 class MonsterSummary(BaseModel):
     """Résumé d'un monstre pour la liste"""
 
-    monster_id: int
+    monster_id: str
     name: str
-    element: str
-    rank: str
+    element: ElementEnum
+    rank: RankEnum
     state: MonsterStateEnum
     created_at: datetime
     updated_at: datetime
@@ -60,7 +62,7 @@ class MonsterDetail(BaseModel):
 class ReviewRequest(RequestContext):
     """Requête pour reviewer un monstre"""
 
-    action: TransitionAction
+    action: TransitionActionEnum
     notes: Optional[str] = Field(None, max_length=1000)
     corrected_data: Optional[Dict[str, Any]] = None
 
