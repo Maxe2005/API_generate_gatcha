@@ -93,94 +93,103 @@ def upgrade() -> None:
     rank_enum.create(op.get_bind(), checkfirst=True)
 
     # 7. Créer la nouvelle table monsters (structurée)
-    op.create_table(
-        "monsters",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("monster_state_id", sa.Integer(), nullable=False),
-        sa.Column("nom", sa.String(), nullable=False),
-        sa.Column(
-            "element",
-            sa.Enum("FIRE", "WATER", "WIND", "EARTH", name="elementenum"),
-            nullable=False,
-        ),
-        sa.Column(
-            "rang",
-            sa.Enum("COMMON", "RARE", "EPIC", "LEGENDARY", name="rankenum"),
-            nullable=False,
-        ),
-        sa.Column("hp", sa.Float(), nullable=False),
-        sa.Column("atk", sa.Float(), nullable=False),
-        sa.Column("def_", sa.Float(), nullable=False),
-        sa.Column("vit", sa.Float(), nullable=False),
-        sa.Column("description_carte", sa.Text(), nullable=False),
-        sa.Column("description_visuelle", sa.Text(), nullable=False),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(
+    from sqlalchemy import inspect
+
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    tables = inspector.get_table_names()
+    if "monsters" not in tables:
+        op.create_table(
+            "monsters",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("monster_state_id", sa.Integer(), nullable=False),
+            sa.Column("nom", sa.String(), nullable=False),
+            sa.Column(
+                "element",
+                sa.Enum("FIRE", "WATER", "WIND", "EARTH", name="elementenum"),
+                nullable=False,
+            ),
+            sa.Column(
+                "rang",
+                sa.Enum("COMMON", "RARE", "EPIC", "LEGENDARY", name="rankenum"),
+                nullable=False,
+            ),
+            sa.Column("hp", sa.Float(), nullable=False),
+            sa.Column("atk", sa.Float(), nullable=False),
+            sa.Column("def_", sa.Float(), nullable=False),
+            sa.Column("vit", sa.Float(), nullable=False),
+            sa.Column("description_carte", sa.Text(), nullable=False),
+            sa.Column("description_visuelle", sa.Text(), nullable=False),
+            sa.Column(
+                "created_at",
+                sa.DateTime(timezone=True),
+                server_default=sa.text("now()"),
+                nullable=False,
+            ),
+            sa.Column(
+                "updated_at",
+                sa.DateTime(timezone=True),
+                server_default=sa.text("now()"),
+                nullable=False,
+            ),
+            sa.PrimaryKeyConstraint("id"),
+            sa.ForeignKeyConstraint(
+                ["monster_state_id"],
+                ["monsters_state.id"],
+            ),
+            sa.UniqueConstraint("monster_state_id"),
+        )
+        op.create_index(
+            op.f("ix_monsters_element"), "monsters", ["element"], unique=False
+        )
+        op.create_index(
+            op.f("ix_monsters_monster_state_id"),
+            "monsters",
             ["monster_state_id"],
-            ["monsters_state.id"],
-        ),
-        sa.UniqueConstraint("monster_state_id"),
-    )
-    op.create_index(op.f("ix_monsters_element"), "monsters", ["element"], unique=False)
-    op.create_index(
-        op.f("ix_monsters_monster_state_id"),
-        "monsters",
-        ["monster_state_id"],
-        unique=True,
-    )
-    op.create_index(op.f("ix_monsters_nom"), "monsters", ["nom"], unique=False)
-    op.create_index(op.f("ix_monsters_rang"), "monsters", ["rang"], unique=False)
+            unique=True,
+        )
+        op.create_index(op.f("ix_monsters_nom"), "monsters", ["nom"], unique=False)
+        op.create_index(op.f("ix_monsters_rang"), "monsters", ["rang"], unique=False)
 
     # 8. Créer la table skills
-    op.create_table(
-        "skills",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("monster_id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(), nullable=False),
-        sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("damage", sa.Float(), nullable=False),
-        sa.Column("cooldown", sa.Float(), nullable=False),
-        sa.Column("lvl_max", sa.Float(), nullable=False),
-        sa.Column(
-            "rank",
-            sa.Enum("COMMON", "RARE", "EPIC", "LEGENDARY", name="rankenum"),
-            nullable=False,
-        ),
-        sa.Column("ratio_stat", sa.String(), nullable=False),
-        sa.Column("ratio_percent", sa.Float(), nullable=False),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(
-            ["monster_id"],
-            ["monsters.id"],
-        ),
-    )
-    op.create_index(
-        op.f("ix_skills_monster_id"), "skills", ["monster_id"], unique=False
-    )
+    if "skills" not in tables:
+        op.create_table(
+            "skills",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("monster_id", sa.Integer(), nullable=False),
+            sa.Column("name", sa.String(), nullable=False),
+            sa.Column("description", sa.Text(), nullable=False),
+            sa.Column("damage", sa.Float(), nullable=False),
+            sa.Column("cooldown", sa.Float(), nullable=False),
+            sa.Column("lvl_max", sa.Float(), nullable=False),
+            sa.Column(
+                "rank",
+                sa.Enum("COMMON", "RARE", "EPIC", "LEGENDARY", name="rankenum"),
+                nullable=False,
+            ),
+            sa.Column("ratio_stat", sa.String(), nullable=False),
+            sa.Column("ratio_percent", sa.Float(), nullable=False),
+            sa.Column(
+                "created_at",
+                sa.DateTime(timezone=True),
+                server_default=sa.text("now()"),
+                nullable=False,
+            ),
+            sa.Column(
+                "updated_at",
+                sa.DateTime(timezone=True),
+                server_default=sa.text("now()"),
+                nullable=False,
+            ),
+            sa.PrimaryKeyConstraint("id"),
+            sa.ForeignKeyConstraint(
+                ["monster_id"],
+                ["monsters.id"],
+            ),
+        )
+        op.create_index(
+            op.f("ix_skills_monster_id"), "skills", ["monster_id"], unique=False
+        )
 
 
 def downgrade() -> None:
@@ -188,14 +197,20 @@ def downgrade() -> None:
     Downgrade : Revenir à l'architecture précédente
     """
     # 1. Supprimer les nouvelles tables
-    op.drop_index(op.f("ix_skills_monster_id"), table_name="skills")
-    op.drop_table("skills")
+    from sqlalchemy import inspect
 
-    op.drop_index(op.f("ix_monsters_rang"), table_name="monsters")
-    op.drop_index(op.f("ix_monsters_nom"), table_name="monsters")
-    op.drop_index(op.f("ix_monsters_monster_state_id"), table_name="monsters")
-    op.drop_index(op.f("ix_monsters_element"), table_name="monsters")
-    op.drop_table("monsters")
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    tables = inspector.get_table_names()
+    if "skills" in tables:
+        op.drop_index(op.f("ix_skills_monster_id"), table_name="skills")
+        op.drop_table("skills")
+    if "monsters" in tables:
+        op.drop_index(op.f("ix_monsters_rang"), table_name="monsters")
+        op.drop_index(op.f("ix_monsters_nom"), table_name="monsters")
+        op.drop_index(op.f("ix_monsters_monster_state_id"), table_name="monsters")
+        op.drop_index(op.f("ix_monsters_element"), table_name="monsters")
+        op.drop_table("monsters")
 
     # 2. Supprimer les enums (si plus utilisés)
     # Note: On ne les supprime pas car monsterstateenum les utilise peut-être

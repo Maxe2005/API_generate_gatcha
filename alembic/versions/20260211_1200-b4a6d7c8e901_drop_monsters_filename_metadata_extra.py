@@ -19,19 +19,36 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.drop_column("monsters", "metadata_extra")
-    op.drop_column("monsters", "filename")
+    from sqlalchemy import inspect
+
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    columns = [col["name"] for col in inspector.get_columns("monsters")]
+    if "metadata_extra" in columns:
+        op.drop_column("monsters", "metadata_extra")
+    if "filename" in columns:
+        op.drop_column("monsters", "filename")
 
 
 def downgrade() -> None:
-    op.add_column(
-        "monsters",
-        sa.Column("filename", sa.String(), nullable=False),
-    )
-    op.add_column(
-        "monsters",
-        sa.Column(
-            "metadata_extra", sa.JSON(), nullable=False, server_default=sa.text("'{}'")
-        ),
-    )
-    op.alter_column("monsters", "metadata_extra", server_default=None)
+    from sqlalchemy import inspect
+
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    columns = [col["name"] for col in inspector.get_columns("monsters")]
+    if "filename" not in columns:
+        op.add_column(
+            "monsters",
+            sa.Column("filename", sa.String(), nullable=False),
+        )
+    if "metadata_extra" not in columns:
+        op.add_column(
+            "monsters",
+            sa.Column(
+                "metadata_extra",
+                sa.JSON(),
+                nullable=False,
+                server_default=sa.text("'{}'"),
+            ),
+        )
+        op.alter_column("monsters", "metadata_extra", server_default=None)

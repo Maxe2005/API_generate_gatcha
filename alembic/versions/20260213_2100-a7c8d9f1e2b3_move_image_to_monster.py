@@ -35,7 +35,13 @@ def upgrade() -> None:
     )
 
     # 2. Supprimer image_path de la table monsters_state
-    op.drop_column("monsters_state", "image_path")
+    from sqlalchemy import inspect
+
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    columns_state = [col["name"] for col in inspector.get_columns("monsters_state")]
+    if "image_path" in columns_state:
+        op.drop_column("monsters_state", "image_path")
 
     # 3. Renommer monster_state_id en monster_id dans monster_images
     # D'abord, supprimer la contrainte de ForeignKey existante
@@ -95,4 +101,10 @@ def downgrade() -> None:
     )
 
     # 4. Supprimer image_url de monsters
-    op.drop_column("monsters", "image_url")
+    from sqlalchemy import inspect
+
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    columns_monsters = [col["name"] for col in inspector.get_columns("monsters")]
+    if "image_url" in columns_monsters:
+        op.drop_column("monsters", "image_url")
