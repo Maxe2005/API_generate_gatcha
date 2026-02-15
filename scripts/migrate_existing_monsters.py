@@ -54,7 +54,7 @@ def migrate_existing_monsters():
                     transmitted_at=datetime.now(timezone.utc),
                     metadata={
                         "image_url": monster_data.get("image_url", ""),
-                        "json_path": f"/static/jsons/transmitted/{json_file.name}",
+                        # Ancienne gestion des fichiers JSON supprimée
                     },
                     history=[
                         StateTransition(
@@ -78,7 +78,7 @@ def migrate_existing_monsters():
                     )
 
                 # Déplacer le fichier vers transmitted
-                transmitted_dir = Path("app/static/jsons/transmitted")
+                # Ancienne gestion des fichiers JSON supprimée
                 transmitted_dir.mkdir(parents=True, exist_ok=True)
                 new_path = transmitted_dir / json_file.name
 
@@ -92,7 +92,7 @@ def migrate_existing_monsters():
                 print(f"  ✗ Failed to migrate {json_file.name}: {e}")
 
     # Monstres défectueux
-    defective_dir = Path("app/static/jsons_defective")
+    # Ancienne gestion des fichiers JSON supprimée
     if defective_dir.exists():
         defective_files = list(defective_dir.glob("*.json"))
 
@@ -120,7 +120,7 @@ def migrate_existing_monsters():
                     generated_by="gemini",
                     is_valid=False,
                     validation_errors=validation_errors,
-                    metadata={"json_path": f"/static/jsons/defective/{json_file.name}"},
+                    # Ancienne gestion des fichiers JSON supprimée
                     history=[
                         StateTransition(
                             from_state=None,
@@ -143,7 +143,7 @@ def migrate_existing_monsters():
                     )
 
                 # Déplacer et nettoyer le fichier (garder uniquement monster_data)
-                defective_new_dir = Path("app/static/jsons/defective")
+                # Ancienne gestion des fichiers JSON supprimée
                 defective_new_dir.mkdir(parents=True, exist_ok=True)
                 new_path = defective_new_dir / json_file.name
 

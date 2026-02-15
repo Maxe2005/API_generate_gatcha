@@ -12,7 +12,6 @@ from app.schemas.monster import MonsterResponse
 from app.core.constants import MonsterStateEnum
 from app.schemas.metadata import MonsterMetadata
 from app.repositories.monster_image_repository import MonsterImageRepository
-from app.utils.file_manager import FileManager
 from app.services.validation_service import MonsterValidationService
 from app.core.config import get_settings
 
@@ -23,7 +22,6 @@ class GatchaService:
     def __init__(self, db: Session):
         self.gemini_client = GeminiClient()
         self.banana_client = BananaClient()
-        self.file_manager = FileManager()
         self.validation_service = MonsterValidationService()
         self.state_repository = MonsterStateRepository(db)
         self.structure_repository = StructureRepository(db)
@@ -34,9 +32,11 @@ class GatchaService:
     def _get_filename_base(self, monster_data: Dict[str, Any]) -> str:
         """Build a safe filename base from monster name."""
         monster_name = monster_data.get("nom", "unknown_monster")
-        filename_base = self.file_manager.sanitize_filename(monster_name)
-        if not filename_base:
-            filename_base = f"monster_{uuid.uuid4().hex[:8]}"
+        # Simple sanitization: lowercase, remove spaces and special chars
+        filename_base = (
+            "".join(c for c in monster_name.lower() if c.isalnum())
+            or f"monster_{uuid.uuid4().hex[:8]}"
+        )
         return filename_base
 
     async def _generate_image(
@@ -152,9 +152,7 @@ class GatchaService:
             )
             logger.warning(validation_result.get_error_summary())
 
-        return MonsterResponse(
-            **monster_data, image_path=image_url
-        )
+        return MonsterResponse(**monster_data, image_path=image_url)
 
     async def create_monster(self, prompt: str) -> MonsterResponse:
         """

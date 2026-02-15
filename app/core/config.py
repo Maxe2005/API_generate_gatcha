@@ -35,9 +35,6 @@ class Settings(BaseSettings):
     MINIO_BUCKET_ASSETS: str = "game-assets"
     MINIO_PUBLIC_URL: str = "http://localhost:9000"
 
-    # Defective JSONs folder
-    DEFECTIVE_JSONS_DIR: str = "app/static/jsons_defective"
-
     # API Invocation
     INVOCATION_API_URL: str = "http://localhost:8085"
     INVOCATION_API_TIMEOUT: int = 30

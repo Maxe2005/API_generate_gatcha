@@ -57,7 +57,6 @@ app = FastAPI(
 # Ensure static directories exist
 os.makedirs("app/static/images", exist_ok=True)
 os.makedirs("app/static/jsons", exist_ok=True)
-os.makedirs(settings.DEFECTIVE_JSONS_DIR, exist_ok=True)
 os.makedirs(settings.METADATA_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 

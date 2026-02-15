@@ -7,7 +7,7 @@ Usage:
 
 Description:
     Migre tous les monstres depuis le stockage JSON vers la base PostgreSQL.
-    - Lit tous les fichiers JSON du répertoire app/static/jsons/
+    # Ancienne gestion des fichiers JSON supprimée : ce script n'est plus utilisé dans la nouvelle architecture.
     - Insère dans PostgreSQL avec l'état GENERATED
 """
 
