@@ -48,6 +48,26 @@ class MonsterRepository:
         except Exception as e:
             logger.error(f"Failed to get monster by ID {monster_db_id}: {e}")
             return None
+    
+    def get_by_uuid(self, monster_uuid: str) -> Optional[Monster]:
+        """
+        Récupère un monstre par son UUID.
+
+        Args:
+            monster_uuid: UUID du monstre
+
+        Returns:
+            Monster si trouvé, None sinon
+        """
+        try:
+            return (
+                self.db.query(Monster)
+                .filter(Monster.monster_uuid == monster_uuid)
+                .first()
+            )
+        except Exception as e:
+            logger.error(f"Failed to get monster by UUID {monster_uuid}: {e}")
+            return None
 
     def get_by_monster_state_id(self, monster_state_id: int) -> Optional[Monster]:
         """
@@ -70,6 +90,19 @@ class MonsterRepository:
                 f"Failed to get monster by monster_state_id {monster_state_id}: {e}"
             )
             return None
+    
+    def get_all(self) -> list[Monster]:
+        """
+        Récupère tous les monstres.
+
+        Returns:
+            Liste de tous les monstres
+        """
+        try:
+            return self.db.query(Monster).all()
+        except Exception as e:
+            logger.error(f"Failed to get all monsters: {e}")
+            return []
 
     def update(self, monster_db_id: int, updates: MonsterUpdate) -> Optional[Monster]:
         """

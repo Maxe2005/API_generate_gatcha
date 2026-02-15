@@ -21,7 +21,7 @@ from app.models.monster_image_model import MonsterImage
 logger = logging.getLogger(__name__)
 
 
-class StructureRepository:
+class TransitionRepository:
     """
     Crée des monstres structurés à partir de données JSON.
     Utilisé lors de la transition vers PENDING_REVIEW.
@@ -86,7 +86,7 @@ class StructureRepository:
             # Create default image entry in monster_images table
             image_name = monster.nom
             image_url: str = monster_json["ImageUrl"]
-            raw_image_key = image_url  # .replace("", "")  # Extract raw image key from URL if needed
+            raw_image_key = image_url  # .replace("", "")  # TODO Extract raw image key from URL if needed
             image = MonsterImage(
                 monster_id=monster.id,
                 image_name=image_name,
@@ -118,7 +118,7 @@ class StructureRepository:
 
     def add_transition(
         self,
-        monster_id: int,
+        monster_id: str,
         from_state: Optional[MonsterStateEnum],
         to_state: MonsterStateEnum,
         actor: str,
@@ -128,7 +128,7 @@ class StructureRepository:
         try:
             db_monster_state = (
                 self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == int(monster_id))
+                .filter(MonsterState.monster_id == monster_id)
                 .first()
             )
 
@@ -154,7 +154,7 @@ class StructureRepository:
 
     def move_to_state(
         self,
-        monster_id: int,
+        monster_id: str,
         new_state: MonsterStateEnum,
         actor: str = "system",
         note: Optional[str] = None,
@@ -163,7 +163,7 @@ class StructureRepository:
         try:
             db_monster_state = (
                 self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == int(monster_id))
+                .filter(MonsterState.monster_id == monster_id)
                 .first()
             )
 

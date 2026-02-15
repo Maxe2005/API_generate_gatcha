@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.models.monster import Skill, Monster
-from app.schemas.monster import SkillCreate, SkillUpdate
+from app.schemas.skill import SkillCreate, SkillUpdate
 
 logger = logging.getLogger(__name__)
 
