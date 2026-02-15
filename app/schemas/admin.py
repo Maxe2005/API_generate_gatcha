@@ -12,12 +12,16 @@ from app.core.constants import MonsterStateEnum
 from app.schemas.monster import TransitionAction
 from app.schemas.metadata import MonsterMetadata
 
+
 class RequestContext(BaseModel):
     """Contexte de la requête pour les opérations d'administration"""
 
     admin_id: Optional[str] = None
-    admin_name: str = Field(default="Admin", description="Nom de l'administrateur effectuant l'action")
+    admin_name: str = Field(
+        default="Admin", description="Nom de l'administrateur effectuant l'action"
+    )
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+
 
 class MonsterListFilter(BaseModel):
     """Filtres pour la liste des monstres"""
@@ -33,7 +37,7 @@ class MonsterListFilter(BaseModel):
 class MonsterSummary(BaseModel):
     """Résumé d'un monstre pour la liste"""
 
-    monster_id: str
+    monster_id: int
     name: str
     element: str
     rank: str
@@ -71,7 +75,7 @@ class CorrectionRequest(RequestContext):
 class TransmitRequest(RequestContext):
     """Requête pour transmettre un monstre"""
 
-    monster_id: Optional[str] = None
+    monster_id: Optional[int] = None
     force: bool = Field(default=False, description="Force la retransmission")
 
 

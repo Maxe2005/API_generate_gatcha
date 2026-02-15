@@ -82,13 +82,13 @@ async def generate_custom_image(
     description="Récupère la liste de toutes les images d'un monstre avec l'image par défaut.",
 )
 async def get_monster_images(
-    monster_id: str, image_service: ImageService = Depends(get_image_service)
+    monster_id: int, image_service: ImageService = Depends(get_image_service)
 ):
     """
     Récupère toutes les images d'un monstre.
 
     Args:
-        monster_id: UUID du monstre
+        monster_id: ID de base de données du monstre
 
     Returns:
         MonsterImageListResponse: Liste des images avec l'image par défaut
@@ -117,7 +117,7 @@ async def get_monster_images(
     description="Définit une image comme image par défaut pour un monstre. Retire le flag des autres images.",
 )
 async def set_default_image(
-    monster_id: str,
+    monster_id: int,
     request: SetDefaultImageRequest,
     image_service: ImageService = Depends(get_image_service),
 ):
@@ -125,7 +125,7 @@ async def set_default_image(
     Définit une image comme image par défaut pour un monstre.
 
     Args:
-        monster_id: UUID du monstre
+        monster_id: ID de base de données du monstre
         request: ID de l'image à définir comme défaut
 
     Returns:

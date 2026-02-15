@@ -76,13 +76,13 @@ class ImageService:
         return MonsterImageResponse.model_validate(db_image)
 
     async def create_custom_image_for_monster(
-        self, monster_id: str, image_name: str, custom_prompt: str
+        self, monster_id: int, image_name: str, custom_prompt: str
     ) -> MonsterImageResponse:
         """
         Crée une nouvelle image personnalisée pour un monstre existant.
 
         Args:
-            monster_id: UUID du monstre
+            monster_id: ID de base de données du monstre
             image_name: Nom de l'image à créer
             custom_prompt: Prompt personnalisé (sera injecté dans IMAGE_GENERATION)
 
@@ -94,7 +94,7 @@ class ImageService:
             Exception: En cas d'erreur de génération ou de stockage
         """
         # Récupérer le monstre
-        monster = self.monster_repo.get_db_monster(monster_id)
+        monster = self.monster_repo.get_by_id(monster_id)
         if not monster:
             raise ValueError(f"Monstre avec ID {monster_id} non trouvé")
 
@@ -122,12 +122,12 @@ class ImageService:
 
         return MonsterImageResponse.model_validate(db_image)
 
-    def get_monster_images(self, monster_id: str) -> MonsterImageListResponse:
+    def get_monster_images(self, monster_id: int) -> MonsterImageListResponse:
         """
         Récupère toutes les images d'un monstre.
 
         Args:
-            monster_id: UUID du monstre
+            monster_id: ID de base de données du monstre
 
         Returns:
             MonsterImageListResponse: Liste des images avec l'image par défaut
@@ -136,7 +136,7 @@ class ImageService:
             ValueError: Si le monstre n'existe pas
         """
         # Récupérer le monstre
-        monster = self.monster_repo.get_db_monster(monster_id)
+        monster = self.monster_repo.get_by_id(monster_id)
         if not monster:
             raise ValueError(f"Monstre avec ID {monster_id} non trouvé")
 
@@ -154,12 +154,12 @@ class ImageService:
             default_image=default_image,
         )
 
-    def set_default_image(self, monster_id: str, image_id: int) -> MonsterImageResponse:
+    def set_default_image(self, monster_id: int, image_id: int) -> MonsterImageResponse:
         """
         Définit une image comme image par défaut pour un monstre.
 
         Args:
-            monster_id: UUID du monstre
+            monster_id: ID de base de données du monstre
             image_id: ID de l'image à définir comme défaut
 
         Returns:
@@ -169,7 +169,7 @@ class ImageService:
             ValueError: Si le monstre ou l'image n'existe pas
         """
         # Récupérer le monstre
-        monster = self.monster_repo.get_db_monster(monster_id)
+        monster = self.monster_repo.get_by_id(monster_id)
         if not monster:
             raise ValueError(f"Monstre avec ID {monster_id} non trouvé")
 

@@ -118,7 +118,7 @@ class StructureRepository:
 
     def add_transition(
         self,
-        monster_id: str,
+        monster_id: int,
         from_state: Optional[MonsterStateEnum],
         to_state: MonsterStateEnum,
         actor: str,
@@ -128,7 +128,7 @@ class StructureRepository:
         try:
             db_monster_state = (
                 self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
+                .filter(MonsterState.monster_id == int(monster_id))
                 .first()
             )
 
@@ -154,7 +154,7 @@ class StructureRepository:
 
     def move_to_state(
         self,
-        monster_id: str,
+        monster_id: int,
         new_state: MonsterStateEnum,
         actor: str = "system",
         note: Optional[str] = None,
@@ -163,7 +163,7 @@ class StructureRepository:
         try:
             db_monster_state = (
                 self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
+                .filter(MonsterState.monster_id == int(monster_id))
                 .first()
             )
 
