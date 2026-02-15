@@ -2,7 +2,7 @@
 Admin endpoints for managing monster lifecycle
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query, Body
+from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import logging
@@ -16,7 +16,7 @@ from app.schemas.admin import (
     CorrectionRequest,
     DashboardStats,
 )
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterStateEnum
 from app.utils.file_manager import FileManager
 from app.services.validation_service import MonsterValidationService
 from app.models.base import get_db
@@ -43,7 +43,7 @@ def get_admin_service(db: Session = Depends(get_db)) -> AdminService:
 
 @router.get("/monsters", response_model=List[MonsterSummary])
 async def list_monsters(
-    state: Optional[MonsterState] = Query(None),
+    state: Optional[MonsterStateEnum] = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     sort_by: str = Query("created_at"),
@@ -97,7 +97,7 @@ async def get_monster_history(
 ):
     """Récupère l'historique complet des transitions d'un monstre"""
     try:
-        monster = service.repository.get(monster_id)
+        monster = service.state_repository.get(monster_id)
         if not monster:
             raise HTTPException(status_code=404, detail="Monster not found")
 
@@ -141,7 +141,7 @@ async def review_monster(
             request.action,
             request.notes,
             request.corrected_data,
-            admin_name="admin",
+            admin_name=request.admin_name,
         )
 
         return {
@@ -358,7 +358,7 @@ async def approve_defective_json(filename: str, request: ApproveDefectiveRequest
 
         return {
             "status": "approved",
-            "message": f"Monster approved and saved to valid folder",
+            "message": "Monster approved and saved to valid folder",
             "new_path": new_path,
             "notes": request.notes,
         }
@@ -389,7 +389,7 @@ async def reject_defective_json(filename: str, request: RejectDefectiveRequest):
 
         return {
             "status": "rejected",
-            "message": f"Monster deleted",
+            "message": "Monster deleted",
             "reason": request.reason,
         }
     except HTTPException:

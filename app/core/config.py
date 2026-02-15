@@ -1,52 +1,15 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
-from typing import Set, Dict, Tuple
+
+# Import centralized validation rules from constants
+from app.core.constants import ValidationConstants
 
 
-class ValidationRules:
-    """Centralized validation rules for monsters"""
+# Alias for backward compatibility
+class ValidationRules(ValidationConstants):
+    """Backward-compatible alias for ValidationConstants"""
 
-    # Enum constraints
-    VALID_STATS: Set[str] = {"ATK", "DEF", "HP", "VIT"}
-    VALID_ELEMENTS: Set[str] = {"FIRE", "WATER", "WIND", "EARTH", "LIGHT", "DARKNESS"}
-    VALID_RANKS: Set[str] = {"COMMON", "RARE", "EPIC", "LEGENDARY"}
-
-     # Individual stat boundaries
-    MIN_HP: int = 50
-    MAX_HP: int = 1000
-    MIN_ATK: int = 10
-    MAX_ATK: int = 200
-    MIN_DEF: int = 10
-    MAX_DEF: int = 200
-    MIN_VIT: int = 10
-    MAX_VIT: int = 150
-
-    # Damage and skill boundaries
-    MIN_DAMAGE: int = 0
-    MAX_DAMAGE: int = 500
-    MIN_PERCENT: float = 0.1
-    MAX_PERCENT: float = 2.0
-    MIN_COOLDOWN: int = 0
-    MAX_COOLDOWN: int = 5
-
-    # Stat limits
-    STAT_LIMITS: Dict[str, Tuple[int, int]] = {
-        "hp": (MIN_HP, MAX_HP),
-        "atk": (MIN_ATK, MAX_ATK),
-        "def": (MIN_DEF, MAX_DEF),
-        "vit": (MIN_VIT, MAX_VIT),
-    }
-
-    # Skill limits
-    SKILL_LIMITS: Dict[str, Tuple[int , int] | Tuple[float , float]] = {
-        "damage": (MIN_DAMAGE, MAX_DAMAGE),
-        "percent": (MIN_PERCENT, MAX_PERCENT),
-        "cooldown": (MIN_COOLDOWN, MAX_COOLDOWN),
-    }
-
-    # Other limits
-    LVL_MAX: int = 5
-    MAX_CARD_DESCRIPTION_LENGTH: int = 200
+    pass
 
 
 class Settings(BaseSettings):

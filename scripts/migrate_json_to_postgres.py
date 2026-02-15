@@ -21,7 +21,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.models.base import SessionLocal
-from app.models.monster_model import Monster, MonsterStateEnum
+from app.models.monster import MonsterState
+from app.core.constants import MonsterStateEnum
 
 logging.basicConfig(
     level=logging.INFO,

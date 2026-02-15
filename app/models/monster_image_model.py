@@ -2,7 +2,8 @@
 Module: monster_image_model
 
 Description:
-Modèle SQLAlchemy pour gérer plusieurs images par monstre
+Modèle SQLAlchemy pour gérer plusieurs images par monstre.
+Lié à Monster car les images sont associées aux monstres structurés.
 """
 
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, Text, ForeignKey
@@ -16,6 +17,7 @@ class MonsterImage(Base):
     """
     Table pour stocker plusieurs images par monstre.
     Permet de gérer différentes variations visuelles pour un même monstre.
+    Lié à Monster (table structurée des monstres validés).
     """
 
     __tablename__ = "monster_images"
@@ -23,7 +25,7 @@ class MonsterImage(Base):
     # Identifiant unique de l'image
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
 
-    # Référence au monstre
+    # Référence au monstre (via monsters)
     monster_id = Column(
         Integer,
         ForeignKey("monsters.id", ondelete="CASCADE"),

@@ -117,7 +117,7 @@ curl -X POST http://localhost:8000/api/v1/transmission/transmit/{MONSTER_ID}
 ### Test basique d'import
 ```python
 # test_imports.py
-from app.schemas.monster import MonsterState, TransitionAction
+from app.core.constants import MonsterState, TransitionAction
 from app.schemas.metadata import MonsterMetadata
 from app.services.state_manager import MonsterStateManager
 from app.repositories.monster_repository import MonsterRepository
@@ -130,7 +130,7 @@ print("✅ All imports successful!")
 ```python
 # test_state_manager.py
 from app.services.state_manager import MonsterStateManager
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterState
 
 manager = MonsterStateManager()
 
@@ -154,7 +154,7 @@ print("✅ StateManager tests passed!")
 ```python
 # test_repository.py
 from app.repositories.monster_repository import MonsterRepository
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterState
 
 repo = MonsterRepository()
 

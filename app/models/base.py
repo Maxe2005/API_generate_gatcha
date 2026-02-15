@@ -61,7 +61,7 @@ def init_db() -> None:
     """
     try:
         # Import tous les modèles pour s'assurer qu'ils sont enregistrés
-        from app.models import monster_model  # noqa: F401
+        from app.models import monster  # noqa: F401
 
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully")

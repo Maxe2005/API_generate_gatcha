@@ -10,11 +10,13 @@ from datetime import datetime, timezone
 import logging
 from sqlalchemy.orm import Session
 
-from app.repositories.monster_repository import MonsterRepository
+from app.repositories.monster.state_repository import MonsterStateRepository
+from app.repositories.monster.structure_repository import StructureRepository
 from app.services.state_manager import MonsterStateManager
 from app.services.validation_service import MonsterValidationService
 from app.schemas.metadata import MonsterMetadata
-from app.schemas.monster import MonsterState, TransitionAction
+from app.core.constants import MonsterStateEnum
+from app.schemas.monster import TransitionAction
 from app.schemas.admin import MonsterSummary, MonsterDetail, DashboardStats
 
 logger = logging.getLogger(__name__)
@@ -24,13 +26,14 @@ class AdminService:
     """Service d'administration des monstres"""
 
     def __init__(self, db: Session):
-        self.repository = MonsterRepository(db)
+        self.state_repository = MonsterStateRepository(db)
+        self.structure_repository = StructureRepository(db)
         self.state_manager = MonsterStateManager()
         self.validation_service = MonsterValidationService()
 
     def list_monsters(
         self,
-        state: Optional[MonsterState] = None,
+        state: Optional[MonsterStateEnum] = None,
         limit: int = 50,
         offset: int = 0,
         sort_by: str = "created_at",
@@ -39,13 +42,13 @@ class AdminService:
         """Liste les monstres avec filtres"""
 
         if state:
-            metadata_list = self.repository.list_by_state(state, limit, offset)
+            metadata_list = self.state_repository.list_by_state(state, limit, offset)
         else:
-            metadata_list = self.repository.list_all(limit, offset)
+            metadata_list = self.state_repository.list_all(limit, offset)
 
         summaries = []
         for metadata in metadata_list:
-            monster = self.repository.get(metadata.monster_id)
+            monster = self.state_repository.get(metadata.monster_id)
             if monster:
                 summaries.append(
                     MonsterSummary(
@@ -66,7 +69,7 @@ class AdminService:
     def get_monster_detail(self, monster_id: str) -> Optional[MonsterDetail]:
         """Récupère les détails complets d'un monstre"""
 
-        monster = self.repository.get(monster_id)
+        monster = self.state_repository.get(monster_id)
         if not monster:
             return None
 
@@ -98,21 +101,21 @@ class AdminService:
     ) -> MonsterMetadata:
         """Review un monstre (approve ou reject)"""
 
-        monster = self.repository.get(monster_id)
+        monster = self.state_repository.get(monster_id)
         if not monster:
             raise ValueError(f"Monster {monster_id} not found")
 
         # Vérifier l'état actuel
-        if monster.metadata.state != MonsterState.PENDING_REVIEW:
+        if monster.metadata.state != MonsterStateEnum.PENDING_REVIEW:
             raise ValueError(
                 f"Monster must be in PENDING_REVIEW state, current: {monster.metadata.state}"
             )
 
         # Déterminer l'état cible
         if action == TransitionAction.APPROVE:
-            target_state = MonsterState.APPROVED
+            target_state = MonsterStateEnum.APPROVED
         elif action == TransitionAction.REJECT:
-            target_state = MonsterState.REJECTED
+            target_state = MonsterStateEnum.REJECTED
         else:
             raise ValueError(f"Invalid action: {action}")
 
@@ -139,8 +142,13 @@ class AdminService:
         )
 
         # Sauvegarder
-        self.repository.save(metadata, monster.monster_data)
-        self.repository.move_to_state(monster_id, target_state)
+        self.state_repository.save(metadata, monster.monster_data)
+        self.structure_repository.move_to_state(
+            monster_id,
+            target_state,
+            actor=admin_name,
+            note=notes or f"Review: {action.value}",
+        )
 
         logger.info(f"Monster {monster_id} reviewed: {action.value} by {admin_name}")
 
@@ -155,11 +163,11 @@ class AdminService:
     ) -> MonsterMetadata:
         """Corrige un monstre défectueux"""
 
-        monster = self.repository.get(monster_id)
+        monster = self.state_repository.get(monster_id)
         if not monster:
             raise ValueError(f"Monster {monster_id} not found")
 
-        if monster.metadata.state != MonsterState.DEFECTIVE:
+        if monster.metadata.state != MonsterStateEnum.DEFECTIVE:
             raise ValueError(
                 f"Monster must be in DEFECTIVE state, current: {monster.metadata.state}"
             )
@@ -179,24 +187,34 @@ class AdminService:
         # Transition DEFECTIVE → CORRECTED → PENDING_REVIEW
         metadata = self.state_manager.transition(
             monster.metadata,
-            MonsterState.CORRECTED,
+            MonsterStateEnum.CORRECTED,
             actor=admin_name,
             note=notes or "Corrected by admin",
         )
 
-        self.repository.save(metadata, monster.monster_data)
-        self.repository.move_to_state(monster_id, MonsterState.CORRECTED)
+        self.state_repository.save(metadata, monster.monster_data)
+        self.structure_repository.move_to_state(
+            monster_id,
+            MonsterStateEnum.CORRECTED,
+            actor=admin_name,
+            note=notes or "Corrected by admin",
+        )
 
         # Auto-transition vers PENDING_REVIEW
         metadata = self.state_manager.transition(
             metadata,
-            MonsterState.PENDING_REVIEW,
+            MonsterStateEnum.PENDING_REVIEW,
             actor="system",
             note="Auto-transition after correction",
         )
 
-        self.repository.save(metadata, monster.monster_data)
-        self.repository.move_to_state(monster_id, MonsterState.PENDING_REVIEW)
+        self.state_repository.save(metadata, monster.monster_data)
+        self.structure_repository.move_to_state(
+            monster_id,
+            MonsterStateEnum.PENDING_REVIEW,
+            actor="system",
+            note="Auto-transition after correction",
+        )
 
         logger.info(f"Monster {monster_id} corrected by {admin_name}")
 
@@ -206,19 +224,19 @@ class AdminService:
         """Récupère les statistiques du dashboard"""
 
         # Compter par état
-        counts = self.repository.count_by_state()
+        counts = self.state_repository.count_by_state()
 
         total = sum(counts.values())
-        transmitted = counts.get(MonsterState.TRANSMITTED.value, 0)
+        transmitted = counts.get(MonsterStateEnum.TRANSMITTED.value, 0)
         transmission_rate = transmitted / total if total > 0 else 0.0
 
         # Activité récente (dernières transitions)
         recent_activity = []
-        all_metadata = self.repository.list_all(limit=20)
+        all_metadata = self.state_repository.list_all(limit=20)
 
         for metadata in all_metadata:
             if metadata.history:
-                monster = self.repository.get(metadata.monster_id)
+                monster = self.state_repository.get(metadata.monster_id)
                 monster_name = (
                     monster.monster_data.get("nom", "Unknown") if monster else "Unknown"
                 )
@@ -266,8 +284,8 @@ class AdminService:
             Dictionnaire avec le résumé du traitement
         """
         # Récupérer tous les monstres en état GENERATED
-        generated_monsters = self.repository.list_by_state(
-            MonsterState.GENERATED,
+        generated_monsters = self.state_repository.list_by_state(
+            MonsterStateEnum.GENERATED,
             limit=1000,  # Large limite pour tout traiter
             offset=0,
         )
@@ -284,7 +302,7 @@ class AdminService:
 
             try:
                 # Récupérer les données complètes du monstre
-                monster = self.repository.get(monster_id)
+                monster = self.state_repository.get(monster_id)
                 if not monster:
                     logger.warning(f"Monster {monster_id} not found, skipping")
                     continue
@@ -296,11 +314,14 @@ class AdminService:
 
                 if validation_result.is_valid:
                     # Déplacer vers PENDING_REVIEW
-                    self.repository.move_to_state(
-                        monster_id, MonsterState.PENDING_REVIEW
+                    self.structure_repository.move_to_state(
+                        monster_id,
+                        MonsterStateEnum.PENDING_REVIEW,
+                        actor="system",
+                        note="Auto-transition after bulk validation",
                     )
                     # Mettre à jour les métadonnées locales
-                    monster.metadata.state = MonsterState.PENDING_REVIEW
+                    monster.metadata.state = MonsterStateEnum.PENDING_REVIEW
                     monster.metadata.updated_at = datetime.now(timezone.utc)
 
                     moved_to_pending_review += 1
@@ -332,14 +353,16 @@ class AdminService:
                     # Mettre à jour les métadonnées avec les erreurs
                     monster.metadata.is_valid = False
                     monster.metadata.validation_errors = validation_errors
-                    monster.metadata.state = MonsterState.DEFECTIVE
+                    monster.metadata.state = MonsterStateEnum.DEFECTIVE
                     monster.metadata.updated_at = datetime.now(timezone.utc)
 
                     # Sauvegarder les métadonnées mises à jour
-                    self.repository.save(monster.metadata, monster.monster_data)
+                    self.state_repository.save(monster.metadata, monster.monster_data)
 
                     # Déplacer vers DEFECTIVE
-                    self.repository.move_to_state(monster_id, MonsterState.DEFECTIVE)
+                    self.structure_repository.move_to_state(
+                        monster_id, MonsterStateEnum.DEFECTIVE
+                    )
                     moved_to_defective += 1
 
                     details.append(

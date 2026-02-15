@@ -6,14 +6,15 @@ from sqlalchemy.orm import Session
 
 from app.clients.gemini import GeminiClient
 from app.clients.banana import BananaClient
-from app.schemas.monster import MonsterResponse, MonsterState
+from app.repositories.monster.state_repository import MonsterStateRepository
+from app.repositories.monster.structure_repository import StructureRepository
+from app.schemas.monster import MonsterResponse
+from app.core.constants import MonsterStateEnum
 from app.schemas.metadata import MonsterMetadata
-from app.repositories.monster_repository import MonsterRepository
 from app.repositories.monster_image_repository import MonsterImageRepository
 from app.utils.file_manager import FileManager
 from app.services.validation_service import MonsterValidationService
 from app.core.config import get_settings
-from app.core.prompts import GatchaPrompts
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,8 @@ class GatchaService:
         self.banana_client = BananaClient()
         self.file_manager = FileManager()
         self.validation_service = MonsterValidationService()
-        self.repository = MonsterRepository(db)
+        self.state_repository = MonsterStateRepository(db)
+        self.structure_repository = StructureRepository(db)
         self.image_repository = MonsterImageRepository(db)
         self.settings = get_settings()
         self.db = db
@@ -101,10 +103,9 @@ class GatchaService:
             )
             validation_result.is_valid = False
 
-        initial_state = MonsterState.GENERATED
+        initial_state = MonsterStateEnum.GENERATED
 
         now = datetime.now(timezone.utc)
-        json_path_rel = f"{self.settings.API_V1_STR}/admin/monsters/{monster_id}"
 
         metadata = MonsterMetadata(
             monster_id=monster_id,
@@ -118,8 +119,8 @@ class GatchaService:
         )
 
         # Persist initial monster state
-        self.repository.save(metadata, monster_data)
-        self.repository.add_transition(
+        self.state_repository.save(metadata, monster_data)
+        self.structure_repository.add_transition(
             monster_id,
             None,
             initial_state,
@@ -127,37 +128,24 @@ class GatchaService:
             note="Created",
         )
 
-        # Create default image entry in monster_images table
-        if image_url:
-            try:
-                saved_monster = self.repository.get_db_monster(monster_id)
-                if saved_monster:
-                    visual_prompt = monster_data.get(
-                        "description_visuelle", fallback_prompt
-                    )
-
-                    self.image_repository.create_image(
-                        monster_db_id=int(saved_monster.id),  # type: ignore
-                        image_name=filename,
-                        image_url=image_url,
-                        raw_image_key=raw_image_key,
-                        prompt=visual_prompt,
-                        is_default=True,
-                    )
-                    logger.info(f"Default image entry created for monster {monster_id}")
-            except Exception as e:
-                logger.error(
-                    f"Failed to create image entry for monster {monster_id}: {e}"
-                )
-
         # Auto-transition valid monsters to PENDING_REVIEW
         if validation_result.is_valid:
-            self.repository.move_to_state(monster_id, MonsterState.PENDING_REVIEW)
-            metadata.state = MonsterState.PENDING_REVIEW
+            self.structure_repository.move_to_state(
+                monster_id,
+                MonsterStateEnum.PENDING_REVIEW,
+                actor="system",
+                note="Auto-transition: monster validation passed",
+            )
+            metadata.state = MonsterStateEnum.PENDING_REVIEW
             metadata.updated_at = datetime.now(timezone.utc)
         else:
-            self.repository.move_to_state(monster_id, MonsterState.DEFECTIVE)
-            metadata.state = MonsterState.DEFECTIVE
+            self.structure_repository.move_to_state(
+                monster_id,
+                MonsterStateEnum.DEFECTIVE,
+                actor="system",
+                note="Monster marked as defective after validation failure",
+            )
+            metadata.state = MonsterStateEnum.DEFECTIVE
             metadata.updated_at = datetime.now(timezone.utc)
             logger.warning(
                 "Monster validation failed: %s", monster_data.get("nom", "unknown")
@@ -165,7 +153,7 @@ class GatchaService:
             logger.warning(validation_result.get_error_summary())
 
         return MonsterResponse(
-            **monster_data, image_path=image_url, json_path=json_path_rel
+            **monster_data, image_path=image_url
         )
 
     async def create_monster(self, prompt: str) -> MonsterResponse:

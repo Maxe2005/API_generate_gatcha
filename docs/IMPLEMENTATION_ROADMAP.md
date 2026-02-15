@@ -143,7 +143,7 @@ import uuid
 from pathlib import Path
 from datetime import datetime
 from app.schemas.metadata import MonsterMetadata
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterState
 
 def migrate_existing_monsters():
     """Migre les monstres existants vers le nouveau système"""
@@ -432,7 +432,7 @@ from app.repositories.monster_repository import MonsterRepository
 from app.services.state_manager import MonsterStateManager
 from app.services.validation_service import MonsterValidationService
 from app.schemas.metadata import MonsterMetadata, MonsterWithMetadata
-from app.schemas.monster import MonsterState, TransitionAction
+from app.core.constants import MonsterState, TransitionAction
 from app.schemas.admin import (
     MonsterSummary, MonsterDetail, DashboardStats
 )
@@ -684,7 +684,7 @@ from app.schemas.admin import (
     MonsterListFilter, MonsterSummary, MonsterDetail,
     ReviewRequest, CorrectionRequest, DashboardStats
 )
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterState
 import logging
 
 logger = logging.getLogger(__name__)
@@ -918,7 +918,7 @@ from typing import Optional, List
 from app.clients.invocation_api import InvocationApiClient, InvocationApiError
 from app.repositories.monster_repository import MonsterRepository
 from app.services.state_manager import MonsterStateManager
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterState
 from app.schemas.metadata import MonsterMetadata
 from datetime import datetime
 import logging
@@ -1313,7 +1313,7 @@ Assurer la qualité du code et documenter l'API.
 ```python
 import pytest
 from app.services.admin_service import AdminService
-from app.schemas.monster import MonsterState, TransitionAction
+from app.core.constants import MonsterState, TransitionAction
 
 def test_list_monsters():
     service = AdminService()

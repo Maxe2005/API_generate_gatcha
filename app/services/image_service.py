@@ -9,7 +9,8 @@ import logging
 from sqlalchemy.orm import Session
 
 from app.repositories.monster_image_repository import MonsterImageRepository
-from app.repositories.monster_repository import MonsterRepository
+from app.repositories.monster import MonsterRepository
+from app.services.monster_modification_service import MonsterModificationService
 from app.clients.banana import BananaClient
 from app.schemas.image import MonsterImageResponse, MonsterImageListResponse
 
@@ -32,6 +33,7 @@ class ImageService:
         self.db = db
         self.image_repo = MonsterImageRepository(db)
         self.monster_repo = MonsterRepository(db)
+        self.monster_mod_service = MonsterModificationService(db)
         self.banana_client = banana_client
 
     async def create_default_image_for_monster(
@@ -177,12 +179,22 @@ class ImageService:
             monster_db_id=int(monster.id),  # type: ignore
         )
 
-        # Mettre à jour les données du monstre avec la nouvelle image
-        if monster.monster_data:  # type: ignore
-            monster.monster_data["description_visuelle"] = db_image.prompt  # type: ignore
-            monster.monster_data["ImageUrl"] = db_image.image_url  # type: ignore
-            self.db.commit()
-            logger.info("Données du monstre mises à jour avec la nouvelle image par défaut")
+        # Mettre à jour les champs image_url et description_visuelle via le service de modification
+        try:
+            self.monster_mod_service.update_image_and_description(
+                monster_db_id=int(monster.id),  # type: ignore
+                image_url=db_image.image_url,  # type: ignore
+                description_visuelle=db_image.prompt,  # type: ignore
+            )
+            logger.info(
+                f"Champs image_url et description_visuelle mis à jour pour le monstre {monster_id}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Erreur lors de la mise à jour de image_url et description_visuelle: {e}"
+            )
+            raise
+        logger.info("Données du monstre mises à jour avec la nouvelle image par défaut")
 
         logger.info(
             f"Image {image_id} définie comme défaut pour le monstre {monster_id}"

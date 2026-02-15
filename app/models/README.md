@@ -15,7 +15,7 @@ Ce dossier contient les modèles SQLAlchemy pour PostgreSQL.
 - **`monster_model.py`**: Modèles des monstres
   - `Monster`: Table principale des monstres avec leurs données
   - `StateTransitionModel`: Historique des transitions d'état
-  - `MonsterStateEnum`: Énumération des états possibles
+  - `MonsterState`: Énumération des états possibles
 
 - **`__init__.py`**: Exports publics du module
 
@@ -54,7 +54,7 @@ from app.models.monster_model import Monster
 db = SessionLocal()
 try:
     monsters = db.query(Monster).filter(
-        Monster.state == MonsterStateEnum.APPROVED
+        Monster.state == MonsterState.APPROVED
     ).all()
 finally:
     db.close()

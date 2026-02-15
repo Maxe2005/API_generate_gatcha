@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.schemas.metadata import MonsterMetadata, StateTransition
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterStateEnum
 
 
 def migrate_existing_monsters():
@@ -46,7 +46,7 @@ def migrate_existing_monsters():
                 metadata = MonsterMetadata(
                     monster_id=monster_id,
                     filename=json_file.name,
-                    state=MonsterState.TRANSMITTED,
+                    state=MonsterStateEnum.TRANSMITTED,
                     created_at=datetime.fromtimestamp(json_file.stat().st_ctime),
                     updated_at=datetime.fromtimestamp(json_file.stat().st_mtime),
                     generated_by="gemini",
@@ -59,7 +59,7 @@ def migrate_existing_monsters():
                     history=[
                         StateTransition(
                             from_state=None,
-                            to_state=MonsterState.TRANSMITTED,
+                            to_state=MonsterStateEnum.TRANSMITTED,
                             timestamp=datetime.now(timezone.utc),
                             actor="system",
                             note="Migrated from existing system",
@@ -114,7 +114,7 @@ def migrate_existing_monsters():
                 metadata = MonsterMetadata(
                     monster_id=monster_id,
                     filename=json_file.name,
-                    state=MonsterState.DEFECTIVE,
+                    state=MonsterStateEnum.DEFECTIVE,
                     created_at=datetime.fromtimestamp(json_file.stat().st_ctime),
                     updated_at=datetime.fromtimestamp(json_file.stat().st_mtime),
                     generated_by="gemini",
@@ -124,7 +124,7 @@ def migrate_existing_monsters():
                     history=[
                         StateTransition(
                             from_state=None,
-                            to_state=MonsterState.DEFECTIVE,
+                            to_state=MonsterStateEnum.DEFECTIVE,
                             timestamp=datetime.now(timezone.utc),
                             actor="system",
                             note="Migrated from existing system (defective)",

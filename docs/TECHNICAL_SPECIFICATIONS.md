@@ -35,7 +35,7 @@ class TransitionAction(str, Enum):
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterState
 
 class StateTransition(BaseModel):
     """Représente une transition d'état"""
@@ -92,7 +92,7 @@ class MonsterWithMetadata(BaseModel):
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from app.schemas.monster import MonsterState, TransitionAction
+from app.core.constants import MonsterState, TransitionAction
 
 class MonsterListFilter(BaseModel):
     """Filtres pour la liste des monstres"""
@@ -164,7 +164,7 @@ class ConfigUpdate(BaseModel):
 
 from typing import Optional, Dict, Any
 from datetime import datetime
-from app.schemas.monster import MonsterState, TransitionAction
+from app.core.constants import MonsterState, TransitionAction
 from app.schemas.metadata import MonsterMetadata, StateTransition
 import logging
 
@@ -394,7 +394,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 import uuid
 from app.schemas.metadata import MonsterMetadata, MonsterWithMetadata
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterState
 import logging
 
 logger = logging.getLogger(__name__)

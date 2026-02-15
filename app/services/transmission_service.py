@@ -11,9 +11,9 @@ import logging
 from sqlalchemy.orm import Session
 
 from app.clients.invocation_api import InvocationApiClient, InvocationApiError
-from app.repositories.monster_repository import MonsterRepository
+from app.repositories.monster import MonsterRepository
 from app.services.state_manager import MonsterStateManager
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterStateEnum
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class TransmissionService:
             raise ValueError(f"Monster {monster_id} not found")
 
         # Vérifier l'état
-        if monster.metadata.state == MonsterState.TRANSMITTED and not force:
+        if monster.metadata.state == MonsterStateEnum.TRANSMITTED and not force:
             return {
                 "status": "already_transmitted",
                 "monster_id": monster_id,
@@ -55,7 +55,7 @@ class TransmissionService:
                 "message": "Monster already transmitted. Use force=true to retransmit.",
             }
 
-        if monster.metadata.state != MonsterState.APPROVED and not force:
+        if monster.metadata.state != MonsterStateEnum.APPROVED and not force:
             raise ValueError(
                 f"Monster must be in APPROVED state, current: {monster.metadata.state}"
             )
@@ -73,14 +73,19 @@ class TransmissionService:
             # Transition vers TRANSMITTED
             metadata = self.state_manager.transition(
                 monster.metadata,
-                MonsterState.TRANSMITTED,
+                MonsterStateEnum.TRANSMITTED,
                 actor="system",
                 note="Successfully transmitted to invocation API",
             )
 
             # Sauvegarder
             self.repository.save(metadata, monster.monster_data)
-            self.repository.move_to_state(monster_id, MonsterState.TRANSMITTED)
+            self.repository.move_to_state(
+                monster_id,
+                MonsterStateEnum.TRANSMITTED,
+                actor="system",
+                note="Successfully transmitted to invocation API",
+            )
 
             logger.info(f"Monster {monster_id} transmitted successfully")
 
@@ -115,7 +120,7 @@ class TransmissionService:
             dict avec les résultats de la transmission
         """
         approved_monsters = self.repository.list_by_state(
-            MonsterState.APPROVED, limit=max_count or 1000
+            MonsterStateEnum.APPROVED, limit=max_count or 1000
         )
 
         results = {

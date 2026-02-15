@@ -8,14 +8,14 @@ Schémas de métadonnées pour la gestion du cycle de vie des monstres
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from app.schemas.monster import MonsterState
+from app.core.constants import MonsterStateEnum
 
 
 class StateTransition(BaseModel):
     """Représente une transition d'état"""
 
-    from_state: Optional[MonsterState] = None
-    to_state: MonsterState
+    from_state: Optional[MonsterStateEnum] = None
+    to_state: MonsterStateEnum
     timestamp: datetime
     actor: str = Field(..., description="system|admin|user")
     note: Optional[str] = None
@@ -25,7 +25,7 @@ class MonsterMetadata(BaseModel):
     """Métadonnées complètes d'un monstre"""
 
     monster_id: str = Field(..., description="UUID unique du monstre")
-    state: MonsterState
+    state: MonsterStateEnum
     created_at: datetime
     updated_at: datetime
 

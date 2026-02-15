@@ -1,18 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional, Any
+from typing import List, Optional
 from enum import Enum
-
-
-class MonsterState(str, Enum):
-    """États possibles d'un monstre dans son cycle de vie"""
-
-    GENERATED = "GENERATED"
-    DEFECTIVE = "DEFECTIVE"
-    CORRECTED = "CORRECTED"
-    PENDING_REVIEW = "PENDING_REVIEW"
-    APPROVED = "APPROVED"
-    TRANSMITTED = "TRANSMITTED"
-    REJECTED = "REJECTED"
+from datetime import datetime
 
 
 class TransitionAction(str, Enum):
@@ -24,12 +13,17 @@ class TransitionAction(str, Enum):
     TRANSMIT = "transmit"
 
 
+# ========== Schémas pour les données JSON (monstres non validés) ==========
+
+
 class SkillRatio(BaseModel):
     stat: str = Field(..., description="ATK|DEF|HP|VIT")
     percent: float
 
 
 class Skill(BaseModel):
+    """Skill au format JSON (pour monstres non structurés)"""
+
     name: str
     description: str
     damage: float
@@ -47,6 +41,8 @@ class MonsterStats(BaseModel):
 
 
 class MonsterBase(BaseModel):
+    """Monstre de base au format JSON"""
+
     nom: str = Field(..., description="TEMPLATE - Remplacer par le nom du monstre")
     element: str = Field(..., description="FIRE|WATER|WIND|EARTH")
     rang: str = Field(..., description="COMMON|RARE|EPIC|LEGENDARY")
@@ -59,6 +55,106 @@ class MonsterBase(BaseModel):
         ..., description="Description visuelle détaillée."
     )
     skills: List[Skill]
+
+
+# ========== Schémas pour les données structurées (monstres validés) ==========
+
+
+class SkillStructured(BaseModel):
+    """Skill stockée en base de données (table skills)"""
+
+    id: Optional[int] = None
+    name: str
+    description: str
+    damage: float
+    cooldown: float
+    lvl_max: float
+    rank: str = Field(..., description="COMMON|RARE|EPIC|LEGENDARY")
+    ratio_stat: str = Field(..., description="ATK|DEF|HP|VIT")
+    ratio_percent: float
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SkillCreate(BaseModel):
+    """Données nécessaires pour créer une skill"""
+
+    name: str
+    description: str
+    damage: float
+    cooldown: float
+    lvl_max: float
+    rank: str = Field(..., description="COMMON|RARE|EPIC|LEGENDARY")
+    ratio_stat: str = Field(..., description="ATK|DEF|HP|VIT")
+    ratio_percent: float
+
+
+class SkillUpdate(BaseModel):
+    """Données modifiables d'une skill"""
+
+    name: Optional[str] = None
+    description: Optional[str] = None
+    damage: Optional[float] = None
+    cooldown: Optional[float] = None
+    lvl_max: Optional[float] = None
+    rank: Optional[str] = None
+    ratio_stat: Optional[str] = None
+    ratio_percent: Optional[float] = None
+
+
+class MonsterStructured(BaseModel):
+    """Monstre structuré stocké en base de données (table monsters)"""
+
+    id: Optional[int] = None
+    monster_state_id: int
+    nom: str
+    element: str = Field(..., description="FIRE|WATER|WIND|EARTH")
+    rang: str = Field(..., description="COMMON|RARE|EPIC|LEGENDARY")
+    hp: float
+    atk: float
+    def_: float
+    vit: float
+    description_carte: str
+    description_visuelle: str
+    skills: List[SkillStructured] = []
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MonsterCreate(BaseModel):
+    """Données nécessaires pour créer un monstre structuré (depuis JSON)"""
+
+    nom: str
+    element: str = Field(..., description="FIRE|WATER|WIND|EARTH")
+    rang: str = Field(..., description="COMMON|RARE|EPIC|LEGENDARY")
+    hp: float
+    atk: float
+    def_: float
+    vit: float
+    description_carte: str
+    description_visuelle: str
+    skills: List[SkillCreate]
+
+
+class MonsterUpdate(BaseModel):
+    """Données modifiables d'un monstre structuré"""
+
+    nom: Optional[str] = None
+    element: Optional[str] = None
+    rang: Optional[str] = None
+    hp: Optional[float] = None
+    atk: Optional[float] = None
+    def_: Optional[float] = None
+    vit: Optional[float] = None
+    description_carte: Optional[str] = None
+    description_visuelle: Optional[str] = None
+
+
+# ========== Schémas de requête/réponse API ==========
 
 
 class MonsterCreateRequest(BaseModel):
