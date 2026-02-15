@@ -1,194 +1,130 @@
+import json
+
+from app.core.constants import ElementEnum, EnumBase, RankEnum, StatEnum
+
 from .config import ValidationRules
 
-# Import centralized validation rules
-VALID_STATS = "|".join(ValidationRules.VALID_STATS)
-VALID_ELEMENTS = "|".join(ValidationRules.VALID_ELEMENTS)
-VALID_RANKS = "|".join(ValidationRules.VALID_RANKS)
+from .json_monster_config import (
+    MonsterJsonAttributes,
+    MonsterJsonSkillAttributes,
+    MonsterJsonSkillRatioAttributes,
+    NB_SKILLS_MAX,
+    NB_SKILLS_MIN,
+)
 
-# Global Balance Configuration
-MIN_HP = ValidationRules.MIN_HP
-MAX_HP = ValidationRules.MAX_HP
-MIN_ATK = ValidationRules.MIN_ATK
-MAX_ATK = ValidationRules.MAX_ATK
-MIN_DEF = ValidationRules.MIN_DEF
-MAX_DEF = ValidationRules.MAX_DEF
-MIN_VIT = ValidationRules.MIN_VIT
-MAX_VIT = ValidationRules.MAX_VIT
 
-MIN_DAMAGE = ValidationRules.MIN_DAMAGE
-MAX_DAMAGE = ValidationRules.MAX_DAMAGE
-MIN_PERCENT = ValidationRules.MIN_PERCENT
-MAX_PERCENT = ValidationRules.MAX_PERCENT
-MIN_COOLDOWN = ValidationRules.MIN_COOLDOWN
-MAX_COOLDOWN = ValidationRules.MAX_COOLDOWN
-LVL_MAX = ValidationRules.LVL_MAX
+def get_enum_str(enum: type[EnumBase]) -> str:
+    return "|".join(enum.values_list())
+
+
+def get_stat_limits():
+    return ValidationRules.STAT_LIMITS
+
+
+def get_skill_limits():
+    return ValidationRules.SKILL_LIMITS
+
+
+def get_ratio_limits():
+    return ValidationRules.RATIO_LIMITS
+
+
+def monster_json_structure():
+    # Structure JSON du monstre basée sur la config
+    stats_limits = get_stat_limits()
+    return {
+        MonsterJsonAttributes.NAME.value: "string (Nom créatif)",
+        MonsterJsonAttributes.ELEMENT.value: f"string ({get_enum_str(ElementEnum)})",
+        MonsterJsonAttributes.RANK.value: f"string ({get_enum_str(RankEnum)})",
+        MonsterJsonAttributes.STATS.value: {
+            stat: f"int ({mini}-{maxi})" for stat, (mini, maxi) in stats_limits.items()
+        },
+        MonsterJsonAttributes.DESCRIPTION_CARD.value: f"string (Description visible joueur, <{ValidationRules.MAX_CARD_DESCRIPTION_LENGTH} chars)",
+        MonsterJsonAttributes.DESCRIPTION_VISUAL.value: "string (Description visuelle détaillée pour générateur d'art)",
+    }
+
+
+def skill_json_structure(skill_number: int | None = None):
+    # Structure JSON d'une skill basée sur la config
+    skill_limits = get_skill_limits()
+    ratio_limits = get_ratio_limits()
+    return {
+        MonsterJsonSkillAttributes.NAME.value: f"string (Nom de la compétence {skill_number if skill_number else ''})",
+        MonsterJsonSkillAttributes.DESCRIPTION.value: f"string (Description de la compétence {skill_number if skill_number else ''})",
+        MonsterJsonSkillAttributes.DAMAGE.value: f"int ({skill_limits[MonsterJsonSkillAttributes.DAMAGE.value][0]}-{skill_limits[MonsterJsonSkillAttributes.DAMAGE.value][1]})",
+        MonsterJsonSkillAttributes.RATIO.value: {
+            MonsterJsonSkillRatioAttributes.STAT.value: f"string ({get_enum_str(StatEnum)})",
+            MonsterJsonSkillRatioAttributes.PERCENT.value: f"float ({ratio_limits[MonsterJsonSkillRatioAttributes.PERCENT.value][0]}-{ratio_limits[MonsterJsonSkillRatioAttributes.PERCENT.value][1]})",
+        },
+        MonsterJsonSkillAttributes.COOLDOWN.value: f"int ({skill_limits[MonsterJsonSkillAttributes.COOLDOWN.value][0]}-{skill_limits[MonsterJsonSkillAttributes.COOLDOWN.value][1]})",
+        MonsterJsonSkillAttributes.LVL_MAX.value: f"int <= {ValidationRules.LVL_MAX}",
+        MonsterJsonSkillAttributes.RANK.value: f"string ({get_enum_str(RankEnum)})",
+    }
+
+
+def monster_json_structure_str(with_skills: bool = True):
+    if with_skills:
+        # Ajouter la structure des skills à celle du monstre
+        structure = monster_json_structure()
+        structure[MonsterJsonAttributes.SKILLS.value] = [skill_json_structure(i + 1) for i in range(2)]
+        return json.dumps(structure, indent=4, ensure_ascii=False)
+    else:
+        return json.dumps(monster_json_structure(), indent=4, ensure_ascii=False)
+
+
+def skill_json_structure_str():
+    return json.dumps(skill_json_structure(), indent=4, ensure_ascii=False)
 
 
 class GatchaPrompts:
-    SINGLE_PROFILE = (
-        """
-    Generate a creative monster profile for a gacha game based on this user prompt: "{user_prompt}".
-    
-    The number of skills must be between 4 and 6.
-    At least one of the skills must be an ultimate skill with a higher rank.
-    The ranks must be restricted to: """
-        + VALID_RANKS
-        + """.
-    The ranks must be balanced with the stats.
+    @staticmethod
+    def SINGLE_PROFILE(user_prompt: str) -> str:
+        return f'''
+Generate a creative monster profile for a gacha game based on this user prompt: "{user_prompt}".
 
-    Output MUST be valid JSON with the following EXACT structure :
-    {{
-        "nom": "string (Creative Name)",
-        "element": "string """
-        + VALID_ELEMENTS
-        + """",
-        "rang": "string """
-        + VALID_RANKS
-        + """ - infer from prompt if possible)",
-        "stats": {{
-            "hp": float ("""
-        + f"{MIN_HP}-{MAX_HP}"
-        + """),
-            "atk": float ("""
-        + f"{MIN_ATK}-{MAX_ATK}"
-        + """),
-            "def": float ("""
-        + f"{MIN_DEF}-{MAX_DEF}"
-        + """),
-            "vit": float ("""
-        + f"{MIN_VIT}-{MAX_VIT}"
-        + """)
-        }},
-        "description_carte": "string (Description visible to player, < 200 chars)",
-        "description_visuelle": "string (Detailed visual description for art generator: style, colors, appearance, background)",
-        "skills": [
-            {{
-                "name": "string (Skill Name)",
-                "description": "string (Skill Description)",
-                "damage": float ("""
-        + f"{MIN_DAMAGE}-{MAX_DAMAGE}"
-        + """),
-                "ratio": {{
-                    "stat": "string """
-        + VALID_STATS
-        + """",
-                    "percent": float ("""
-        + f"{MIN_PERCENT}-{MAX_PERCENT}"
-        + """)
-                }},
-                "cooldown": float ("""
-        + f"{MIN_COOLDOWN}-{MAX_COOLDOWN}"
-        + """),
-                "lvlMax": """
-        + f"{LVL_MAX}"
-        + """,
-                "rank": "string (Same as monster rank usually)"
-            }},
-             {{
-                "name": "string (Second Skill Name)",
-                "description": "string",
-                "damage": float ("""
-        + f"{MIN_DAMAGE}-{MAX_DAMAGE}"
-        + """),
-                "ratio": {{
-                    "stat": "string """
-        + VALID_STATS
-        + """",
-                    "percent": float ("""
-        + f"{MIN_PERCENT}-{MAX_PERCENT}"
-        + """)
-                }},
-                "cooldown": float ("""
-        + f"{MIN_COOLDOWN}-{MAX_COOLDOWN}"
-        + """),
-                "lvlMax": """
-        + f"{LVL_MAX}"
-        + """,
-                "rank": "string"
-            }}
-        ]
-    }}
-    Do not include markdown code blocks. Just the JSON.
-    """
-    )
+The number of skills must be between {NB_SKILLS_MIN} and {NB_SKILLS_MAX}.
+At least one of the skills must be an ultimate skill with a higher rank.
+The ranks must be restricted to: {get_enum_str(RankEnum)}.
+The ranks must be balanced with the stats.
 
-    BATCH_BRAINSTORM = (
-        """
-    Brainstorm {n} distinct monsters for a gacha game based on this theme: "{user_prompt}".
-    
-    The monsters must have balanced stats relative to each other.
-    
-    Output MUST be a valid JSON Array containing {n} objects.
-    DO NOT include a "skills" field yet.
-    
-    Structure for each object:
-    {{
-        "nom": "string",
-        "element": "string """
-        + VALID_ELEMENTS
-        + """",
-        "rang": "string """
-        + VALID_RANKS
-        + """ - infer from concept)",
-        "stats": {{
-            "hp": float ("""
-        + f"{MIN_HP}-{MAX_HP}"
-        + """),
-            "atk": float ("""
-        + f"{MIN_ATK}-{MAX_ATK}"
-        + """),
-            "def": float ("""
-        + f"{MIN_DEF}-{MAX_DEF}"
-        + """),
-            "vit": float ("""
-        + f"{MIN_VIT}-{MAX_VIT}"
-        + """)
-        }},
-        "description_carte": "string (<200 chars)",
-        "description_visuelle": "string (Detailed visual description for art generator)"
-    }}
-    
-    Do not include markdown code blocks. Just the JSON Array.
-    """
-    )
+Output MUST be valid JSON with the following EXACT structure :
+{monster_json_structure_str(with_skills=True)}
+Do not include markdown code blocks. Just the JSON.
+'''
 
-    BATCH_SKILLS = (
-        """
-    Here are monster profiles without skills:
-    {monsters_json}
-    
-    Generate a list of balanced skills for each monster. 
-    Return the SAME JSON list with the exact same order, but add the "skills" field to each monster.
-    Each monster should have 4-6 skills. At least one skill must have a "rank" higher than the others.
-    The ranks must be restricted to: """
-        + VALID_RANKS
-        + """.
-    The ranks must be balanced with the stats.
-    
-    Skill Structure:
-    {{
-        "name": "string",
-        "description": "string",
-        "damage": float ("""
-        + f"{MIN_DAMAGE}-{MAX_DAMAGE}"
-        + """),
-        "ratio": {{ "stat": "string """
-        + VALID_STATS
-        + """", "percent": float ("""
-        + f"{MIN_PERCENT}-{MAX_PERCENT}"
-        + """) }},
-        "cooldown": float ("""
-        + f"{MIN_COOLDOWN}-{MAX_COOLDOWN}"
-        + """),
-        "lvlMax": """
-        + f"{LVL_MAX}"
-        + """,
-        "rank": "string"
-    }}
-    
-    Output ONLY the valid JSON Array. Do not include markdown.
-    """
-    )
+    @staticmethod
+    def BATCH_BRAINSTORM(n: int, user_prompt: str) -> str:
+        return f'''
+Brainstorm {n} distinct monsters for a gacha game based on this theme: "{user_prompt}".
+
+The monsters must have balanced stats relative to each other.
+
+Output MUST be a valid JSON Array containing {n} objects.
+DO NOT include a "skills" field yet.
+
+Structure for each object:
+{monster_json_structure_str(with_skills=False)}
+
+Do not include markdown code blocks. Just the JSON Array.
+'''
+
+    @staticmethod
+    def BATCH_SKILLS(monsters_json: str) -> str:
+        return f"""
+Here are monster profiles without skills:
+{monsters_json}
+
+Generate a list of balanced skills for each monster.
+Return the SAME JSON list with the exact same order, but add the "skills" field to each monster.
+Each monster should have {NB_SKILLS_MIN}-{NB_SKILLS_MAX} skills. At least one skill must have a "rank" higher than the others.
+The ranks must be restricted to: {get_enum_str(RankEnum)}.
+The ranks must be balanced with the stats.
+
+Skill Structure:
+{skill_json_structure_str()}
+
+Output ONLY the valid JSON Array. Do not include markdown.
+"""
 
     # -- IMAGE GENERATION PROMPTS --
 
@@ -203,3 +139,13 @@ class GatchaPrompts:
 
     # Alternative 3: 3D Render/Realistic Style
     IMAGE_GENERATION_REALISTIC = "3D rendered character of {prompt}, Unreal Engine 5 style, realistic textures, volumetric lighting, photorealistic environment. No text, no game UI, no frames or borders. Cinematic shot."
+
+if __name__ == "__main__":
+    # Test rapide des prompts
+    print("=== SINGLE_PROFILE ===")
+    print(GatchaPrompts.SINGLE_PROFILE("Un dragon de feu majestueux"))
+    print("\n=== BATCH_BRAINSTORM ===")
+    print(GatchaPrompts.BATCH_BRAINSTORM(3, "Forêt enchantée"))
+    print("\n=== BATCH_SKILLS ===")
+    fake_monsters_json = '[{"nom": "Test", "element": "FIRE", "rang": "RARE", "stats": {"hp": 100, "atk": 50, "def": 30, "vit": 20}, "description_carte": "Un monstre test", "description_visuelle": "Rouge et féroce"}]'
+    print(GatchaPrompts.BATCH_SKILLS(fake_monsters_json))

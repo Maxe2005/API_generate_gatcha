@@ -7,6 +7,12 @@ Follows SOLID principles with modular validators.
 from typing import Dict, Any, List, Tuple, Optional
 from dataclasses import dataclass
 from app.core.config import ValidationRules
+from app.core.json_monster_config import (
+    MonsterJsonAttributes,
+    MonsterJsonStatsAttributes,
+    MonsterJsonSkillAttributes,
+    MonsterJsonSkillRatioAttributes,
+)
 import logging
 from urllib.parse import urlparse
 
@@ -165,35 +171,35 @@ class MonsterStructureValidator:
     """Validates the overall monster JSON structure"""
 
     REQUIRED_TOP_LEVEL_FIELDS = {
-        "nom": "string",
-        "element": "string",
-        "rang": "string",
-        "stats": "dict",
-        "description_carte": "string",
-        "description_visuelle": "string",
-        "skills": "list",
+        MonsterJsonAttributes.NAME.value: "string",
+        MonsterJsonAttributes.ELEMENT.value: "string",
+        MonsterJsonAttributes.RANK.value: "string",
+        MonsterJsonAttributes.STATS.value: "dict",
+        MonsterJsonAttributes.DESCRIPTION_CARD.value: "string",
+        MonsterJsonAttributes.DESCRIPTION_VISUAL.value: "string",
+        MonsterJsonAttributes.SKILLS.value: "list",
     }
 
     REQUIRED_STATS_FIELDS = {
-        "hp": "float",
-        "atk": "float",
-        "def": "float",
-        "vit": "float",
+        MonsterJsonStatsAttributes.HP.value: "float",
+        MonsterJsonStatsAttributes.ATK.value: "float",
+        MonsterJsonStatsAttributes.DEF.value: "float",
+        MonsterJsonStatsAttributes.VIT.value: "float",
     }
 
     REQUIRED_SKILL_FIELDS = {
-        "name": "string",
-        "description": "string",
-        "damage": "float",
-        "ratio": "dict",
-        "cooldown": "float",
-        "lvlMax": "float",
-        "rank": "string",
+        MonsterJsonSkillAttributes.NAME.value: "string",
+        MonsterJsonSkillAttributes.DESCRIPTION.value: "string",
+        MonsterJsonSkillAttributes.DAMAGE.value: "float",
+        MonsterJsonSkillAttributes.RATIO.value: "dict",
+        MonsterJsonSkillAttributes.COOLDOWN.value: "float",
+        MonsterJsonSkillAttributes.LVL_MAX.value: "float",
+        MonsterJsonSkillAttributes.RANK.value: "string",
     }
 
     REQUIRED_SKILL_RATIO_FIELDS = {
-        "stat": "string",
-        "percent": "float",
+        MonsterJsonSkillRatioAttributes.STAT.value: "string",
+        MonsterJsonSkillRatioAttributes.PERCENT.value: "float",
     }
 
     @staticmethod
@@ -219,8 +225,10 @@ class MonsterStructureValidator:
                 result.add_error(field, "type_mismatch", error_msg)
 
         # Check stats structure
-        if "stats" in monster_data and isinstance(monster_data["stats"], dict):
-            stats = monster_data["stats"]
+        if MonsterJsonAttributes.STATS.value in monster_data and isinstance(
+            monster_data[MonsterJsonAttributes.STATS.value], dict
+        ):
+            stats = monster_data[MonsterJsonAttributes.STATS.value]
             for (
                 field,
                 expected_type,
@@ -240,8 +248,12 @@ class MonsterStructureValidator:
                     result.add_error(f"stats.{field}", "type_mismatch", error_msg)
 
         # Check skills structure
-        if "skills" in monster_data and isinstance(monster_data["skills"], list):
-            for idx, skill in enumerate(monster_data["skills"]):
+        if MonsterJsonAttributes.SKILLS.value in monster_data and isinstance(
+            monster_data[MonsterJsonAttributes.SKILLS.value], list
+        ):
+            for idx, skill in enumerate(
+                monster_data[MonsterJsonAttributes.SKILLS.value]
+            ):
                 if not isinstance(skill, dict):
                     result.add_error(
                         f"skills[{idx}]",
@@ -271,8 +283,10 @@ class MonsterStructureValidator:
                         )
 
                 # Check ratio structure
-                if "ratio" in skill and isinstance(skill["ratio"], dict):
-                    ratio = skill["ratio"]
+                if MonsterJsonSkillAttributes.RATIO.value in skill and isinstance(
+                    skill[MonsterJsonSkillAttributes.RATIO.value], dict
+                ):
+                    ratio = skill[MonsterJsonSkillAttributes.RATIO.value]
                     for (
                         field,
                         expected_type,
@@ -308,29 +322,41 @@ class MonsterEnumValidator:
         result = ValidationResult(True)
 
         # Validate element
-        if "element" in monster_data:
+        if MonsterJsonAttributes.ELEMENT.value in monster_data:
             is_valid, error_msg = EnumValidator.validate_enum(
-                monster_data["element"], ValidationRules.VALID_ELEMENTS, "element"
+                monster_data[MonsterJsonAttributes.ELEMENT.value],
+                ValidationRules.VALID_ELEMENTS,
+                MonsterJsonAttributes.ELEMENT.value,
             )
             if not is_valid:
-                result.add_error("element", "enum_invalid", error_msg)
+                result.add_error(
+                    MonsterJsonAttributes.ELEMENT.value, "enum_invalid", error_msg
+                )
 
         # Validate rank
-        if "rang" in monster_data:
+        if MonsterJsonAttributes.RANK.value in monster_data:
             is_valid, error_msg = EnumValidator.validate_enum(
-                monster_data["rang"], ValidationRules.VALID_RANKS, "rang"
+                monster_data[MonsterJsonAttributes.RANK.value],
+                ValidationRules.VALID_RANKS,
+                MonsterJsonAttributes.RANK.value,
             )
             if not is_valid:
-                result.add_error("rang", "enum_invalid", error_msg)
+                result.add_error(
+                    MonsterJsonAttributes.RANK.value, "enum_invalid", error_msg
+                )
 
         # Validate skill stats
-        if "skills" in monster_data and isinstance(monster_data["skills"], list):
-            for idx, skill in enumerate(monster_data["skills"]):
+        if MonsterJsonAttributes.SKILLS.value in monster_data and isinstance(
+            monster_data[MonsterJsonAttributes.SKILLS.value], list
+        ):
+            for idx, skill in enumerate(
+                monster_data[MonsterJsonAttributes.SKILLS.value]
+            ):
                 if isinstance(skill, dict):
                     # Validate skill rank
-                    if "rank" in skill:
+                    if MonsterJsonSkillAttributes.RANK.value in skill:
                         is_valid, error_msg = EnumValidator.validate_enum(
-                            skill["rank"],
+                            skill[MonsterJsonSkillAttributes.RANK.value],
                             ValidationRules.VALID_RANKS,
                             f"skills[{idx}].rank",
                         )
@@ -340,10 +366,17 @@ class MonsterEnumValidator:
                             )
 
                     # Validate ratio stat
-                    if "ratio" in skill and isinstance(skill["ratio"], dict):
-                        if "stat" in skill["ratio"]:
+                    if MonsterJsonSkillAttributes.RATIO.value in skill and isinstance(
+                        skill[MonsterJsonSkillAttributes.RATIO.value], dict
+                    ):
+                        if (
+                            MonsterJsonSkillRatioAttributes.STAT.value
+                            in skill[MonsterJsonSkillAttributes.RATIO.value]
+                        ):
                             is_valid, error_msg = EnumValidator.validate_enum(
-                                skill["ratio"]["stat"],
+                                skill[MonsterJsonSkillAttributes.RATIO.value][
+                                    MonsterJsonSkillRatioAttributes.STAT.value
+                                ],
                                 ValidationRules.VALID_STATS,
                                 f"skills[{idx}].ratio.stat",
                             )
@@ -367,8 +400,10 @@ class MonsterRangeValidator:
         result = ValidationResult(True)
 
         # Validate stats ranges
-        if "stats" in monster_data and isinstance(monster_data["stats"], dict):
-            stats = monster_data["stats"]
+        if MonsterJsonAttributes.STATS.value in monster_data and isinstance(
+            monster_data[MonsterJsonAttributes.STATS.value], dict
+        ):
+            stats = monster_data[MonsterJsonAttributes.STATS.value]
             for stat_name, (min_val, max_val) in ValidationRules.STAT_LIMITS.items():
                 if stat_name in stats:
                     is_valid, error_msg = RangeValidator.validate_range(
@@ -380,24 +415,33 @@ class MonsterRangeValidator:
                         )
 
         # Validate description_carte length
-        if "description_carte" in monster_data:
-            desc = monster_data["description_carte"]
+        if MonsterJsonAttributes.DESCRIPTION_CARD.value in monster_data:
+            desc = monster_data[MonsterJsonAttributes.DESCRIPTION_CARD.value]
             if len(desc) > ValidationRules.MAX_CARD_DESCRIPTION_LENGTH:
                 result.add_error(
-                    "description_carte",
+                    MonsterJsonAttributes.DESCRIPTION_CARD.value,
                     "value_out_of_range",
                     f"Description too long ({len(desc)} chars). Max: {ValidationRules.MAX_CARD_DESCRIPTION_LENGTH}",
                 )
 
         # Validate skill ranges
-        if "skills" in monster_data and isinstance(monster_data["skills"], list):
-            for idx, skill in enumerate(monster_data["skills"]):
+        if MonsterJsonAttributes.SKILLS.value in monster_data and isinstance(
+            monster_data[MonsterJsonAttributes.SKILLS.value], list
+        ):
+            for idx, skill in enumerate(
+                monster_data[MonsterJsonAttributes.SKILLS.value]
+            ):
                 if isinstance(skill, dict):
                     # Validate damage
-                    if "damage" in skill:
-                        min_dmg, max_dmg = ValidationRules.SKILL_LIMITS["damage"]
+                    if MonsterJsonSkillAttributes.DAMAGE.value in skill:
+                        min_dmg, max_dmg = ValidationRules.SKILL_LIMITS[
+                            MonsterJsonSkillAttributes.DAMAGE.value
+                        ]
                         is_valid, error_msg = RangeValidator.validate_range(
-                            skill["damage"], min_dmg, max_dmg, f"skills[{idx}].damage"
+                            skill[MonsterJsonSkillAttributes.DAMAGE.value],
+                            min_dmg,
+                            max_dmg,
+                            f"skills[{idx}].damage",
                         )
                         if not is_valid:
                             result.add_error(
@@ -405,10 +449,12 @@ class MonsterRangeValidator:
                             )
 
                     # Validate cooldown
-                    if "cooldown" in skill:
-                        min_cool, max_cool = ValidationRules.SKILL_LIMITS["cooldown"]
+                    if MonsterJsonSkillAttributes.COOLDOWN.value in skill:
+                        min_cool, max_cool = ValidationRules.SKILL_LIMITS[
+                            MonsterJsonSkillAttributes.COOLDOWN.value
+                        ]
                         is_valid, error_msg = RangeValidator.validate_range(
-                            skill["cooldown"],
+                            skill[MonsterJsonSkillAttributes.COOLDOWN.value],
                             min_cool,
                             max_cool,
                             f"skills[{idx}].cooldown",
@@ -421,9 +467,9 @@ class MonsterRangeValidator:
                             )
 
                     # Validate lvlMax
-                    if "lvlMax" in skill:
+                    if MonsterJsonSkillAttributes.LVL_MAX.value in skill:
                         is_valid, error_msg = RangeValidator.validate_range(
-                            skill["lvlMax"],
+                            skill[MonsterJsonSkillAttributes.LVL_MAX.value],
                             1.0,
                             ValidationRules.LVL_MAX,
                             f"skills[{idx}].lvlMax",
@@ -434,11 +480,20 @@ class MonsterRangeValidator:
                             )
 
                     # Validate ratio percent
-                    if "ratio" in skill and isinstance(skill["ratio"], dict):
-                        if "percent" in skill["ratio"]:
-                            min_pct, max_pct = ValidationRules.SKILL_LIMITS["percent"]
+                    if MonsterJsonSkillAttributes.RATIO.value in skill and isinstance(
+                        skill[MonsterJsonSkillAttributes.RATIO.value], dict
+                    ):
+                        if (
+                            MonsterJsonSkillRatioAttributes.PERCENT.value
+                            in skill[MonsterJsonSkillAttributes.RATIO.value]
+                        ):
+                            min_pct, max_pct = ValidationRules.SKILL_LIMITS[
+                                MonsterJsonSkillRatioAttributes.PERCENT.value
+                            ]
                             is_valid, error_msg = RangeValidator.validate_range(
-                                skill["ratio"]["percent"],
+                                skill[MonsterJsonSkillAttributes.RATIO.value][
+                                    MonsterJsonSkillRatioAttributes.PERCENT.value
+                                ],
                                 min_pct,
                                 max_pct,
                                 f"skills[{idx}].ratio.percent",
@@ -493,7 +548,9 @@ class MonsterValidationService:
 
         is_valid, error_msg = URLValidator.validate_url(image_url)
         if not is_valid:
-            result.add_error("ImageUrl", "invalid_url", error_msg)
+            result.add_error(
+                MonsterJsonAttributes.IMAGE_URL.value, "invalid_url", error_msg
+            )
 
         result.is_valid = len(result.errors) == 0
         return result

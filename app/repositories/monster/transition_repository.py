@@ -18,6 +18,13 @@ from app.models.monster import Monster, Skill, MonsterState
 from app.models.monster.transition import StateTransitionModel
 from app.models.monster_image_model import MonsterImage
 
+from app.core.json_monster_config import (
+    MonsterJsonAttributes,
+    MonsterJsonStatsAttributes,
+    MonsterJsonSkillAttributes,
+    MonsterJsonSkillRatioAttributes,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,38 +61,56 @@ class TransitionRepository:
             # Créer le monstre structuré
             monster = Monster(
                 monster_state_id=monster_state.id,
-                nom=monster_json["nom"],
-                element=monster_json["element"],
-                rang=monster_json["rang"],
-                hp=monster_json["stats"]["hp"],
-                atk=monster_json["stats"]["atk"],
-                def_=monster_json["stats"]["def"],
-                vit=monster_json["stats"]["vit"],
-                description_carte=monster_json["description_carte"],
-                description_visuelle=monster_json["description_visuelle"],
+                nom=monster_json[MonsterJsonAttributes.NAME.value],
+                element=monster_json[MonsterJsonAttributes.ELEMENT.value],
+                rang=monster_json[MonsterJsonAttributes.RANK.value],
+                hp=monster_json[MonsterJsonAttributes.STATS.value][
+                    MonsterJsonStatsAttributes.HP.value
+                ],
+                atk=monster_json[MonsterJsonAttributes.STATS.value][
+                    MonsterJsonStatsAttributes.ATK.value
+                ],
+                def_=monster_json[MonsterJsonAttributes.STATS.value][
+                    MonsterJsonStatsAttributes.DEF.value
+                ],
+                vit=monster_json[MonsterJsonAttributes.STATS.value][
+                    MonsterJsonStatsAttributes.VIT.value
+                ],
+                description_carte=monster_json[
+                    MonsterJsonAttributes.DESCRIPTION_CARD.value
+                ],
+                description_visuelle=monster_json[
+                    MonsterJsonAttributes.DESCRIPTION_VISUAL.value
+                ],
             )
 
             self.db.add(monster)
             self.db.flush()  # Pour obtenir l'ID du monstre
 
             # Créer les skills
-            for skill_data in monster_json["skills"]:
+            for skill_data in monster_json[MonsterJsonAttributes.SKILLS.value]:
                 skill = Skill(
                     monster_id=monster.id,
-                    name=skill_data["name"],
-                    description=skill_data["description"],
-                    damage=skill_data["damage"],
-                    cooldown=skill_data["cooldown"],
-                    lvl_max=skill_data["lvlMax"],
-                    rank=skill_data["rank"],
-                    ratio_stat=skill_data["ratio"]["stat"],
-                    ratio_percent=skill_data["ratio"]["percent"],
+                    name=skill_data[MonsterJsonSkillAttributes.NAME.value],
+                    description=skill_data[
+                        MonsterJsonSkillAttributes.DESCRIPTION.value
+                    ],
+                    damage=skill_data[MonsterJsonSkillAttributes.DAMAGE.value],
+                    cooldown=skill_data[MonsterJsonSkillAttributes.COOLDOWN.value],
+                    lvl_max=skill_data[MonsterJsonSkillAttributes.LVL_MAX.value],
+                    rank=skill_data[MonsterJsonSkillAttributes.RANK.value],
+                    ratio_stat=skill_data[MonsterJsonSkillAttributes.RATIO.value][
+                        MonsterJsonSkillRatioAttributes.STAT.value
+                    ],
+                    ratio_percent=skill_data[MonsterJsonSkillAttributes.RATIO.value][
+                        MonsterJsonSkillRatioAttributes.PERCENT.value
+                    ],
                 )
                 self.db.add(skill)
 
             # Create default image entry in monster_images table
             image_name = monster.nom
-            image_url: str = monster_json["ImageUrl"]
+            image_url: str = monster_json[MonsterJsonAttributes.IMAGE_URL.value]
             raw_image_key = image_url  # .replace("", "")  # TODO Extract raw image key from URL if needed
             image = MonsterImage(
                 monster_id=monster.id,

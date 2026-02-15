@@ -12,13 +12,28 @@ Principes appliqués :
 """
 
 import enum
-from typing import Set, Dict, Tuple
+from typing import Dict, Set, Tuple
+
+from app.core.json_monster_config import MonsterJsonSkillAttributes, MonsterJsonSkillRatioAttributes, MonsterJsonStatsAttributes
 
 
 # ========== ENUMS POUR SQLALCHEMY ET PYDANTIC ==========
 
+class EnumBase(str, enum.Enum):
+    """Base pour tous les enums de l'application, avec une méthode utilitaire"""
 
-class MonsterStateEnum(str, enum.Enum):
+    @classmethod
+    def values_set(cls) -> Set[str]:
+        """Retourne un set de toutes les valeurs de l'enum"""
+        return {item.value for item in cls}
+    
+    @classmethod
+    def values_list(cls) -> list:
+        """Retourne une liste de toutes les valeurs de l'enum"""
+        return [item.value for item in cls]
+    
+    
+class MonsterStateEnum(EnumBase):
     """États possibles d'un monstre dans son cycle de vie"""
 
     GENERATED = "GENERATED"
@@ -29,7 +44,8 @@ class MonsterStateEnum(str, enum.Enum):
     TRANSMITTED = "TRANSMITTED"
     REJECTED = "REJECTED"
 
-class TransitionActionEnum(str, enum.Enum):
+
+class TransitionActionEnum(EnumBase):
     """Actions possibles pour les transitions"""
 
     APPROVE = "APPROVE"
@@ -37,7 +53,8 @@ class TransitionActionEnum(str, enum.Enum):
     CORRECT = "CORRECT"
     TRANSMIT = "TRANSMIT"
 
-class ElementEnum(str, enum.Enum):
+
+class ElementEnum(EnumBase):
     """Éléments possibles pour un monstre"""
 
     FIRE = "FIRE"
@@ -48,7 +65,7 @@ class ElementEnum(str, enum.Enum):
     DARKNESS = "DARKNESS"
 
 
-class RankEnum(str, enum.Enum):
+class RankEnum(EnumBase):
     """Rangs possibles pour un monstre ou une compétence"""
 
     COMMON = "COMMON"
@@ -57,7 +74,7 @@ class RankEnum(str, enum.Enum):
     LEGENDARY = "LEGENDARY"
 
 
-class StatEnum(str, enum.Enum):
+class StatEnum(EnumBase):
     """Stats possibles pour les ratios de compétences"""
 
     ATK = "ATK"
@@ -75,19 +92,11 @@ class ValidationConstants:
     Évite les duplications et assure la cohérence entre les différents modules.
     """
 
-    # Enums disponibles (ensembles)
-    VALID_STATS: Set[str] = {"ATK", "DEF", "HP", "VIT"}
-    VALID_ELEMENTS: Set[str] = {"FIRE", "WATER", "WIND", "EARTH", "LIGHT", "DARKNESS"}
-    VALID_RANKS: Set[str] = {"COMMON", "RARE", "EPIC", "LEGENDARY"}
-    VALID_STATES: Set[str] = {
-        "GENERATED",
-        "DEFECTIVE",
-        "CORRECTED",
-        "PENDING_REVIEW",
-        "APPROVED",
-        "TRANSMITTED",
-        "REJECTED",
-    }
+    # Enums disponibles (listes)
+    VALID_STATS: Set[str] = StatEnum.values_set()
+    VALID_ELEMENTS: Set[str] = ElementEnum.values_set()
+    VALID_RANKS: Set[str] = RankEnum.values_set()
+    VALID_STATES: Set[str] = MonsterStateEnum.values_set()
 
     # Limites de stats individuelles
     MIN_HP: int = 50
@@ -102,33 +111,33 @@ class ValidationConstants:
     # Limites de dégâts et compétences
     MIN_DAMAGE: int = 0
     MAX_DAMAGE: int = 500
+    MIN_COOLDOWN: int = 0
+    MAX_COOLDOWN: int = 10
+
+    # Limites de ratios
     MIN_PERCENT: float = 0.1
     MAX_PERCENT: float = 2.0
-    MIN_COOLDOWN: int = 0
-    MAX_COOLDOWN: int = 5
 
     # Limites diverses
-    LVL_MAX: int = 5
+    LVL_MAX: int = 100
     MAX_CARD_DESCRIPTION_LENGTH: int = 200
 
     # Dictionnaires pour un accès facilité
-    STAT_LIMITS: Dict[str, Tuple[float, float]] = {
-        "hp": (MIN_HP, MAX_HP),
-        "atk": (MIN_ATK, MAX_ATK),
-        "def": (MIN_DEF, MAX_DEF),
-        "vit": (MIN_VIT, MAX_VIT),
+    STAT_LIMITS: Dict[str, Tuple[int, int]] = {
+        MonsterJsonStatsAttributes.HP.value: (MIN_HP, MAX_HP),
+        MonsterJsonStatsAttributes.ATK.value: (MIN_ATK, MAX_ATK),
+        MonsterJsonStatsAttributes.DEF.value: (MIN_DEF, MAX_DEF),
+        MonsterJsonStatsAttributes.VIT.value: (MIN_VIT, MAX_VIT),
     }
 
-    SKILL_LIMITS: Dict[str, Tuple[float, float]] = {
-        "damage": (MIN_DAMAGE, MAX_DAMAGE),
-        "percent": (MIN_PERCENT, MAX_PERCENT),
-        "cooldown": (MIN_COOLDOWN, MAX_COOLDOWN),
+    SKILL_LIMITS: Dict[str, Tuple[int, int]] = {
+        MonsterJsonSkillAttributes.DAMAGE.value: (MIN_DAMAGE, MAX_DAMAGE),
+        MonsterJsonSkillAttributes.COOLDOWN.value: (MIN_COOLDOWN, MAX_COOLDOWN),
     }
 
-    @classmethod
-    def get_enum_values(cls, enum_class) -> list:
-        """Retourne les valeurs d'un enum"""
-        return [item.value for item in enum_class]
+    RATIO_LIMITS: Dict[str, Tuple[float, float]] = {
+        MonsterJsonSkillRatioAttributes.PERCENT.value: (MIN_PERCENT, MAX_PERCENT),
+    }
 
     @classmethod
     def validate_element(cls, element: str) -> bool:
