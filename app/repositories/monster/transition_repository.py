@@ -60,6 +60,7 @@ class TransitionRepository:
         try:
             # Créer le monstre structuré
             monster = Monster(
+                monster_uuid=monster_state.monster_id,
                 monster_state_id=monster_state.id,
                 nom=monster_json[MonsterJsonAttributes.NAME.value],
                 element=monster_json[MonsterJsonAttributes.ELEMENT.value],
@@ -82,6 +83,7 @@ class TransitionRepository:
                 description_visuelle=monster_json[
                     MonsterJsonAttributes.DESCRIPTION_VISUAL.value
                 ],
+                image_url=monster_json[MonsterJsonAttributes.IMAGE_URL.value],
             )
 
             self.db.add(monster)

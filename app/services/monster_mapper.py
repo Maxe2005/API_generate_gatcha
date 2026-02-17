@@ -11,7 +11,7 @@ from app.core.json_monster_config import MonsterJsonAttributes
 from app.models.monster.monster import Monster
 from app.models.monster.skill import Skill
 from app.schemas.admin import MonsterSummary
-from app.schemas.json_monster import MonsterBase
+from app.schemas.json_monster import MonsterBase, Skill as SkillBase
 from app.schemas.metadata import MonsterMetadata, MonsterWithMetadata
 from app.schemas.monster import MonsterStructured
 from app.schemas.skill import SkillStructured
@@ -38,6 +38,18 @@ def map_monster_metadata_to_summary(metadata: MonsterMetadata, monster: MonsterW
     """
     Mappe un monstre issu du json brut et ses métadonnées vers un MonsterSummary.
     """
+    if not monster.monster_data:
+        return MonsterSummary(
+            monster_id=metadata.monster_id,
+            name="Unknown",
+            element=ElementEnum.UNKNOWN,
+            rank=RankEnum.UNKNOWN,
+            state=metadata.state,
+            created_at=metadata.created_at,
+            updated_at=metadata.updated_at,
+            is_valid=metadata.is_valid,
+            review_notes=metadata.review_notes,
+        )
     return MonsterSummary(
         monster_id=metadata.monster_id,
         name=monster.monster_data.get(MonsterJsonAttributes.NAME.value, "Unknown"),
@@ -90,7 +102,7 @@ def map_monster_to_json(monster: Monster) -> MonsterBase :
         description_carte=monster.description_carte,  # type: ignore
         description_visuelle=monster.description_visuelle,  # type: ignore
         skills=[
-            Skill(
+            SkillBase(
                 name=s.name,  # type: ignore
                 description=s.description,  # type: ignore
                 damage=s.damage,  # type: ignore

@@ -8,6 +8,8 @@ Schémas de métadonnées pour la gestion du cycle de vie des monstres
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+
+from sqlalchemy import null
 from app.core.constants import MonsterStateEnum
 
 
@@ -61,4 +63,4 @@ class MonsterWithMetadata(BaseModel):
     """Monstre avec ses métadonnées"""
 
     metadata: MonsterMetadata
-    monster_data: Dict[str, Any]
+    monster_data: Dict[str, Any] | None

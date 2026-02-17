@@ -171,7 +171,10 @@ async def correct_defective_monster(
     """
     try:
         metadata = service.correct_defective(
-            monster_id, request.corrected_data, request.notes, admin_name=request.admin_name
+            monster_id,
+            request.corrected_data,
+            request.notes,
+            admin_name=request.admin_name,
         )
 
         return {
@@ -235,6 +238,24 @@ async def process_generated_monsters(
         }
     except Exception as e:
         logger.error(f"Error processing generated monsters: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/monsters/{monster_id}/process-generated")
+async def process_single_generated_monster(
+    monster_id: str,
+    service: AdminService = Depends(get_admin_service),
+):
+    """
+    Traite un seul monstre en état GENERATED.
+    Valide les données et effectue la transition appropriée.
+    Retourne un résumé du traitement.
+    """
+    try:
+        result = service.process_generated_monster(monster_id)
+        return result
+    except Exception as e:
+        logger.error(f"Error processing generated monster {monster_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -125,9 +125,12 @@ class AdminService:
             return MonsterDetail(
                 metadata=monster.metadata,
                 monster_data=map_monster_to_json(structured_monster),
-                image_url=monster.monster_data.get("ImageUrl", ""),
+                image_url=structured_monster.image_url,  # type: ignore
             )
         else:
+            if not monster.monster_data:
+                logger.warning(f"Monster data is missing for monster_id: {monster_id}")
+                return None
             # Construire l'URL de l'image
             image_url = monster.monster_data.get("ImageUrl", "")
 
@@ -236,6 +239,25 @@ class AdminService:
         logger.info(f"Monster {monster_id} corrected by {admin_name}")
 
         return metadata
+    
+    def get_monster_name(self, monster_id: str) -> Optional[str]:
+        """Récupère le nom d'un monstre à partir de son ID"""
+
+        monster = self.state_repository.get(monster_id)
+        if not monster:
+            return None
+
+        if monster.metadata.monster:
+            structured_monster = self.monster_repository.get_by_uuid(monster_id)
+            if not structured_monster:
+                logger.warning(f"Structured monster not found for UUID: {monster_id}")
+                return None
+            return structured_monster.nom  # type: ignore
+        else:
+            if not monster.monster_data:
+                logger.warning(f"Monster data is missing for monster_id: {monster_id}")
+                return None
+            return monster.monster_data.get("nom", "Unknown")
 
     def get_dashboard_stats(self) -> DashboardStats:
         """Récupère les statistiques du dashboard"""
@@ -253,10 +275,7 @@ class AdminService:
 
         for metadata in all_metadata:
             if metadata.history:
-                monster = self.state_repository.get(metadata.monster_id)
-                monster_name = (
-                    monster.monster_data.get("nom", "Unknown") if monster else "Unknown"
-                )
+                monster_name = self.get_monster_name(metadata.monster_id)
                 last_transition = metadata.history[-1]
                 recent_activity.append(
                     {
@@ -327,6 +346,9 @@ class AdminService:
                     continue
 
                 # Valider les données
+                if not monster.monster_data:
+                    logger.warning(f"Monster data is missing for monster_id: {monster_id}")
+                    continue
                 validation_result = self.validation_service.validate(
                     monster.monster_data
                 )
@@ -420,3 +442,75 @@ class AdminService:
             "moved_to_defective": moved_to_defective,
             "details": details,
         }
+
+    def process_generated_monster(self, monster_id: str) -> Dict[str, Any]:
+        """
+        Traite un seul monstre en état GENERATED.
+        Valide les données et effectue la transition appropriée.
+        Retourne un résumé du traitement.
+        """
+        try:
+            monster = self.state_repository.get(monster_id)
+            if not monster:
+                return {
+                    "status": "error",
+                    "monster_id": monster_id,
+                    "error": "Monster not found",
+                }
+            if monster.metadata.state != MonsterStateEnum.GENERATED:
+                return {
+                    "status": "skipped",
+                    "monster_id": monster_id,
+                    "reason": f"State is {monster.metadata.state}, not GENERATED",
+                }
+            
+            if not monster.monster_data:
+                logger.warning(f"Monster data is missing for monster_id: {monster_id}")
+                return {
+                    "status": "error",
+                    "monster_id": monster_id,
+                    "error": "Monster data is missing",
+                }
+            validation_result = self.validation_service.validate(monster.monster_data)
+            if validation_result.is_valid:
+                monster.metadata = self.state_manager.perform_transition(
+                    monster.metadata,
+                    MonsterStateEnum.PENDING_REVIEW,
+                    monster_data=monster.monster_data,
+                    actor="system",
+                    note="Auto-transition after single validation",
+                )
+                action = "moved_to_pending_review"
+                is_valid = True
+                error_count = 0
+            else:
+                validation_errors = [
+                    {"field": e.field, "error_type": e.error_type, "message": e.message}
+                    for e in validation_result.errors
+                ]
+                monster.metadata.is_valid = False
+                monster.metadata.validation_errors = validation_errors
+                monster.metadata.updated_at = datetime.now(timezone.utc)
+                self.state_repository.save(monster.metadata, monster.monster_data)
+                monster.metadata = self.state_manager.perform_transition(
+                    monster.metadata,
+                    MonsterStateEnum.DEFECTIVE,
+                    monster_data=monster.monster_data,
+                    actor="system",
+                    note="Auto-transition after single validation (defective)",
+                )
+                action = "moved_to_defective"
+                is_valid = False
+                error_count = len(validation_errors)
+
+            return {
+                "status": "success",
+                "monster_id": monster_id,
+                "name": monster.monster_data.get("nom", "Unknown"),
+                "action": action,
+                "is_valid": is_valid,
+                "error_count": error_count if not is_valid else 0,
+            }
+        except Exception as e:
+            logger.error(f"Error processing monster {monster_id}: {e}")
+            return {"status": "error", "monster_id": monster_id, "error": str(e)}

@@ -84,6 +84,15 @@ class TypeValidator:
             return False, f"Unknown type: {expected_type}"
 
         expected = TypeValidator.TYPE_MAPPING[expected_type]
+
+        # Cas spécial : on attend un int mais on reçoit un float "entier déguisé"
+        if expected_type == "int" and isinstance(value, float):
+            if value.is_integer():
+                # Conversion automatique
+                value = int(value)
+            else:
+                return False, f"Expected int, got float ({value})"
+
         if not isinstance(value, expected):
             return False, f"Expected {expected_type}, got {type(value).__name__}"
 
