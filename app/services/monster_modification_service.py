@@ -112,7 +112,7 @@ class MonsterModificationService:
         logger.info(f"Updating monster {monster_id} by {actor}")
 
         # Récupérer le monstre et son état
-        monster_state = self.monster_repo.get_by_id(monster_id)
+        monster_state = self.monster_repo.get_by_uuid(monster_id)
         if not monster_state:
             raise MonsterModificationError(f"Monster {monster_id} not found")
 
@@ -129,7 +129,7 @@ class MonsterModificationService:
 
         # Mettre à jour le timestamp
         monster.updated_at = datetime.now(timezone.utc)
-        monster_state.updated_at = datetime.now(timezone.utc)
+        monster_state.updated_at = datetime.now(timezone.utc)  # type: ignore
 
         # Persister
         self.db.commit()
@@ -163,7 +163,7 @@ class MonsterModificationService:
         logger.info(f"Adding skill to monster {monster_id} by {actor}")
 
         # Récupérer le monstre et son état
-        monster_state = self.monster_repo.get_by_monster_id(monster_id)
+        monster_state = self.monster_repo.get_by_uuid(monster_id)
         if not monster_state:
             raise MonsterModificationError(f"Monster {monster_id} not found")
 
@@ -186,7 +186,7 @@ class MonsterModificationService:
         )
 
         self.db.add(new_skill)
-        monster_state.updated_at = datetime.now(timezone.utc)
+        monster_state.updated_at = datetime.now(timezone.utc)  # type: ignore
         self.db.commit()
         self.db.refresh(new_skill)
 
@@ -219,7 +219,7 @@ class MonsterModificationService:
         logger.info(f"Updating skill {skill_id} of monster {monster_id} by {actor}")
 
         # Récupérer le monstre et son état
-        monster_state = self.monster_repo.get_by_monster_id(monster_id)
+        monster_state = self.monster_repo.get_by_uuid(monster_id)
         if not monster_state:
             raise MonsterModificationError(f"Monster {monster_id} not found")
 
@@ -247,8 +247,8 @@ class MonsterModificationService:
                 setattr(skill, field, value)
 
         # Mettre à jour les timestamps
-        skill.updated_at = datetime.now(timezone.utc)
-        monster_state.updated_at = datetime.now(timezone.utc)
+        skill.updated_at = datetime.now(timezone.utc)  # type: ignore
+        monster_state.updated_at = datetime.now(timezone.utc)  # type: ignore
 
         self.db.commit()
         self.db.refresh(skill)
@@ -277,7 +277,7 @@ class MonsterModificationService:
         logger.info(f"Deleting skill {skill_id} of monster {monster_id} by {actor}")
 
         # Récupérer le monstre et son état
-        monster_state = self.monster_repo.get_by_monster_id(monster_id)
+        monster_state = self.monster_repo.get_by_uuid(monster_id)
         if not monster_state:
             raise MonsterModificationError(f"Monster {monster_id} not found")
 
@@ -310,7 +310,7 @@ class MonsterModificationService:
 
         # Supprimer la skill
         self.db.delete(skill)
-        monster_state.updated_at = datetime.now(timezone.utc)
+        monster_state.updated_at = datetime.now(timezone.utc)  # type: ignore
         self.db.commit()
 
         logger.info(f"Skill {skill_id} deleted successfully")
@@ -325,7 +325,7 @@ class MonsterModificationService:
         Returns:
             Monstre structuré avec ses skills, ou None si non trouvé
         """
-        monster_state = self.monster_repo.get_by_monster_id(monster_id)
+        monster_state = self.monster_repo.get_by_uuid(monster_id)
         if not monster_state or not monster_state.monster:
             return None
 
@@ -363,7 +363,7 @@ class MonsterModificationService:
             )
 
         # Récupérer le monstre et son état
-        monster_state = self.monster_repo.get_by_monster_id(monster_id)
+        monster_state = self.monster_repo.get_by_uuid(monster_id)
         if not monster_state:
             raise MonsterModificationError(f"Monster {monster_id} not found")
 
@@ -392,7 +392,7 @@ class MonsterModificationService:
             self.db.add(skill)
             new_skills.append(skill)
 
-        monster_state.updated_at = datetime.now(timezone.utc)
+        monster_state.updated_at = datetime.now(timezone.utc)  # type: ignore
         self.db.commit()
 
         # Refresh all new skills
@@ -429,9 +429,9 @@ class MonsterModificationService:
             )
 
         # Mettre à jour les champs
-        monster.image_url = image_url
-        monster.description_visuelle = description_visuelle
-        monster.updated_at = datetime.now(timezone.utc)
+        monster.image_url = image_url  # type: ignore
+        monster.description_visuelle = description_visuelle  # type: ignore
+        monster.updated_at = datetime.now(timezone.utc)  # type: ignore
 
         self.db.commit()
         logger.info(

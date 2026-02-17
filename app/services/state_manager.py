@@ -49,10 +49,9 @@ class MonsterStateManager:
             MonsterStateEnum.DEFECTIVE,
         ],
         MonsterStateEnum.DEFECTIVE: [
-            MonsterStateEnum.CORRECTED,
+            MonsterStateEnum.PENDING_REVIEW,
             MonsterStateEnum.REJECTED,
         ],
-        MonsterStateEnum.CORRECTED: [MonsterStateEnum.PENDING_REVIEW],
         MonsterStateEnum.PENDING_REVIEW: [
             MonsterStateEnum.APPROVED,
             MonsterStateEnum.REJECTED,
@@ -69,7 +68,6 @@ class MonsterStateManager:
     JSON_STATES = [
         MonsterStateEnum.GENERATED,
         MonsterStateEnum.DEFECTIVE,
-        MonsterStateEnum.CORRECTED,
     ]
 
     # États qui nécessitent des données structurées (après structuration)

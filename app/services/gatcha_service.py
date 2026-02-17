@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.clients.gemini import GeminiClient
 from app.clients.banana import BananaClient
+from app.core.json_monster_config import MonsterJsonAttributes
 from app.repositories.monster.state_repository import MonsterStateRepository
 from app.repositories.monster.transition_repository import TransitionRepository
 from app.schemas.req_res_api import MonsterResponse
@@ -79,7 +80,7 @@ class GatchaService:
         image_url, raw_image_key = await self._generate_image(
             monster_data, fallback_prompt, filename
         )
-        monster_data["ImageUrl"] = image_url
+        monster_data[MonsterJsonAttributes.IMAGE_URL.value] = image_url
 
         # VALIDATION STEP: Validate ImageUrl presence and format
         image_url_validation = self.validation_service.validate_image_url(image_url)
@@ -127,7 +128,6 @@ class GatchaService:
 
         # Transition initiale centralisée
         self.state_manager.perform_transition(
-            monster_id,
             metadata,
             initial_state,
             monster_data=monster_data,
@@ -138,7 +138,6 @@ class GatchaService:
         # Auto-transition valid monsters to PENDING_REVIEW ou DEFECTIVE
         if validation_result.is_valid:
             metadata = self.state_manager.perform_transition(
-                monster_id,
                 metadata,
                 MonsterStateEnum.PENDING_REVIEW,
                 monster_data=monster_data,
@@ -147,7 +146,6 @@ class GatchaService:
             )
         else:
             metadata = self.state_manager.perform_transition(
-                monster_id,
                 metadata,
                 MonsterStateEnum.DEFECTIVE,
                 monster_data=monster_data,

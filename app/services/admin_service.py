@@ -183,7 +183,6 @@ class AdminService:
 
         # Transition d'état
         metadata = self.state_manager.perform_transition(
-            monster_id,
             monster.metadata,
             target_state,
             monster_data=monster.monster_data,
@@ -225,24 +224,13 @@ class AdminService:
         monster.metadata.is_valid = True
         monster.metadata.validation_errors = None
 
-        # Transition DEFECTIVE → CORRECTED → PENDING_REVIEW
-        metadata = self.state_manager.perform_transition(
-            monster_id,
-            monster.metadata,
-            MonsterStateEnum.CORRECTED,
-            monster_data=monster.monster_data,
-            actor=admin_name,
-            note=notes or "Corrected by admin",
-        )
-
         # Auto-transition vers PENDING_REVIEW
         metadata = self.state_manager.perform_transition(
-            monster_id,
-            metadata,
+            monster.metadata,
             MonsterStateEnum.PENDING_REVIEW,
             monster_data=monster.monster_data,
-            actor="system",
-            note="Auto-transition after correction",
+            actor=admin_name,
+            note="Corrected by admin",
         )
 
         logger.info(f"Monster {monster_id} corrected by {admin_name}")
@@ -348,7 +336,6 @@ class AdminService:
 
                     # Transition centralisée
                     monster.metadata = self.state_manager.perform_transition(
-                        monster_id,
                         monster.metadata,
                         MonsterStateEnum.PENDING_REVIEW,
                         monster_data=monster.monster_data,
@@ -394,7 +381,6 @@ class AdminService:
                     # Déplacer vers DEFECTIVE
 
                     monster.metadata = self.state_manager.perform_transition(
-                        monster_id,
                         monster.metadata,
                         MonsterStateEnum.DEFECTIVE,
                         monster_data=monster.monster_data,
