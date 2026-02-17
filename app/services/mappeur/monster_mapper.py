@@ -2,7 +2,7 @@
 Module: monster_mapper
 
 Description:
-Fonctions utilitaires pour mapper les objets de données de monstre des schémas de sortie.
+Fonctions utilitaires pour mapper les objets de données de monstre vers des schémas de sortie.
 """
 
 from typing import Any, Dict

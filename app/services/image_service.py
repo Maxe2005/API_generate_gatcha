@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.repositories.monster_image_repository import MonsterImageRepository
 from app.repositories.monster import MonsterRepository
+from app.services.mappeur.image_mappeur import map_image_to_response
 from app.services.monster_modification_service import MonsterModificationService
 from app.clients.banana import BananaClient
 from app.schemas.image import MonsterImageResponse, MonsterImageListResponse
@@ -73,7 +74,7 @@ class ImageService:
             is_default=True,
         )
 
-        return MonsterImageResponse.model_validate(db_image)
+        return map_image_to_response(db_image)
 
     async def create_custom_image_for_monster(
         self, monster_id: str, image_name: str, custom_prompt: str
@@ -120,7 +121,7 @@ class ImageService:
             is_default=False,
         )
 
-        return MonsterImageResponse.model_validate(db_image)
+        return map_image_to_response(db_image)
 
     def get_monster_images(self, monster_id: str) -> MonsterImageListResponse:
         """
@@ -142,14 +143,12 @@ class ImageService:
 
         # Récupérer toutes les images
         db_images = self.image_repo.get_images_by_monster_id(int(monster.id))  # type: ignore
-        images = [MonsterImageResponse.model_validate(img) for img in db_images]
+        images = [map_image_to_response(img) for img in db_images]
 
         # Identifier l'image par défaut
         default_image = next((img for img in images if img.is_default), None)
 
         return MonsterImageListResponse(
-            monster_id=monster_id,
-            monster_name=monster.monster_data.get("nom", "Unknown"),
             images=images,
             default_image=default_image,
         )

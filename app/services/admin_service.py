@@ -29,7 +29,7 @@ from app.schemas.admin import (
     MonsterDetail,
     DashboardStats,
 )
-from app.services.monster_mapper import (
+from app.services.mappeur.monster_mapper import (
     map_json_monster,
     map_monster_to_json,
     map_monster_to_summary,

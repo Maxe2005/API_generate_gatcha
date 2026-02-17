@@ -33,7 +33,6 @@ class MonsterImageResponse(MonsterImageBase):
     """Schéma de réponse pour une image de monstre"""
 
     id: int = Field(..., description="ID unique de l'image")
-    monster_id: str = Field(..., description="UUID du monstre associé")
     image_url: str = Field(..., description="URL complète de l'image sur MinIO")
     created_at: datetime = Field(..., description="Date de création")
 
@@ -43,8 +42,6 @@ class MonsterImageResponse(MonsterImageBase):
 class MonsterImageListResponse(BaseModel):
     """Schéma de réponse pour la liste des images d'un monstre"""
 
-    monster_id: str = Field(..., description="UUID du monstre")
-    monster_name: str = Field(..., description="Nom du monstre")
     images: list[MonsterImageResponse] = Field(
         default_factory=list, description="Liste des images"
     )
