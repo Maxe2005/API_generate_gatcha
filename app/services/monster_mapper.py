@@ -6,6 +6,8 @@ Fonctions utilitaires pour mapper les objets de données de monstre des schémas
 """
 
 from typing import Any, Dict
+from app.core.constants import ElementEnum, RankEnum
+from app.core.json_monster_config import MonsterJsonAttributes
 from app.models.monster.monster import Monster
 from app.models.monster.skill import Skill
 from app.schemas.admin import MonsterSummary
@@ -38,9 +40,9 @@ def map_monster_metadata_to_summary(metadata: MonsterMetadata, monster: MonsterW
     """
     return MonsterSummary(
         monster_id=metadata.monster_id,
-        name=monster.monster_data.get("nom", "Unknown"),
-        element=monster.monster_data.get("element", "Unknown"),
-        rank=monster.monster_data.get("rang", "Unknown"),
+        name=monster.monster_data.get(MonsterJsonAttributes.NAME.value, "Unknown"),
+        element=monster.monster_data.get(MonsterJsonAttributes.ELEMENT.value, ElementEnum.UNKNOWN.value),
+        rank=monster.monster_data.get(MonsterJsonAttributes.RANK.value, RankEnum.UNKNOWN.value),
         state=metadata.state,
         created_at=metadata.created_at,
         updated_at=metadata.updated_at,

@@ -62,6 +62,7 @@ class ElementEnum(EnumBase):
     EARTH = "EARTH"
     LIGHT = "LIGHT"
     DARKNESS = "DARKNESS"
+    UNKNOWN = "UNKNOWN"
 
 
 class RankEnum(EnumBase):
@@ -71,6 +72,7 @@ class RankEnum(EnumBase):
     RARE = "RARE"
     EPIC = "EPIC"
     LEGENDARY = "LEGENDARY"
+    UNKNOWN = "UNKNOWN"
 
 
 class StatEnum(EnumBase):
