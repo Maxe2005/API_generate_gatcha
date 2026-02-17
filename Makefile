@@ -95,3 +95,12 @@ restore-all: ## Restaure Postgres et MinIO (usage: make restore-all BACKUP_NAME=
 
 backup-list: ## Liste les sauvegardes disponibles
 	@ls -1 backups 2>/dev/null || echo "No backups found"
+
+
+migrate-json-to-postgres: ## Commande pour migrer les monstres JSON vers PostgreSQL avec accès MinIO
+	python3 scripts/migrate_json_to_postgres.py \
+	  --minio-endpoint=localhost:9000 \
+	  --minio-access-key=admin \
+	  --minio-secret-key=password123 \
+	  --minio-bucket=game-assets \
+	  --minio-public-url=http://localhost:9000

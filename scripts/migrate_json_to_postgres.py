@@ -15,6 +15,9 @@ import json
 import logging
 import uuid
 from pathlib import Path
+import os
+from minio import Minio
+from minio.error import S3Error
 
 # Ajouter le répertoire parent au path pour les imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -30,7 +33,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def migrate_monsters(base_path: str = "app/static", dry_run: bool = False):
+def migrate_monsters(
+    base_path: str = "app/static",
+    dry_run: bool = False,
+    minio_endpoint=None,
+    minio_access_key=None,
+    minio_secret_key=None,
+    minio_bucket="game-assets",
+    minio_public_url=None,
+):
     """
     Migre tous les fichiers JSON du répertoire jsons vers PostgreSQL avec l'état GENERATED.
 
@@ -40,6 +51,16 @@ def migrate_monsters(base_path: str = "app/static", dry_run: bool = False):
     """
     base_path_obj = Path(base_path)
     jsons_dir = base_path_obj / "jsons"
+
+    # Préparer le client MinIO
+    minio_client = None
+    if minio_endpoint and minio_access_key and minio_secret_key:
+        minio_client = Minio(
+            minio_endpoint,
+            access_key=minio_access_key,
+            secret_key=minio_secret_key,
+            secure=False,
+        )
 
     db = SessionLocal()
 
@@ -60,7 +81,9 @@ def migrate_monsters(base_path: str = "app/static", dry_run: bool = False):
 
                 # Vérifier si déjà migré
                 existing = (
-                    db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
+                    db.query(MonsterState)
+                    .filter(MonsterState.monster_id == monster_id)
+                    .first()
                 )
 
                 if existing:
@@ -73,6 +96,31 @@ def migrate_monsters(base_path: str = "app/static", dry_run: bool = False):
                 # Charger les données du monstre
                 with open(json_file, "r", encoding="utf-8") as f:
                     monster_data = json.load(f)
+
+                # Recherche d'une image correspondante dans MinIO
+                image_url = None
+                if minio_client and minio_public_url:
+                    prefix = filename.rsplit(".", 1)[0]
+                    try:
+                        found = False
+                        for obj in minio_client.list_objects(
+                            minio_bucket, prefix=prefix, recursive=True
+                        ):
+                            if obj.object_name and obj.object_name.startswith(prefix):
+                                # Construit l'URL publique comme dans BananaClient
+                                image_url = f"{minio_public_url}/{minio_bucket}/{obj.object_name}"
+                                monster_data["ImageUrl"] = image_url
+                                logger.info(
+                                    f"Image trouvée pour {filename}: {obj.object_name}"
+                                )
+                                found = True
+                                break
+                        if not found:
+                            logger.info(
+                                f"Aucune image trouvée pour {filename} (préfixe: {prefix})"
+                            )
+                    except S3Error as e:
+                        logger.error(f"Erreur MinIO pour {filename}: {e}")
 
                 if dry_run:
                     logger.info(
@@ -135,6 +183,31 @@ def main():
         action="store_true",
         help="Perform a dry run without actually inserting data",
     )
+    parser.add_argument(
+        "--minio-endpoint",
+        default=os.environ.get("MINIO_ENDPOINT", "localhost:9000"),
+        help="MinIO endpoint (default: localhost:9000)",
+    )
+    parser.add_argument(
+        "--minio-access-key",
+        default=os.environ.get("MINIO_ACCESS_KEY", "minioadmin"),
+        help="MinIO access key (default: minioadmin)",
+    )
+    parser.add_argument(
+        "--minio-secret-key",
+        default=os.environ.get("MINIO_SECRET_KEY", "minioadmin"),
+        help="MinIO secret key (default: minioadmin)",
+    )
+    parser.add_argument(
+        "--minio-bucket",
+        default=os.environ.get("MINIO_BUCKET", "game-assets"),
+        help="MinIO bucket name (default: game-assets)",
+    )
+    parser.add_argument(
+        "--minio-public-url",
+        default=os.environ.get("MINIO_PUBLIC_URL", "http://localhost:9000"),
+        help="MinIO public URL (default: http://localhost:9000)",
+    )
 
     args = parser.parse_args()
 
@@ -142,7 +215,15 @@ def main():
     if args.dry_run:
         logger.info("DRY RUN MODE - No data will be inserted")
 
-    migrate_monsters(base_path=args.base_path, dry_run=args.dry_run)
+    migrate_monsters(
+        base_path=args.base_path,
+        dry_run=args.dry_run,
+        minio_endpoint=args.minio_endpoint,
+        minio_access_key=args.minio_access_key,
+        minio_secret_key=args.minio_secret_key,
+        minio_bucket=args.minio_bucket,
+        minio_public_url=args.minio_public_url,
+    )
 
 
 if __name__ == "__main__":
