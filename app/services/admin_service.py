@@ -10,14 +10,32 @@ from datetime import datetime, timezone
 import logging
 from sqlalchemy.orm import Session
 
+from app.repositories.monster.repository import MonsterRepository
 from app.repositories.monster.state_repository import MonsterStateRepository
-from app.repositories.monster.structure_repository import StructureRepository
+from app.repositories.monster.transition_repository import TransitionRepository
+from app.schemas.json_monster import MonsterBase
 from app.services.state_manager import MonsterStateManager
 from app.services.validation_service import MonsterValidationService
 from app.schemas.metadata import MonsterMetadata
-from app.core.constants import MonsterStateEnum
-from app.schemas.monster import TransitionAction
-from app.schemas.admin import MonsterSummary, MonsterDetail, DashboardStats
+from app.core.constants import (
+    ElementEnum,
+    MonsterStateEnum,
+    RankEnum,
+    TransitionActionEnum,
+)
+from app.schemas.admin import (
+    MonsterListFilter,
+    MonsterSummary,
+    MonsterDetail,
+    DashboardStats,
+)
+from app.services.monster_mapper import (
+    map_json_monster,
+    map_monster_to_json,
+    map_monster_to_summary,
+    map_monster_metadata_to_summary,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,44 +45,59 @@ class AdminService:
 
     def __init__(self, db: Session):
         self.state_repository = MonsterStateRepository(db)
-        self.structure_repository = StructureRepository(db)
+        self.structure_repository = TransitionRepository(db)
+        self.monster_repository = MonsterRepository(db)
         self.state_manager = MonsterStateManager()
         self.validation_service = MonsterValidationService()
 
     def list_monsters(
         self,
-        state: Optional[MonsterStateEnum] = None,
-        limit: int = 50,
-        offset: int = 0,
-        sort_by: str = "created_at",
-        order: str = "desc",
+        filter: Optional[MonsterListFilter] = None,
     ) -> List[MonsterSummary]:
         """Liste les monstres avec filtres"""
 
-        if state:
-            metadata_list = self.state_repository.list_by_state(state, limit, offset)
+        if filter:
+            # Il filtre par state, is valid, il ordonne et il prend le bon limit/offset
+            metadata_list = self.state_repository.list_filtred(filter)
         else:
-            metadata_list = self.state_repository.list_all(limit, offset)
+            metadata_list = self.state_repository.list_all()
 
         summaries = []
         for metadata in metadata_list:
-            monster = self.state_repository.get(metadata.monster_id)
-            if monster:
-                summaries.append(
-                    MonsterSummary(
-                        monster_id=metadata.monster_id,
-                        name=monster.monster_data.get("nom", "Unknown"),
-                        element=monster.monster_data.get("element", "Unknown"),
-                        rank=monster.monster_data.get("rang", "Unknown"),
-                        state=metadata.state,
-                        created_at=metadata.created_at,
-                        updated_at=metadata.updated_at,
-                        is_valid=metadata.is_valid,
-                        review_notes=metadata.review_notes,
-                    )
-                )
+            if metadata.monster:
+                monster = self.monster_repository.get_by_uuid(metadata.monster_id)
+                if monster:
+                    summaries.append(map_monster_to_summary(metadata, monster))
+            else:
+                monster = self.state_repository.get(metadata.monster_id)
+                if monster:
+                    summaries.append(map_monster_metadata_to_summary(metadata, monster))
 
-        return summaries
+        return self.filter_monsters(
+            summaries,
+            element=filter.element if filter else None,
+            rank=filter.rank if filter else None,
+            search=filter.search if filter else None,
+        )
+
+    def filter_monsters(
+        self,
+        summaries: List[MonsterSummary],
+        element: Optional[ElementEnum] = None,
+        rank: Optional[RankEnum] = None,
+        search: Optional[str] = None,
+    ) -> List[MonsterSummary]:
+        """Filtre les monstres par élément, rang et recherche textuelle"""
+        filtered_summaries = []
+        for summary in summaries:
+            if element is not None and summary.element != element:
+                continue
+            if rank is not None and summary.rank != rank:
+                continue
+            if search is not None and search.lower() not in summary.name.lower():
+                continue
+            filtered_summaries.append(summary)
+        return filtered_summaries
 
     def get_monster_detail(self, monster_id: str) -> Optional[MonsterDetail]:
         """Récupère les détails complets d'un monstre"""
@@ -72,9 +105,6 @@ class AdminService:
         monster = self.state_repository.get(monster_id)
         if not monster:
             return None
-
-        # Construire l'URL de l'image
-        image_url = monster.monster_data.get("ImageUrl", "")
 
         # Validation report si erreurs
         validation_report = None
@@ -84,19 +114,34 @@ class AdminService:
                 "errors": monster.metadata.validation_errors,
             }
 
-        return MonsterDetail(
-            metadata=monster.metadata,
-            monster_data=monster.monster_data,
-            image_url=image_url,
-            validation_report=validation_report,
-        )
+        if monster.metadata.monster is not None:
+            structured_monster = self.monster_repository.get_by_uuid(monster_id)
+            if not structured_monster:
+                logger.warning(f"Structured monster not found for UUID: {monster_id}")
+                return None
+            # Monstre structuré
+            return MonsterDetail(
+                metadata=monster.metadata,
+                monster_data=map_monster_to_json(structured_monster),
+                image_url=monster.monster_data.get("ImageUrl", ""),
+            )
+        else:
+            # Construire l'URL de l'image
+            image_url = monster.monster_data.get("ImageUrl", "")
+
+            return MonsterDetail(
+                metadata=monster.metadata,
+                monster_data=monster.monster_data,
+                image_url=image_url,
+                validation_report=validation_report,
+            )
 
     def review_monster(
         self,
         monster_id: str,
-        action: TransitionAction,
+        action: TransitionActionEnum,
         notes: Optional[str] = None,
-        corrected_data: Optional[Dict[str, Any]] = None,
+        corrected_data: Optional[MonsterBase] = None,
         admin_name: str = "admin",
     ) -> MonsterMetadata:
         """Review un monstre (approve ou reject)"""
@@ -112,21 +157,20 @@ class AdminService:
             )
 
         # Déterminer l'état cible
-        if action == TransitionAction.APPROVE:
+        if action == TransitionActionEnum.APPROVE:
             target_state = MonsterStateEnum.APPROVED
-        elif action == TransitionAction.REJECT:
+        elif action == TransitionActionEnum.REJECT:
             target_state = MonsterStateEnum.REJECTED
         else:
             raise ValueError(f"Invalid action: {action}")
 
         # Si corrected_data fourni, valider et mettre à jour
         if corrected_data:
-            validation_result = self.validation_service.validate(corrected_data)
+            validation_result = self.validation_service.validate(map_json_monster(corrected_data))
             if not validation_result.is_valid:
                 raise ValueError(
                     "Corrected data is invalid", validation_result.to_dict()
                 )
-            monster.monster_data = corrected_data
 
         # Mettre à jour les métadonnées
         monster.metadata.reviewed_by = admin_name
@@ -142,7 +186,7 @@ class AdminService:
         )
 
         # Sauvegarder
-        self.state_repository.save(metadata, monster.monster_data)
+        self.state_repository.save(metadata)
         self.structure_repository.move_to_state(
             monster_id,
             target_state,

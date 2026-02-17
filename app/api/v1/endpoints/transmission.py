@@ -4,6 +4,7 @@ Transmission endpoints for sending monsters to invocation API
 
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+from typing import Optional
 import logging
 
 from app.services.transmission_service import TransmissionService
@@ -45,7 +46,7 @@ async def transmit_monster(
 
 @router.post("/transmit-batch")
 async def transmit_batch(
-    max_count: int = None,
+    max_count: Optional[int] = None,
     service: TransmissionService = Depends(get_transmission_service),
 ):
     """

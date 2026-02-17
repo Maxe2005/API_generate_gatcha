@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from app.clients.gemini import GeminiClient
 from app.clients.banana import BananaClient
 from app.repositories.monster.state_repository import MonsterStateRepository
-from app.repositories.monster.structure_repository import StructureRepository
-from app.schemas.monster import MonsterResponse
+from app.repositories.monster.transition_repository import TransitionRepository
+from app.schemas.req_res_api import MonsterResponse
 from app.core.constants import MonsterStateEnum
 from app.schemas.metadata import MonsterMetadata
 from app.repositories.monster_image_repository import MonsterImageRepository
@@ -24,7 +24,7 @@ class GatchaService:
         self.banana_client = BananaClient()
         self.validation_service = MonsterValidationService()
         self.state_repository = MonsterStateRepository(db)
-        self.structure_repository = StructureRepository(db)
+        self.structure_repository = TransitionRepository(db)
         self.image_repository = MonsterImageRepository(db)
         self.settings = get_settings()
         self.db = db
@@ -152,7 +152,7 @@ class GatchaService:
             )
             logger.warning(validation_result.get_error_summary())
 
-        return MonsterResponse(**monster_data, image_path=image_url)
+        return MonsterResponse(**monster_data)
 
     async def create_monster(self, prompt: str) -> MonsterResponse:
         """

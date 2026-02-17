@@ -21,13 +21,9 @@ from datetime import datetime, timezone
 import logging
 
 from app.models.monster import Monster, Skill, MonsterState
-from app.schemas.monster import (
-    MonsterUpdate,
-    SkillUpdate,
-    SkillCreate,
-    MonsterStructured,
-    SkillStructured,
-)
+from app.schemas.monster import MonsterUpdate, MonsterStructured 
+from app.schemas.skill import SkillCreate, SkillUpdate, SkillStructured
+
 from app.core.constants import MonsterStateEnum
 from app.repositories.monster import MonsterRepository
 

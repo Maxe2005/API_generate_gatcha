@@ -76,7 +76,7 @@ class ImageService:
         return MonsterImageResponse.model_validate(db_image)
 
     async def create_custom_image_for_monster(
-        self, monster_id: int, image_name: str, custom_prompt: str
+        self, monster_id: str, image_name: str, custom_prompt: str
     ) -> MonsterImageResponse:
         """
         Crée une nouvelle image personnalisée pour un monstre existant.

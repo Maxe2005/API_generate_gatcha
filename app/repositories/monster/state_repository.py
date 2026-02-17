@@ -11,9 +11,10 @@ import logging
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import ColumnElement, func
 
 from app.models.monster import MonsterState
+from app.schemas.admin import MonsterListFilter
 from app.schemas.metadata import MonsterMetadata, MonsterWithMetadata, StateTransition
 from app.core.constants import MonsterStateEnum
 
@@ -67,6 +68,7 @@ class MonsterStateRepository:
             last_transmission_error=db_monster_state.last_transmission_error,  # type: ignore
             invocation_api_id=db_monster_state.invocation_api_id,  # type: ignore
             history=history,
+            monster=db_monster_state.monster is not None,  # type: ignore
         )
 
     def save(
@@ -157,24 +159,35 @@ class MonsterStateRepository:
             logger.error(f"Failed to get monster {monster_id}: {e}")
             return None
 
-    def list_by_state(
-        self, state: MonsterStateEnum, limit: int = 50, offset: int = 0
-    ) -> List[MonsterMetadata]:
+    def list_filtred(self, filter: MonsterListFilter) -> List[MonsterMetadata]:
         """Liste les monstres par état"""
         try:
             db_monster_states = (
                 self.db.query(MonsterState)
-                .filter(MonsterState.state == MonsterStateEnum(state.value))
-                .order_by(MonsterState.updated_at.desc())
-                .limit(limit)
-                .offset(offset)
+                .filter(
+                    MonsterState.state == MonsterStateEnum(filter.state.value)
+                    if filter.state
+                    else ColumnElement[bool](True)  # type: ignore
+                )
+                .filter(
+                    MonsterState.is_valid == filter.is_valid
+                    if filter.is_valid is not None
+                    else ColumnElement[bool](True)  # type: ignore
+                )
+                .order_by(
+                    getattr(MonsterState, filter.sort_by).desc()
+                    if filter.order == "desc"
+                    else getattr(MonsterState, filter.sort_by).asc()
+                )
+                .limit(filter.limit)
+                .offset(filter.offset)
                 .all()
             )
 
             return [self._db_to_metadata(m) for m in db_monster_states]
 
         except Exception as e:
-            logger.error(f"Failed to list monsters by state {state}: {e}")
+            logger.error(f"Failed to list monsters with the filter {filter}: {e}")
             return []
 
     def list_all(self, limit: int = 50, offset: int = 0) -> List[MonsterMetadata]:
@@ -193,8 +206,6 @@ class MonsterStateRepository:
         except Exception as e:
             logger.error(f"Failed to list all monsters: {e}")
             return []
-
-    
 
     def delete(self, monster_id: str) -> bool:
         """Supprime un monstre et ses métadonnées"""

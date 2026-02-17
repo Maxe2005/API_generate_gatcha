@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from app.core.constants import ElementEnum, MonsterStateEnum, RankEnum, TransitionActionEnum
+from app.schemas.json_monster import MonsterBase
 from app.schemas.metadata import MonsterMetadata
 
 
@@ -54,7 +55,7 @@ class MonsterDetail(BaseModel):
     """Détails complets d'un monstre"""
 
     metadata: MonsterMetadata
-    monster_data: Dict[str, Any]
+    monster_data: Dict[str, Any] | MonsterBase
     image_url: Optional[str] = None
     validation_report: Optional[Dict[str, Any]] = None
 

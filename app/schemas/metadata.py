@@ -51,6 +51,11 @@ class MonsterMetadata(BaseModel):
     # Historique
     history: List[StateTransition] = Field(default_factory=list)
 
+    # Relation avec les données du monstre
+    monster: bool = Field(
+        default=False, description="Indique si la relation avec les données du monstre existe"
+    )
+
 
 class MonsterWithMetadata(BaseModel):
     """Monstre avec ses métadonnées"""

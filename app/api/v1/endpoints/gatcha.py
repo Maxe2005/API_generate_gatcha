@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from sqlalchemy.orm import Session
-from app.schemas.monster import (
+from app.schemas.req_res_api import (
     MonsterCreateRequest,
     MonsterResponse,
     BatchMonsterRequest,

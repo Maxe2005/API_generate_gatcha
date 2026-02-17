@@ -1,6 +1,5 @@
 # ========== Schémas pour les données JSON (monstres non validés) ==========
 
-from tkinter import Image
 from typing import List
 from pydantic import BaseModel, Field
 
