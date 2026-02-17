@@ -114,7 +114,7 @@ class AdminService:
                 "errors": monster.metadata.validation_errors,
             }
 
-        if monster.metadata.monster is not None:
+        if monster.metadata.monster:
             structured_monster = self.monster_repository.get_by_uuid(monster_id)
             if not structured_monster:
                 logger.warning(f"Structured monster not found for UUID: {monster_id}")
@@ -166,7 +166,9 @@ class AdminService:
 
         # Si corrected_data fourni, valider et mettre à jour
         if corrected_data:
-            validation_result = self.validation_service.validate(map_json_monster(corrected_data))
+            validation_result = self.validation_service.validate(
+                map_json_monster(corrected_data)
+            )
             if not validation_result.is_valid:
                 raise ValueError(
                     "Corrected data is invalid", validation_result.to_dict()
@@ -328,10 +330,12 @@ class AdminService:
             Dictionnaire avec le résumé du traitement
         """
         # Récupérer tous les monstres en état GENERATED
-        generated_monsters = self.state_repository.list_by_state(
-            MonsterStateEnum.GENERATED,
-            limit=1000,  # Large limite pour tout traiter
-            offset=0,
+        generated_monsters = self.state_repository.list_filtred(
+            MonsterListFilter(
+                state=MonsterStateEnum.GENERATED,
+                limit=100,  # Large limite pour tout traiter
+                offset=0,
+            )
         )
 
         total_processed = len(generated_monsters)

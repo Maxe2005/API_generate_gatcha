@@ -487,7 +487,7 @@ class MonsterRangeValidator:
                             MonsterJsonSkillRatioAttributes.PERCENT.value
                             in skill[MonsterJsonSkillAttributes.RATIO.value]
                         ):
-                            min_pct, max_pct = ValidationRules.SKILL_LIMITS[
+                            min_pct, max_pct = ValidationRules.RATIO_LIMITS[
                                 MonsterJsonSkillRatioAttributes.PERCENT.value
                             ]
                             is_valid, error_msg = RangeValidator.validate_range(

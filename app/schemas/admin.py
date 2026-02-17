@@ -65,7 +65,7 @@ class ReviewRequest(RequestContext):
 
     action: TransitionActionEnum
     notes: Optional[str] = Field(None, max_length=1000)
-    corrected_data: Optional[Dict[str, Any]] = None
+    corrected_data: Optional[MonsterBase] = None
 
 
 class CorrectionRequest(RequestContext):

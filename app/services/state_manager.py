@@ -129,57 +129,6 @@ class MonsterStateManager:
 
         return metadata
 
-    def transition_to_pending_review(
-        self,
-        monster_state_db: MonsterStateDB,
-        monster_json: Dict[str, Any],
-        repository,  # MonsterRepository
-        actor: str = "admin",
-        note: Optional[str] = None,
-    ) -> bool:
-        """
-        Effectue la transition spéciale vers PENDING_REVIEW.
-
-        Cette transition implique :
-        1. Validation de la transition d'état
-        2. Création du monstre structuré et ses skills en DB
-        3. Mise à NULL de monster_data
-        4. Enregistrement de la transition
-
-        Args:
-            monster_state_db: Objet MonsterState DB (avec monster_data JSON)
-            monster_json: Données JSON du monstre
-            repository: Instance de MonsterRepository pour la création structurée
-            actor: Qui effectue la transition
-            note: Note optionnelle
-
-        Returns:
-            True si succès, False sinon
-
-        Raises:
-            StateTransitionError: Si la transition est invalide
-        """
-        current_state = MonsterStateEnum(monster_state_db.state.value)
-        to_state = MonsterStateEnum.PENDING_REVIEW
-        # - Mis monster_data à NULL
-        # - Commit en DB
-
-        # Ajouter la transition dans l'historique
-        repository.add_transition(
-            monster_state_db.monster_id,
-            from_state=current_state,  # type: ignore
-            to_state=to_state,  # type: ignore
-            actor=actor,
-            note=note or "Transition to PENDING_REVIEW (JSON → Structured DB)",
-        )
-
-        logger.info(
-            f"Monster {monster_state_db.monster_id}: {current_state} → {to_state} "
-            f"(structured with {len(monster.skills)} skills)"
-        )
-
-        return True
-
     def get_next_states(self, current_state: MonsterStateEnum) -> list:
         """Retourne les états possibles depuis l'état actuel"""
         return self.VALID_TRANSITIONS.get(current_state, [])

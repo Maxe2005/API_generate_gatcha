@@ -3,13 +3,13 @@ Admin endpoints for managing monster lifecycle
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Query
-from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 import logging
 from sqlalchemy.orm import Session
 
 from app.services.admin_service import AdminService
 from app.schemas.admin import (
+    MonsterListFilter,
     MonsterSummary,
     MonsterDetail,
     ReviewRequest,
@@ -56,8 +56,11 @@ async def list_monsters(
     - **sort_by**: Champ de tri
     - **order**: Ordre (asc|desc)
     """
+    filter: MonsterListFilter = MonsterListFilter(
+        state=state, limit=limit, offset=offset, sort_by=sort_by, order=order
+    )
     try:
-        return service.list_monsters(state, limit, offset, sort_by, order)
+        return service.list_monsters(filter)
     except Exception as e:
         logger.error(f"Error listing monsters: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -168,7 +171,7 @@ async def correct_defective_monster(
     """
     try:
         metadata = service.correct_defective(
-            monster_id, request.corrected_data, request.notes, admin_name="admin"
+            monster_id, request.corrected_data, request.notes, admin_name=request.admin_name
         )
 
         return {

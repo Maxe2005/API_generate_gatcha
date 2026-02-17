@@ -71,7 +71,7 @@ class GeminiClient:
 
     async def generate_monster_profile(self, user_prompt: str) -> Dict[str, Any]:
         """Generates a structured monster profile."""
-        prompt = GatchaPrompts.SINGLE_PROFILE.format(user_prompt=user_prompt)
+        prompt = GatchaPrompts.SINGLE_PROFILE(user_prompt=user_prompt)
         result = await self._execute_prompt(prompt)
         if isinstance(result, list):
             if len(result) > 0:
@@ -84,7 +84,7 @@ class GeminiClient:
         self, n: int, user_prompt: str
     ) -> List[Dict[str, Any]]:
         """Brainstorms n monsters without skills."""
-        prompt = GatchaPrompts.BATCH_BRAINSTORM.format(n=n, user_prompt=user_prompt)
+        prompt = GatchaPrompts.BATCH_BRAINSTORM(n=n, user_prompt=user_prompt)
         result = await self._execute_prompt(prompt)
         return result if isinstance(result, list) else [result]
 
@@ -93,6 +93,6 @@ class GeminiClient:
     ) -> List[Dict[str, Any]]:
         """Takes a list of monsters and adds skills."""
         monsters_json = json.dumps(monsters, indent=2, ensure_ascii=False)
-        prompt = GatchaPrompts.BATCH_SKILLS.format(monsters_json=monsters_json)
+        prompt = GatchaPrompts.BATCH_SKILLS(monsters_json=monsters_json)
         result = await self._execute_prompt(prompt)
         return result if isinstance(result, list) else [result]

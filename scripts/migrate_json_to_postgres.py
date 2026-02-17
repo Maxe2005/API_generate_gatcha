@@ -7,7 +7,6 @@ Usage:
 
 Description:
     Migre tous les monstres depuis le stockage JSON vers la base PostgreSQL.
-    # Ancienne gestion des fichiers JSON supprimée : ce script n'est plus utilisé dans la nouvelle architecture.
     - Insère dans PostgreSQL avec l'état GENERATED
 """
 
@@ -61,7 +60,7 @@ def migrate_monsters(base_path: str = "app/static", dry_run: bool = False):
 
                 # Vérifier si déjà migré
                 existing = (
-                    db.query(Monster).filter(Monster.monster_id == monster_id).first()
+                    db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
                 )
 
                 if existing:
@@ -83,9 +82,8 @@ def migrate_monsters(base_path: str = "app/static", dry_run: bool = False):
                     continue
 
                 # Créer l'entrée dans la DB
-                db_monster = Monster(
+                db_monster = MonsterState(
                     monster_id=monster_id,
-                    filename=filename,
                     state=MonsterStateEnum.GENERATED,
                     monster_data=monster_data,
                     generated_by="auto-migration",
@@ -99,7 +97,6 @@ def migrate_monsters(base_path: str = "app/static", dry_run: bool = False):
                     transmission_attempts=0,
                     last_transmission_error=None,
                     invocation_api_id=None,
-                    metadata_extra={},
                 )
                 db.add(db_monster)
                 db.commit()

@@ -11,7 +11,7 @@ import logging
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
-from sqlalchemy import ColumnElement, func
+from sqlalchemy import func, true
 
 from app.models.monster import MonsterState
 from app.schemas.admin import MonsterListFilter
@@ -167,12 +167,12 @@ class MonsterStateRepository:
                 .filter(
                     MonsterState.state == MonsterStateEnum(filter.state.value)
                     if filter.state
-                    else ColumnElement[bool](True)  # type: ignore
+                    else true()
                 )
                 .filter(
                     MonsterState.is_valid == filter.is_valid
                     if filter.is_valid is not None
-                    else ColumnElement[bool](True)  # type: ignore
+                    else true()
                 )
                 .order_by(
                     getattr(MonsterState, filter.sort_by).desc()
