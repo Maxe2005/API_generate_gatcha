@@ -7,15 +7,12 @@ Crée des monstres structurés à partir de JSON.
 Gère la transition JSON → Monster structuré + Skills.
 """
 
-from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 import logging
 
 from sqlalchemy.orm import Session
 
-from app.core.constants import MonsterStateEnum
 from app.models.monster import Monster, Skill, MonsterState
-from app.models.monster.transition import StateTransitionModel
 from app.models.monster_image_model import MonsterImage
 
 from app.core.json_monster_config import (
@@ -24,6 +21,8 @@ from app.core.json_monster_config import (
     MonsterJsonSkillAttributes,
     MonsterJsonSkillRatioAttributes,
 )
+from app.core.config import get_settings
+
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,7 @@ class TransitionRepository:
             db: Session SQLAlchemy
         """
         self.db = db
+        self.settings = get_settings()
 
     def create_structured_monster_from_json(
         self, monster_state: MonsterState, monster_json: Dict[str, Any]
@@ -111,7 +111,7 @@ class TransitionRepository:
             # Create default image entry in monster_images table
             image_name = monster.nom
             image_url: str = monster_json[MonsterJsonAttributes.IMAGE_URL.value]
-            raw_image_key = image_url  # .replace("", "")  # TODO Extract raw image key from URL if needed
+            raw_image_key = image_url.replace(f"{self.settings.MINIO_PUBLIC_URL}{self.settings.MINIO_BUCKET_ASSETS}", f"{self.settings.MINIO_BUCKET_RAW}")  # Extract raw image key from URL
             image = MonsterImage(
                 monster_id=monster.id,
                 image_name=image_name,
@@ -140,91 +140,3 @@ class TransitionRepository:
             )
             self.db.rollback()
             return None
-
-    def add_transition(
-        self,
-        monster_id: str,
-        from_state: Optional[MonsterStateEnum],
-        to_state: MonsterStateEnum,
-        actor: str,
-        note: Optional[str] = None,
-    ) -> bool:
-        """Ajoute une transition d'état à l'historique"""
-        try:
-            db_monster_state = (
-                self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
-            )
-
-            if not db_monster_state:
-                return False
-
-            transition = StateTransitionModel(
-                monster_state_db_id=db_monster_state.id,
-                from_state=(MonsterStateEnum(from_state.value) if from_state else None),
-                to_state=MonsterStateEnum(to_state.value),
-                actor=actor,
-                note=note,
-            )
-            self.db.add(transition)
-            self.db.commit()
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to add transition for monster {monster_id}: {e}")
-            self.db.rollback()
-            return False
-
-    def move_to_state(
-        self,
-        monster_id: str,
-        new_state: MonsterStateEnum,
-        actor: str = "system",
-        note: Optional[str] = None,
-    ) -> bool:
-        """Change l'état d'un monstre"""
-        try:
-            db_monster_state = (
-                self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
-            )
-
-            if not db_monster_state:
-                return False
-
-            old_state = db_monster_state.state
-            db_monster_state.state = new_state  # type: ignore
-            db_monster_state.updated_at = datetime.now(timezone.utc)  # type: ignore
-
-            # Créer la transition via add_transition pour la cohérence
-            transition_note = (
-                note or f"State changed from {old_state.value} to {new_state.value}"
-            )
-            transition = StateTransitionModel(
-                monster_state_db_id=db_monster_state.id,
-                from_state=old_state,
-                to_state=new_state,
-                actor=actor,
-                note=transition_note,
-            )
-            self.db.add(transition)
-
-            self.db.commit()
-
-            if new_state == MonsterStateEnum.PENDING_REVIEW:
-                self.create_structured_monster_from_json(
-                    db_monster_state,
-                    db_monster_state.monster_data,  # type: ignore
-                )
-            logger.info(f"Moved monster {monster_id} to state {new_state} by {actor}")
-            return True
-
-        except Exception as e:
-            logger.error(
-                f"Failed to move monster {monster_id} to state {new_state}: {e}"
-            )
-            self.db.rollback()
-            return False

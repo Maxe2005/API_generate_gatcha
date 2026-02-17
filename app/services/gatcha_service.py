@@ -12,6 +12,7 @@ from app.schemas.req_res_api import MonsterResponse
 from app.core.constants import MonsterStateEnum
 from app.schemas.metadata import MonsterMetadata
 from app.repositories.monster_image_repository import MonsterImageRepository
+from app.services.state_manager import MonsterStateManager
 from app.services.validation_service import MonsterValidationService
 from app.core.config import get_settings
 
@@ -25,6 +26,9 @@ class GatchaService:
         self.validation_service = MonsterValidationService()
         self.state_repository = MonsterStateRepository(db)
         self.structure_repository = TransitionRepository(db)
+        self.state_manager = MonsterStateManager(
+            self.state_repository, self.structure_repository
+        )
         self.image_repository = MonsterImageRepository(db)
         self.settings = get_settings()
         self.db = db
@@ -120,33 +124,36 @@ class GatchaService:
 
         # Persist initial monster state
         self.state_repository.save(metadata, monster_data)
-        self.structure_repository.add_transition(
+
+        # Transition initiale centralisée
+        self.state_manager.perform_transition(
             monster_id,
-            None,
+            metadata,
             initial_state,
+            monster_data=monster_data,
             actor="system",
             note="Created",
         )
 
-        # Auto-transition valid monsters to PENDING_REVIEW
+        # Auto-transition valid monsters to PENDING_REVIEW ou DEFECTIVE
         if validation_result.is_valid:
-            self.structure_repository.move_to_state(
+            metadata = self.state_manager.perform_transition(
                 monster_id,
+                metadata,
                 MonsterStateEnum.PENDING_REVIEW,
+                monster_data=monster_data,
                 actor="system",
                 note="Auto-transition: monster validation passed",
             )
-            metadata.state = MonsterStateEnum.PENDING_REVIEW
-            metadata.updated_at = datetime.now(timezone.utc)
         else:
-            self.structure_repository.move_to_state(
+            metadata = self.state_manager.perform_transition(
                 monster_id,
+                metadata,
                 MonsterStateEnum.DEFECTIVE,
+                monster_data=monster_data,
                 actor="system",
                 note="Monster marked as defective after validation failure",
             )
-            metadata.state = MonsterStateEnum.DEFECTIVE
-            metadata.updated_at = datetime.now(timezone.utc)
             logger.warning(
                 "Monster validation failed: %s", monster_data.get("nom", "unknown")
             )

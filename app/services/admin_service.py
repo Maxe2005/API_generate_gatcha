@@ -47,7 +47,9 @@ class AdminService:
         self.state_repository = MonsterStateRepository(db)
         self.structure_repository = TransitionRepository(db)
         self.monster_repository = MonsterRepository(db)
-        self.state_manager = MonsterStateManager()
+        self.state_manager = MonsterStateManager(
+            self.state_repository, self.structure_repository
+        )
         self.validation_service = MonsterValidationService()
 
     def list_monsters(
@@ -180,18 +182,11 @@ class AdminService:
         monster.metadata.review_notes = notes
 
         # Transition d'état
-        metadata = self.state_manager.transition(
+        metadata = self.state_manager.perform_transition(
+            monster_id,
             monster.metadata,
             target_state,
-            actor=admin_name,
-            note=notes or f"Review: {action.value}",
-        )
-
-        # Sauvegarder
-        self.state_repository.save(metadata)
-        self.structure_repository.move_to_state(
-            monster_id,
-            target_state,
+            monster_data=monster.monster_data,
             actor=admin_name,
             note=notes or f"Review: {action.value}",
         )
@@ -231,33 +226,21 @@ class AdminService:
         monster.metadata.validation_errors = None
 
         # Transition DEFECTIVE → CORRECTED → PENDING_REVIEW
-        metadata = self.state_manager.transition(
+        metadata = self.state_manager.perform_transition(
+            monster_id,
             monster.metadata,
             MonsterStateEnum.CORRECTED,
-            actor=admin_name,
-            note=notes or "Corrected by admin",
-        )
-
-        self.state_repository.save(metadata, monster.monster_data)
-        self.structure_repository.move_to_state(
-            monster_id,
-            MonsterStateEnum.CORRECTED,
+            monster_data=monster.monster_data,
             actor=admin_name,
             note=notes or "Corrected by admin",
         )
 
         # Auto-transition vers PENDING_REVIEW
-        metadata = self.state_manager.transition(
+        metadata = self.state_manager.perform_transition(
+            monster_id,
             metadata,
             MonsterStateEnum.PENDING_REVIEW,
-            actor="system",
-            note="Auto-transition after correction",
-        )
-
-        self.state_repository.save(metadata, monster.monster_data)
-        self.structure_repository.move_to_state(
-            monster_id,
-            MonsterStateEnum.PENDING_REVIEW,
+            monster_data=monster.monster_data,
             actor="system",
             note="Auto-transition after correction",
         )
@@ -362,15 +345,16 @@ class AdminService:
 
                 if validation_result.is_valid:
                     # Déplacer vers PENDING_REVIEW
-                    self.structure_repository.move_to_state(
+
+                    # Transition centralisée
+                    monster.metadata = self.state_manager.perform_transition(
                         monster_id,
+                        monster.metadata,
                         MonsterStateEnum.PENDING_REVIEW,
+                        monster_data=monster.monster_data,
                         actor="system",
                         note="Auto-transition after bulk validation",
                     )
-                    # Mettre à jour les métadonnées locales
-                    monster.metadata.state = MonsterStateEnum.PENDING_REVIEW
-                    monster.metadata.updated_at = datetime.now(timezone.utc)
 
                     moved_to_pending_review += 1
 
@@ -408,8 +392,14 @@ class AdminService:
                     self.state_repository.save(monster.metadata, monster.monster_data)
 
                     # Déplacer vers DEFECTIVE
-                    self.structure_repository.move_to_state(
-                        monster_id, MonsterStateEnum.DEFECTIVE
+
+                    monster.metadata = self.state_manager.perform_transition(
+                        monster_id,
+                        monster.metadata,
+                        MonsterStateEnum.DEFECTIVE,
+                        monster_data=monster.monster_data,
+                        actor="system",
+                        note="Auto-transition after bulk validation (defective)",
                     )
                     moved_to_defective += 1
 

@@ -136,6 +136,18 @@ class MonsterStateRepository:
             self.db.rollback()
             return False
 
+    def get_db_object(self, monster_id: str) -> Optional[MonsterState]:
+        """Récupère l'objet DB MonsterState pour un monster_id donné"""
+        try:
+            return (
+                self.db.query(MonsterState)
+                .filter(MonsterState.monster_id == monster_id)
+                .first()
+            )
+        except Exception as e:
+            logger.error(f"Failed to get DB object for monster {monster_id}: {e}")
+            return None
+
     def get(self, monster_id: str) -> Optional[MonsterWithMetadata]:
         """Récupère un monstre avec ses métadonnées"""
         try:

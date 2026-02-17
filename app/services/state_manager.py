@@ -9,8 +9,9 @@ Gère la transition spéciale JSON → DB structurée lors du passage à PENDING
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 from app.core.constants import MonsterStateEnum
+from app.repositories.monster.state_repository import MonsterStateRepository
+from app.repositories.monster.transition_repository import TransitionRepository
 from app.schemas.metadata import MonsterMetadata, StateTransition
-from app.models.monster import MonsterState as MonsterStateDB
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,14 @@ class MonsterStateManager:
     - Enregistrer l'historique des transitions
     - Orchestrer la transition JSON → DB (PENDING_REVIEW)
     """
+
+    def __init__(
+        self,
+        state_repository: MonsterStateRepository,
+        transition_repository: TransitionRepository,
+    ):
+        self.state_repository = state_repository
+        self.transition_repository = transition_repository
 
     # Définition des transitions valides
     VALID_TRANSITIONS: Dict[MonsterStateEnum, list] = {
@@ -128,6 +137,40 @@ class MonsterStateManager:
         )
 
         return metadata
+
+    def perform_transition(
+        self,
+        metadata: MonsterMetadata,
+        to_state: MonsterStateEnum,
+        monster_data: Optional[Dict[str, Any]] = None,
+        actor: str = "system",
+        note: Optional[str] = None,
+    ) -> MonsterMetadata:
+        """
+        Orchestration complète d'une transition d'état :
+        - Valide la transition
+        - Met à jour l'historique
+        - Persiste les métadonnées
+        - Gère la structuration JSON → DB si besoin
+        """
+        # 1. Valider et appliquer la transition métier (métadonnées)
+        updated_metadata = self.transition(metadata, to_state, actor=actor, note=note)
+
+        # 2. Persister les métadonnées (toujours)
+        self.state_repository.save(updated_metadata, monster_data)
+
+        # 3. si transition vers PENDING_REVIEW, orchestrer la transition JSON → DB structurée
+        if to_state == MonsterStateEnum.PENDING_REVIEW:
+            monster_state = self.state_repository.get_db_object(updated_metadata.monster_id)
+            data: Dict[str, Any] = monster_state.monster_data  # type: ignore
+            if not data :
+                logger.error("Monster data is required for database transition")
+                raise ValueError("Monster data is required for database transition")
+            self.transition_repository.create_structured_monster_from_json(
+                monster_state, data
+            )
+
+        return updated_metadata
 
     def get_next_states(self, current_state: MonsterStateEnum) -> list:
         """Retourne les états possibles depuis l'état actuel"""

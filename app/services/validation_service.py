@@ -178,22 +178,23 @@ class MonsterStructureValidator:
         MonsterJsonAttributes.DESCRIPTION_CARD.value: "string",
         MonsterJsonAttributes.DESCRIPTION_VISUAL.value: "string",
         MonsterJsonAttributes.SKILLS.value: "list",
+        MonsterJsonAttributes.IMAGE_URL.value: "string",
     }
 
     REQUIRED_STATS_FIELDS = {
-        MonsterJsonStatsAttributes.HP.value: "float",
-        MonsterJsonStatsAttributes.ATK.value: "float",
-        MonsterJsonStatsAttributes.DEF.value: "float",
-        MonsterJsonStatsAttributes.VIT.value: "float",
+        MonsterJsonStatsAttributes.HP.value: "int",
+        MonsterJsonStatsAttributes.ATK.value: "int",
+        MonsterJsonStatsAttributes.DEF.value: "int",
+        MonsterJsonStatsAttributes.VIT.value: "int",
     }
 
     REQUIRED_SKILL_FIELDS = {
         MonsterJsonSkillAttributes.NAME.value: "string",
         MonsterJsonSkillAttributes.DESCRIPTION.value: "string",
-        MonsterJsonSkillAttributes.DAMAGE.value: "float",
+        MonsterJsonSkillAttributes.DAMAGE.value: "int",
         MonsterJsonSkillAttributes.RATIO.value: "dict",
-        MonsterJsonSkillAttributes.COOLDOWN.value: "float",
-        MonsterJsonSkillAttributes.LVL_MAX.value: "float",
+        MonsterJsonSkillAttributes.COOLDOWN.value: "int",
+        MonsterJsonSkillAttributes.LVL_MAX.value: "int",
         MonsterJsonSkillAttributes.RANK.value: "string",
     }
 
