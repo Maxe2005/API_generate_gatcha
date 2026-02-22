@@ -74,7 +74,7 @@ class GatchaService:
         monster_id = str(uuid.uuid4())
 
         # VALIDATION STEP: Validate monster JSON
-        validation_result = self.validation_service.validate(monster_data)
+        validation_result = self.validation_service.validate(monster_data, is_image=False)
 
         # Generate image even if invalid for review
         image_url, raw_image_key = await self._generate_image(
@@ -83,7 +83,7 @@ class GatchaService:
         monster_data[MonsterJsonAttributes.IMAGE_URL.value] = image_url
 
         # VALIDATION STEP: Validate ImageUrl presence and format
-        image_url_validation = self.validation_service.validate_image_url(image_url)
+        image_url_validation = self.validation_service.validate_image(monster_data)
 
         validation_errors = [
             {
@@ -124,16 +124,14 @@ class GatchaService:
         )
 
         # Persist initial monster state
-        self.state_repository.save(metadata, monster_data)
-
-        # Transition initiale centralisée
-        self.state_manager.perform_transition(
-            metadata,
-            initial_state,
-            monster_data=monster_data,
-            actor="system",
-            note="Created",
-        )
+        save_success = self.state_repository.save(metadata, monster_data)
+        if not save_success:
+            logger.error(
+                f"Échec de la sauvegarde du monstre {monster_data.get('nom', 'unknown')} (ID: {metadata.monster_id})"
+            )
+            raise RuntimeError(
+                f"Échec de la sauvegarde du monstre {monster_data.get('nom', 'unknown')} (ID: {metadata.monster_id})"
+            )
 
         # Auto-transition valid monsters to PENDING_REVIEW ou DEFECTIVE
         if validation_result.is_valid:

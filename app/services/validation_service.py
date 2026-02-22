@@ -187,7 +187,6 @@ class MonsterStructureValidator:
         MonsterJsonAttributes.DESCRIPTION_CARD.value: "string",
         MonsterJsonAttributes.DESCRIPTION_VISUAL.value: "string",
         MonsterJsonAttributes.SKILLS.value: "list",
-        MonsterJsonAttributes.IMAGE_URL.value: "string",
     }
 
     REQUIRED_STATS_FIELDS = {
@@ -530,7 +529,7 @@ class MonsterValidationService:
         self.enum_validator = MonsterEnumValidator()
         self.range_validator = MonsterRangeValidator()
 
-    def validate(self, monster_data: Dict[str, Any]) -> ValidationResult:
+    def validate(self, monster_data: Dict[str, Any], is_image: bool = True) -> ValidationResult:
         """
         Complete validation of monster JSON
         Returns ValidationResult with all errors found
@@ -539,22 +538,34 @@ class MonsterValidationService:
         structure_result = self.structure_validator.validate_structure(monster_data)
         enum_result = self.enum_validator.validate_enums(monster_data)
         range_result = self.range_validator.validate_ranges(monster_data)
+        image_url_result = None
+        if is_image:
+            image_url_result = self.validate_image(monster_data)
 
         # Combine results
         combined_result = ValidationResult(True)
         combined_result.errors.extend(structure_result.errors)
         combined_result.errors.extend(enum_result.errors)
         combined_result.errors.extend(range_result.errors)
+        if image_url_result:
+            combined_result.errors.extend(image_url_result.errors)
         combined_result.is_valid = len(combined_result.errors) == 0
 
         return combined_result
 
-    def validate_image_url(self, image_url: str) -> ValidationResult:
+    def validate_image(self, monster_data: Dict[str, Any]) -> ValidationResult:
         """
         Validate the presence and validity of an image URL
         Returns ValidationResult with errors if invalid
         """
         result = ValidationResult(True)
+
+        image_url = monster_data.get(MonsterJsonAttributes.IMAGE_URL.value)
+        if not image_url:
+            result.add_error(
+                MonsterJsonAttributes.IMAGE_URL.value, "missing_image_url", "Missing image URL"
+            )
+            return result
 
         is_valid, error_msg = URLValidator.validate_url(image_url)
         if not is_valid:
