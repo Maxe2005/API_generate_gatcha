@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "gatcha_password"
     POSTGRES_DB: str = "gatcha_db"
 
+    @property
+    def SQLALCHEMY_DATABASE_URI(self) -> str:
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
     # MinIO
     MINIO_ENDPOINT: str = "minio:9000"
     MINIO_ACCESS_KEY: str = "admin"

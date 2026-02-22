@@ -161,11 +161,14 @@ class GatchaService:
         """
         Orchestrates the creation of a single monster based on user prompt.
         """
+        logger.info(f"Creating monster with prompt: {prompt}")
         # Step 1: Generate Profile
         profile_data = await self.gemini_client.generate_monster_profile(prompt)
 
         # Step 2: Assets & Save (with validation)
-        return await self._process_monster_asset(profile_data, prompt)
+        result = await self._process_monster_asset(profile_data, prompt)
+        logger.info(f"Monster '{result.nom}' created")
+        return result
 
     async def create_batch_monsters(self, n: int, prompt: str) -> List[MonsterResponse]:
         """

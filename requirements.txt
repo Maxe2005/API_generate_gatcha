@@ -12,3 +12,7 @@ pytest
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.0
 alembic>=1.13.0
+
+celery>=5.3.6
+redis>=5.0.1
+aioredis>=2.0.1
