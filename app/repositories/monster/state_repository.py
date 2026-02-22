@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import func, true
 
-from app.models.monster import MonsterState
+from app.models.monster import MonsterState, StateTransitionModel
 from app.schemas.admin import MonsterListFilter
 from app.schemas.metadata import MonsterMetadata, MonsterWithMetadata, StateTransition
 from app.core.constants import MonsterStateEnum
@@ -133,6 +133,52 @@ class MonsterStateRepository:
 
         except Exception as e:
             logger.error(f"Failed to save monster state {metadata.monster_id}: {e}")
+            self.db.rollback()
+            return False
+
+    def save_transition(self, monster_id: str, transition: StateTransition) -> bool:
+        """
+        Sauvegarde une transition d'état en base de données.
+
+        Args:
+            monster_id: ID du monstre
+            transition: Transition à sauvegarder
+
+        Returns:
+            True si succès
+        """
+        try:
+            # Récupérer l'objet MonsterState
+            monster_state = (
+                self.db.query(MonsterState)
+                .filter(MonsterState.monster_id == monster_id)
+                .first()
+            )
+
+            if not monster_state:
+                logger.error(f"Monster state not found for {monster_id}")
+                return False
+
+            # Créer l'enregistrement de transition
+            db_transition = StateTransitionModel(
+                monster_state_db_id=monster_state.id,
+                from_state=transition.from_state,
+                to_state=transition.to_state,
+                timestamp=transition.timestamp,
+                actor=transition.actor,
+                note=transition.note,
+            )
+
+            self.db.add(db_transition)
+            self.db.commit()
+
+            logger.info(
+                f"Transition saved for {monster_id}: {transition.from_state} → {transition.to_state}"
+            )
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to save transition for {monster_id}: {e}")
             self.db.rollback()
             return False
 

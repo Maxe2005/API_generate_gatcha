@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     AUTO_TRANSMIT_ENABLED: bool = False
     AUTO_TRANSMIT_INTERVAL_SECONDS: int = 300
 
+    # Redis Configuration
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+
     # Chemins
     MONSTERS_BASE_PATH: str = "app/static"
     METADATA_DIR: str = "app/static/metadata"

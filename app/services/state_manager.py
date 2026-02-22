@@ -149,19 +149,30 @@ class MonsterStateManager:
         - Valide la transition
         - Met à jour l'historique
         - Persiste les métadonnées
+        - Enregistre la transition en base de données
         - Gère la structuration JSON → DB si besoin
         """
         # 1. Valider et appliquer la transition métier (métadonnées)
         updated_metadata = self.transition(metadata, to_state, actor=actor, note=note)
 
-        # 2. Persister les métadonnées (toujours)
+        # 2. Persister les métadonnées
         self.state_repository.save(updated_metadata, monster_data)
 
-        # 3. si transition vers PENDING_REVIEW, orchestrer la transition JSON → DB structurée
+        # 3. Enregistrer la transition en base de données
+        if updated_metadata.history:
+            # Sauvegarder la dernière transition qui vient d'être ajoutée
+            last_transition = updated_metadata.history[-1]
+            self.state_repository.save_transition(
+                updated_metadata.monster_id, last_transition
+            )
+
+        # 4. Si transition vers PENDING_REVIEW, orchestrer la transition JSON → DB structurée
         if to_state == MonsterStateEnum.PENDING_REVIEW:
-            monster_state = self.state_repository.get_db_object(updated_metadata.monster_id)
+            monster_state = self.state_repository.get_db_object(
+                updated_metadata.monster_id
+            )
             data: Dict[str, Any] = monster_state.monster_data  # type: ignore
-            if not data :
+            if not data:
                 logger.error("Monster data is required for database transition")
                 raise ValueError("Monster data is required for database transition")
             self.transition_repository.create_structured_monster_from_json(

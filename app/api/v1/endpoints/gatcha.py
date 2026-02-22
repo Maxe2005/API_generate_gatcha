@@ -3,10 +3,14 @@ from sqlalchemy.orm import Session
 from app.schemas.req_res_api import MonsterCreateRequest, BatchMonsterRequest
 from app.services.gatcha_service import GatchaService
 from app.models.base import get_db
+
 import uuid
 from app.services.generation_tasks import generate_monsters
 import redis.asyncio as aioredis
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -23,7 +27,7 @@ def generate_monster_card(request: MonsterCreateRequest):
     Retourne un batch_id pour le suivi via WebSocket.
     """
     batch_id = str(uuid.uuid4())
-    generate_monsters.delay(batch_id, 1, request.prompt)
+    generate_monsters.delay(batch_id, 1, request.prompt) # pyright: ignore[reportFunctionMemberAccess]
     return {"batch_id": batch_id}
 
 
@@ -34,13 +38,14 @@ def generate_monster_batch(request: BatchMonsterRequest):
     Retourne un batch_id pour le suivi via WebSocket.
     """
     batch_id = str(uuid.uuid4())
-    generate_monsters.delay(batch_id, request.n, request.prompt)
+    generate_monsters.delay(batch_id, request.n, request.prompt) # pyright: ignore[reportFunctionMemberAccess]
     return {"batch_id": batch_id}
 
 
 @router.websocket("/ws/{batch_id}")
 async def websocket_batch(websocket: WebSocket, batch_id: str):
     await websocket.accept()
+    logger.info(f"WebSocket connecté pour batch_id={batch_id}")
     redis = await aioredis.from_url("redis://localhost:6379/0", decode_responses=True)
     pubsub = redis.pubsub()
     await pubsub.subscribe(f"batch:{batch_id}")
@@ -51,6 +56,7 @@ async def websocket_batch(websocket: WebSocket, batch_id: str):
             )
             if message and message["type"] == "message":
                 msg = message["data"]
+                logger.info(f"Envoi WebSocket batch_id={batch_id} : {msg[:100]}")
                 await websocket.send_text(msg)
                 if msg == "Génération terminée":
                     break
@@ -60,3 +66,4 @@ async def websocket_batch(websocket: WebSocket, batch_id: str):
         await pubsub.close()
         await redis.close()
     await websocket.close()
+    logger.info(f"WebSocket fermé pour batch_id={batch_id}")

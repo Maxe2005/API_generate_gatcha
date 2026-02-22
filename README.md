@@ -57,6 +57,12 @@ Une fois lancée, la documentation interactive est disponible aux adresses suiva
 - **Swagger UI** : http://localhost:8000/docs
 - **ReDoc** : http://localhost:8000/redoc
 
+## Logs
+
+Les logs sont configurés pour être écrits dans `logs/app.log` avec rotation automatique (max 5MB par fichier, 3 fichiers de backup).
+
+logs de cerlery : celery -A app.celery_worker.celery_app worker --loglevel=info
+
 ## Bases de données
 
 Une fois lancée, l'API utilise une base de données postgreSQL ainsi qu'une base de donnée minio pour stocker les images générées. Les données de connexion sont configurables via le fichier `.env`.

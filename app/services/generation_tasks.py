@@ -9,16 +9,16 @@ from app.services.gatcha_service import GatchaService
 from app.core.config import get_settings
 
 
-@celery_app.task
-def generate_monsters(batch_id: str, monster_count: int, prompt: str | None =None):
+@celery_app.task(name="app.services.generation_tasks.generate_monsters")
+def generate_monsters(batch_id: str, monster_count: int, prompt: str | None = None):
     """
     Génère un ou plusieurs monstres en tâche de fond, publie sur Redis à chaque monstre.
     """
-    # Connexion Redis
-    redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
-    # Connexion DB
+    # Connexion DB et settings
     settings = get_settings()
+    redis_client = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
+
     engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
@@ -38,5 +38,4 @@ def generate_monsters(batch_id: str, monster_count: int, prompt: str | None =Non
             monsters.append(monster)
 
     # Message de fin
-    redis_client.publish(f"batch:{batch_id}", "Génération terminée")
     db.close()
