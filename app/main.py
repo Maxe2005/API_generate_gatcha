@@ -8,15 +8,23 @@ from app.models.base import init_db
 from app.clients.minio_client import MinioClientWrapper
 import os
 import logging
+from logging.handlers import RotatingFileHandler
 
 settings = get_settings()
 
-# Setup logging
+# Setup logging with rotation
 os.makedirs("logs", exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("logs/app.log"), logging.StreamHandler()],
+    handlers=[
+        RotatingFileHandler(
+            "logs/app.log",
+            maxBytes=100000,  # ~100 KB (environ 1000 lignes)
+            backupCount=5,  # Garde 5 fichiers archivés
+        ),
+        logging.StreamHandler(),
+    ],
 )
 
 logger = logging.getLogger(__name__)
