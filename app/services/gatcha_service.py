@@ -1,3 +1,5 @@
+from fastapi import HTTPException
+import asyncio
 import uuid
 from datetime import datetime, timezone
 from typing import List, Dict, Any
@@ -13,11 +15,20 @@ from app.schemas.req_res_api import MonsterResponse
 from app.core.constants import MonsterStateEnum
 from app.schemas.metadata import MonsterMetadata
 from app.repositories.monster_image_repository import MonsterImageRepository
+from app.utils.send_messages_utils import send_info_message, send_monster_update
 from app.services.state_manager import MonsterStateManager
 from app.services.validation_service import MonsterValidationService
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+# Utilitaire pour exécuter une coroutine dans n'importe quel contexte (sync/async)
+def run_async(coro):
+    try:
+        loop = asyncio.get_running_loop()
+        return loop.run_until_complete(coro)
+    except RuntimeError:
+        return asyncio.run(coro)
 
 
 class GatchaService:
@@ -74,7 +85,9 @@ class GatchaService:
         monster_id = str(uuid.uuid4())
 
         # VALIDATION STEP: Validate monster JSON
-        validation_result = self.validation_service.validate(monster_data, is_image=False)
+        validation_result = self.validation_service.validate(
+            monster_data, is_image=False
+        )
 
         # Generate image even if invalid for review
         image_url, raw_image_key = await self._generate_image(
@@ -157,7 +170,7 @@ class GatchaService:
 
         return MonsterResponse(**monster_data)
 
-    async def create_monster(self, prompt: str) -> MonsterResponse:
+    async def create_monster(self, prompt: str, batch_id: str) -> MonsterResponse:
         """
         Orchestrates the creation of a single monster based on user prompt.
         """
@@ -168,9 +181,12 @@ class GatchaService:
         # Step 2: Assets & Save (with validation)
         result = await self._process_monster_asset(profile_data, prompt)
         logger.info(f"Monster '{result.nom}' created")
+        run_async(send_monster_update(batch_id, result.model_dump()))
         return result
 
-    async def create_batch_monsters(self, n: int, prompt: str) -> List[MonsterResponse]:
+    async def create_batch_monsters(
+        self, n: int, prompt: str, batch_id: str
+    ) -> List[MonsterResponse]:
         """
         Generates N monsters in a batch process:
         1. Brainstorm ideas (all at once)
@@ -184,9 +200,29 @@ class GatchaService:
 
         # Step 1: Brainstorming
         logger.info("Step 1/3: Brainstorming concepts...")
-        monsters_base = await self.gemini_client.generate_batch_brainstorm(n, prompt)
+        try:
+            monsters_base = await self.gemini_client.generate_batch_brainstorm(
+                n, prompt
+            )
+        except Exception as e:
+            logger.error(f"Erreur lors de la génération des concepts Gemini : {e}")
+            if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
+                raise HTTPException(
+                    status_code=429,
+                    detail="Quota ou ressources Gemini épuisés. Veuillez réessayer plus tard.",
+                )
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur lors de la génération des concepts Gemini : {e}",
+            )
         logger.info(
             f"✅ Brainstorming complete: {len(monsters_base)} concepts generated."
+        )
+        run_async(
+            send_info_message(
+                batch_id,
+                f"Brainstorming complete: {len(monsters_base)} concepts generated.",
+            )
         )
 
         # Step 2: Skills generation (Chunked)
@@ -210,6 +246,11 @@ class GatchaService:
             monsters_complete.extend(chunk_with_skills)
 
         logger.info(f"   Skills Progress: [{'▓' * 20}] 100% - Skills generated.")
+        run_async(
+            send_info_message(
+                batch_id, "Details & Skills generation complete for all monsters."
+            )
+        )
 
         # Step 3: Image generation & Saving (Sequentially for now to be safe, could be gathered)
         logger.info("Step 3/3: Generating Images & Saving...")
@@ -227,6 +268,7 @@ class GatchaService:
 
             response = await self._process_monster_asset(monster_data, prompt)
             result_responses.append(response)
+            run_async(send_monster_update(batch_id, response.model_dump()))
 
         logger.info(f"   Assets Progress: [{'▓' * 20}] 100% - Batch Complete.")
         logger.info("🎉 Batch generation finished successfully.")
