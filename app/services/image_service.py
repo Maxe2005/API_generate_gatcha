@@ -60,9 +60,22 @@ class ImageService:
 
         # Générer l'image via BananaClient (qui gère aussi l'upload MinIO)
         image_name = f"{monster_name.lower().replace(' ', '_')}_default"
-        result = await self.banana_client.generate_pixel_art(
-            description_visuelle, image_name
-        )
+        try:
+            result = await self.banana_client.generate_pixel_art(
+                description_visuelle, image_name
+            )
+        except Exception as e:
+            logger.error(
+                f"Erreur Banana lors de la génération d'image par défaut : {e}"
+            )
+            from app.utils.send_messages_utils import send_error_message, run_async
+
+            run_async(
+                send_error_message(
+                    str(monster_db_id), f"Erreur Banana (image défaut): {e}"
+                )
+            )
+            return None
 
         # Sauvegarder dans la base de données
         db_image = self.image_repo.create_image(
@@ -105,11 +118,24 @@ class ImageService:
 
         # Générer l'image via BananaClient (qui gère aussi l'upload MinIO)
         safe_image_name = image_name.lower().replace(" ", "_")
-        result = await self.banana_client.generate_pixel_art(
-            custom_prompt, safe_image_name
-        )
-        image_url = result["image_url"]
-        raw_image_key = result["raw_image_key"]
+        try:
+            result = await self.banana_client.generate_pixel_art(
+                custom_prompt, safe_image_name
+            )
+            image_url = result["image_url"]
+            raw_image_key = result["raw_image_key"]
+        except Exception as e:
+            logger.error(
+                f"Erreur Banana lors de la génération d'image personnalisée : {e}"
+            )
+            from app.utils.send_messages_utils import send_error_message, run_async
+
+            run_async(
+                send_error_message(
+                    str(monster_id), f"Erreur Banana (image custom): {e}"
+                )
+            )
+            return None
 
         # Sauvegarder dans la base de données
         db_image = self.image_repo.create_image(

@@ -1,5 +1,3 @@
-from fastapi import HTTPException
-import asyncio
 import uuid
 from datetime import datetime, timezone
 from typing import List, Dict, Any
@@ -15,20 +13,17 @@ from app.schemas.req_res_api import MonsterResponse
 from app.core.constants import MonsterStateEnum
 from app.schemas.metadata import MonsterMetadata
 from app.repositories.monster_image_repository import MonsterImageRepository
-from app.utils.send_messages_utils import send_info_message, send_monster_update
+from app.utils.send_messages_utils import (
+    send_info_message,
+    send_monster_update,
+    send_error_message,
+    run_async,
+)
 from app.services.state_manager import MonsterStateManager
 from app.services.validation_service import MonsterValidationService
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
-
-# Utilitaire pour exécuter une coroutine dans n'importe quel contexte (sync/async)
-def run_async(coro):
-    try:
-        loop = asyncio.get_running_loop()
-        return loop.run_until_complete(coro)
-    except RuntimeError:
-        return asyncio.run(coro)
 
 
 class GatchaService:
@@ -56,7 +51,11 @@ class GatchaService:
         return filename_base
 
     async def _generate_image(
-        self, monster_data: Dict[str, Any], fallback_prompt: str, filename_base: str
+        self,
+        monster_data: Dict[str, Any],
+        fallback_prompt: str,
+        filename_base: str,
+        batch_id: str | None = None,
     ) -> tuple[str, str]:
         """
         Generate image for a monster, safe-failing on errors.
@@ -72,10 +71,15 @@ class GatchaService:
             return result["image_url"], result["raw_image_key"]
         except Exception as e:
             logger.error(f"Failed to generate image: {e}")
+            if batch_id:
+                run_async(send_error_message(batch_id, f"Erreur Banana (image): {e}"))
             return "", ""
 
     async def _process_monster_asset(
-        self, monster_data: Dict[str, Any], fallback_prompt: str
+        self,
+        monster_data: Dict[str, Any],
+        fallback_prompt: str,
+        batch_id: str | None = None,
     ) -> MonsterResponse:
         """
         Handles the asset generation (Image) and PostgreSQL persistence for a single monster.
@@ -91,7 +95,7 @@ class GatchaService:
 
         # Generate image even if invalid for review
         image_url, raw_image_key = await self._generate_image(
-            monster_data, fallback_prompt, filename
+            monster_data, fallback_prompt, filename, batch_id=batch_id
         )
         monster_data[MonsterJsonAttributes.IMAGE_URL.value] = image_url
 
@@ -170,16 +174,36 @@ class GatchaService:
 
         return MonsterResponse(**monster_data)
 
-    async def create_monster(self, prompt: str, batch_id: str) -> MonsterResponse:
+    async def create_monster(self, prompt: str, batch_id: str) -> MonsterResponse | None:
         """
         Orchestrates the creation of a single monster based on user prompt.
         """
         logger.info(f"Creating monster with prompt: {prompt}")
         # Step 1: Generate Profile
-        profile_data = await self.gemini_client.generate_monster_profile(prompt)
+        try:
+            profile_data = await self.gemini_client.generate_monster_profile(prompt)
+        except Exception as e:
+            logger.error(f"Erreur lors de la génération du profil Gemini : {e}")
+
+            if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
+                run_async(
+                    send_error_message(
+                        batch_id,
+                        "Erreur Gemini : Quota ou ressources épuisés. Veuillez réessayer plus tard.",
+                    )
+                )
+            else:
+                run_async(
+                    send_error_message(
+                        batch_id, f"Erreur lors de la génération du profil Gemini : {e}"
+                    )
+                )
+            return None
 
         # Step 2: Assets & Save (with validation)
-        result = await self._process_monster_asset(profile_data, prompt)
+        result = await self._process_monster_asset(
+            profile_data, prompt, batch_id=batch_id
+        )
         logger.info(f"Monster '{result.nom}' created")
         run_async(send_monster_update(batch_id, result.model_dump()))
         return result
@@ -207,14 +231,20 @@ class GatchaService:
         except Exception as e:
             logger.error(f"Erreur lors de la génération des concepts Gemini : {e}")
             if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
-                raise HTTPException(
-                    status_code=429,
-                    detail="Quota ou ressources Gemini épuisés. Veuillez réessayer plus tard.",
+                run_async(
+                    send_error_message(
+                        batch_id,
+                        "Erreur Gemini : Quota ou ressources épuisés. Veuillez réessayer plus tard.",
+                    )
                 )
-            raise HTTPException(
-                status_code=500,
-                detail=f"Erreur lors de la génération des concepts Gemini : {e}",
-            )
+            else:
+                run_async(
+                    send_error_message(
+                        batch_id,
+                        f"Erreur lors de la génération des concepts Gemini : {e}",
+                    )
+                )
+            return []
         logger.info(
             f"✅ Brainstorming complete: {len(monsters_base)} concepts generated."
         )
@@ -242,8 +272,29 @@ class GatchaService:
             )
 
             chunk = monsters_base[i : i + chunk_size]
-            chunk_with_skills = await self.gemini_client.generate_batch_skills(chunk)
-            monsters_complete.extend(chunk_with_skills)
+            try:
+                chunk_with_skills = await self.gemini_client.generate_batch_skills(
+                    chunk
+                )
+                monsters_complete.extend(chunk_with_skills)
+            except Exception as e:
+                logger.error(f"Erreur lors de la génération des skills Gemini : {e}")
+                if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
+                    run_async(
+                        send_info_message(
+                            batch_id,
+                            "Erreur Gemini : Quota ou ressources épuisés. Veuillez réessayer plus tard.",
+                        )
+                    )
+                else:
+                    run_async(
+                        send_info_message(
+                            batch_id,
+                            f"Erreur lors de la génération des skills Gemini : {e}",
+                        )
+                    )
+                # Arrêt propre du batch, on retourne ce qui a été généré jusque-là
+                return []
 
         logger.info(f"   Skills Progress: [{'▓' * 20}] 100% - Skills generated.")
         run_async(
@@ -266,7 +317,9 @@ class GatchaService:
                 f"   Assets Progress: [{bar}] {percent}% - Processing '{monster_name}' ({idx}/{total_monsters})"
             )
 
-            response = await self._process_monster_asset(monster_data, prompt)
+            response = await self._process_monster_asset(
+                monster_data, prompt, batch_id=batch_id
+            )
             result_responses.append(response)
             run_async(send_monster_update(batch_id, response.model_dump()))
 
