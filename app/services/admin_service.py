@@ -15,12 +15,12 @@ from app.repositories.monster.state_repository import MonsterStateRepository
 from app.repositories.monster.transition_repository import TransitionRepository
 from app.services.state_manager import MonsterStateManager
 from app.services.validation_service import MonsterValidationService
+from app.services.monster_modification_service import MonsterModificationService
 from app.schemas.metadata import MonsterMetadata
 from app.core.constants import (
     ElementEnum,
     MonsterStateEnum,
     RankEnum,
-    TransitionActionEnum,
 )
 from app.schemas.admin import (
     MonsterListFilter,
@@ -33,6 +33,8 @@ from app.services.mappeur.monster_mapper import (
     map_monster_to_summary,
     map_monster_metadata_to_summary,
 )
+from app.schemas.monster import MonsterUpdate
+from app.schemas.metadata import StateTransition
 
 
 logger = logging.getLogger(__name__)
@@ -49,6 +51,8 @@ class AdminService:
             self.state_repository, self.structure_repository
         )
         self.validation_service = MonsterValidationService()
+        self.modification_service = MonsterModificationService(db)
+        self.db = db
 
     def list_monsters(
         self,
@@ -265,11 +269,6 @@ class AdminService:
                 validation_result.to_dict(),
             )
 
-        # Mettre à jour les données
-        monster.monster_data = monster_data
-        monster.metadata.is_valid = validation_result.is_valid
-        monster.metadata.updated_at = datetime.now(timezone.utc)
-
         # Mettre à jour les erreurs de validation
         if validation_result.is_valid:
             monster.metadata.validation_errors = None
@@ -283,8 +282,48 @@ class AdminService:
                 for e in validation_result.errors
             ]
 
-        # Ajouter une entrée dans l'historique
-        from app.schemas.metadata import StateTransition
+        structured_monster = bool(monster.metadata.monster)
+        if (
+            structured_monster
+            != monster.metadata.state
+            in [
+                MonsterStateEnum.PENDING_REVIEW,
+                MonsterStateEnum.APPROVED,
+            ]
+        ):
+            logger.warning(
+                f"Monster {monster_id} has inconsistent structured_monster={structured_monster} "
+                f"and state={monster.metadata.state}"
+            )
+
+        # Déterminer si c'est un monstre JSON ou structuré
+        if structured_monster:
+            # Monstre structuré : modifier via MonsterModificationService
+            try:
+                # Convertir les données reçues en MonsterUpdate
+                updates = MonsterUpdate(**monster_data)
+
+                # Utiliser le service de modification pour les monstres structurés
+                self.modification_service.update_monster(
+                    monster_id=monster_id,
+                    updates=updates,
+                    actor=admin_name,
+                )
+
+            except ValueError as e:
+                raise ValueError(f"Invalid data for structured monster: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error updating structured monster {monster_id}: {e}")
+                raise ValueError(f"Failed to update monster data: {str(e)}")
+
+        else:
+            # Mettre à jour les données
+            monster.monster_data = monster_data
+
+        monster.metadata.is_valid = validation_result.is_valid
+        monster.metadata.updated_at = datetime.now(timezone.utc)
+
+        self.state_repository.save(monster.metadata, monster.monster_data if structured_monster else None)
 
         transition = StateTransition(
             from_state=monster.metadata.state,
@@ -296,18 +335,21 @@ class AdminService:
         )
         monster.metadata.history.append(transition)
 
-        # Sauvegarder
-        self.state_repository.save(monster.metadata, monster.monster_data)
-
         # Sauvegarder la transition dans la base de données
         self.state_repository.save_transition(monster_id, transition)
+
+        # Re-récupérer le monstre depuis la BD pour avoir les données fraîches
+        updated_monster = self.state_repository.get(monster_id)
+        if not updated_monster:
+            logger.error(f"Failed to re-fetch monster {monster_id} after update")
+            raise ValueError(f"Failed to re-fetch monster {monster_id} after update")
 
         logger.info(
             f"Monster {monster_id} data updated by {admin_name} "
             f"(valid={validation_result.is_valid}, skip_validation={skip_validation})"
         )
 
-        return monster.metadata
+        return updated_monster.metadata
 
     def reject_monster(
         self,

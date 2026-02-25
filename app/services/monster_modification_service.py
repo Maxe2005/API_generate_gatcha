@@ -21,6 +21,8 @@ from datetime import datetime, timezone
 import logging
 
 from app.models.monster import Monster, Skill, MonsterState
+from app.repositories.monster.state_repository import MonsterStateRepository
+from app.schemas.metadata import MonsterWithMetadata
 from app.schemas.monster import MonsterUpdate, MonsterStructured 
 from app.schemas.skill import SkillCreate, SkillUpdate, SkillStructured
 
@@ -59,6 +61,8 @@ class MonsterModificationService:
         """
         self.db = db
         self.monster_repo = MonsterRepository(db)
+        self.state_repository = MonsterStateRepository(db)
+
 
     def _check_monster_is_modifiable(self, monster_state: MonsterState) -> None:
         """
@@ -112,14 +116,14 @@ class MonsterModificationService:
         logger.info(f"Updating monster {monster_id} by {actor}")
 
         # Récupérer le monstre et son état
-        monster_state = self.monster_repo.get_by_uuid(monster_id)
-        if not monster_state:
+        monster: Monster = self.monster_repo.get_by_uuid(monster_id)
+        if not monster:
             raise MonsterModificationError(f"Monster {monster_id} not found")
+        
+        monster_state = monster.state
 
         # Vérifier que le monstre est modifiable
         self._check_monster_is_modifiable(monster_state)
-
-        monster = monster_state.monster
 
         # Appliquer les modifications
         update_data = updates.model_dump(exclude_unset=True)
@@ -128,7 +132,6 @@ class MonsterModificationService:
                 setattr(monster, field, value)
 
         # Mettre à jour le timestamp
-        monster.updated_at = datetime.now(timezone.utc)
         monster_state.updated_at = datetime.now(timezone.utc)  # type: ignore
 
         # Persister
@@ -168,7 +171,7 @@ class MonsterModificationService:
             raise MonsterModificationError(f"Monster {monster_id} not found")
 
         # Vérifier que le monstre est modifiable
-        self._check_monster_is_modifiable(monster_state)
+        self._check_monster_is_modifiable(monster_state.state)
 
         monster = monster_state.monster
 
@@ -224,7 +227,7 @@ class MonsterModificationService:
             raise MonsterModificationError(f"Monster {monster_id} not found")
 
         # Vérifier que le monstre est modifiable
-        self._check_monster_is_modifiable(monster_state)
+        self._check_monster_is_modifiable(monster_state.state)
 
         monster = monster_state.monster
 
@@ -282,7 +285,7 @@ class MonsterModificationService:
             raise MonsterModificationError(f"Monster {monster_id} not found")
 
         # Vérifier que le monstre est modifiable
-        self._check_monster_is_modifiable(monster_state)
+        self._check_monster_is_modifiable(monster_state.state)
 
         monster = monster_state.monster
 
