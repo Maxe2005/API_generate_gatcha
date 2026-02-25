@@ -14,6 +14,7 @@ from app.services.mappeur.image_mappeur import map_image_to_response
 from app.services.monster_modification_service import MonsterModificationService
 from app.clients.banana import BananaClient
 from app.schemas.image import MonsterImageResponse, MonsterImageListResponse
+from app.utils.send_messages_utils import send_error_message, run_async
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class ImageService:
 
     async def create_default_image_for_monster(
         self, monster_db_id: int, description_visuelle: str, monster_name: str
-    ) -> MonsterImageResponse:
+    ) -> MonsterImageResponse | None:
         """
         Crée l'image par défaut pour un monstre lors de sa génération.
 
@@ -49,7 +50,7 @@ class ImageService:
             monster_name: Nom du monstre
 
         Returns:
-            MonsterImageResponse: L'image créée
+            MonsterImageResponse: L'image créée ou None si une erreur survient
 
         Raises:
             Exception: En cas d'erreur de génération ou de stockage
@@ -91,7 +92,7 @@ class ImageService:
 
     async def create_custom_image_for_monster(
         self, monster_id: str, image_name: str, custom_prompt: str
-    ) -> MonsterImageResponse:
+    ) -> MonsterImageResponse | None:
         """
         Crée une nouvelle image personnalisée pour un monstre existant.
 
@@ -101,7 +102,7 @@ class ImageService:
             custom_prompt: Prompt personnalisé (sera injecté dans IMAGE_GENERATION)
 
         Returns:
-            MonsterImageResponse: L'image créée
+            MonsterImageResponse: L'image créée ou None si une erreur survient
 
         Raises:
             ValueError: Si le monstre n'existe pas
@@ -128,8 +129,6 @@ class ImageService:
             logger.error(
                 f"Erreur Banana lors de la génération d'image personnalisée : {e}"
             )
-            from app.utils.send_messages_utils import send_error_message, run_async
-
             run_async(
                 send_error_message(
                     str(monster_id), f"Erreur Banana (image custom): {e}"

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 async def send_completion_message(batch_id: str):
-    message = "Génération terminée"
+    message = json.dumps({"success": "Génération terminée"})
     await send(batch_id, message)
 
 

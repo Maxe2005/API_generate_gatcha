@@ -3,6 +3,8 @@ import asyncio
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.services.gatcha_service import GatchaService
+from app.services.image_service import ImageService
+from app.clients.banana import BananaClient
 from app.core.config import get_settings
 from app.utils.send_messages_utils import send_completion_message
 
@@ -45,6 +47,51 @@ def generate_monsters(batch_id: str, monster_count: int, prompt: str | None = No
         # Envoi d'un message d'erreur au front
         asyncio.run(
             send_info_message(batch_id, f"Erreur critique lors de la génération : {e}")
+        )
+    finally:
+        db.close()
+
+
+@celery_app.task(name="app.services.generation_tasks.generate_custom_image")
+def generate_custom_image(
+    batch_id: str, monster_id: str, image_name: str, custom_prompt: str
+):
+    """
+    Génère une image personnalisée pour un monstre en tâche de fond, publie sur Redis.
+    """
+
+    # Connexion DB et settings
+    settings = get_settings()
+
+    engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = SessionLocal()
+    banana_client = BananaClient()
+    service = ImageService(db, banana_client)
+
+    try:
+        # Génération de l'image personnalisée
+        result = asyncio.run(
+            service.create_custom_image_for_monster(
+                monster_id=monster_id,
+                image_name=image_name,
+                custom_prompt=custom_prompt,
+            )
+        )
+        if result is None:
+            return
+        asyncio.run(send_completion_message(batch_id))
+    except Exception as e:
+        import traceback
+        from app.utils.send_messages_utils import send_info_message
+
+        tb = traceback.format_exc()
+        print(f"[CeleryTaskError] {e}\n{tb}")
+        # Envoi d'un message d'erreur au front
+        asyncio.run(
+            send_info_message(
+                batch_id, f"Erreur critique lors de la génération d'image : {e}"
+            )
         )
     finally:
         db.close()

@@ -5,9 +5,12 @@ Description:
 Routes API pour la gestion des images de monstres
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, WebSocket
 from sqlalchemy.orm import Session
 import logging
+import uuid
+import asyncio
+import redis.asyncio as aioredis
 
 from app.models.base import get_db
 from app.services.image_service import ImageService
@@ -18,6 +21,8 @@ from app.schemas.image import (
     MonsterImageListResponse,
     SetDefaultImageRequest,
 )
+from app.services.tasks import generate_custom_image
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -32,47 +37,35 @@ def get_image_service(db: Session = Depends(get_db)) -> ImageService:
 
 @router.post(
     "/generate",
-    response_model=MonsterImageResponse,
-    status_code=status.HTTP_201_CREATED,
+    response_model=dict,
+    status_code=status.HTTP_202_ACCEPTED,
     summary="Générer une nouvelle image pour un monstre",
-    description="Génère une nouvelle image personnalisée pour un monstre existant avec un prompt personnalisé.",
+    description="Génère une nouvelle image personnalisée pour un monstre existant avec un prompt personnalisé en arrière-plan (Celery).",
 )
-async def generate_custom_image(
+async def generate_custom_image_endpoint(
     request: MonsterImageCreate,
-    image_service: ImageService = Depends(get_image_service),
 ):
     """
-    Génère une nouvelle image personnalisée pour un monstre.
+    Génère une nouvelle image personnalisée pour un monstre de manière asynchrone.
+    Lance la génération en tâche de fond (Celery) et retourne un batch_id pour le suivi.
 
     Args:
         request: Données de la requête (monster_id, image_name, custom_prompt)
 
     Returns:
-        MonsterImageResponse: L'image créée avec toutes ses métadonnées
-
-    Raises:
-        404: Si le monstre n'existe pas
-        500: En cas d'erreur de génération
+        dict: {"batch_id": batch_id} - À utiliser pour se connecter au WebSocket /ws/{batch_id}
     """
-    try:
-        result = await image_service.create_custom_image_for_monster(
-            monster_id=request.monster_id,
-            image_name=request.image_name,
-            custom_prompt=request.custom_prompt,
-        )
-        logger.info(
-            f"Image '{request.image_name}' générée pour le monstre {request.monster_id}"
-        )
-        return result
-    except ValueError as e:
-        logger.error(f"Monstre non trouvé: {e}")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except Exception as e:
-        logger.error(f"Erreur lors de la génération de l'image: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de la génération de l'image: {str(e)}",
-        )
+    batch_id = str(uuid.uuid4())
+    logger.info(
+        f"Lancement de la génération d'image: batch_id={batch_id}, monster_id={request.monster_id}, image_name={request.image_name}"
+    )
+    generate_custom_image.delay(  # pyright: ignore[reportFunctionMemberAccess]
+        batch_id,
+        request.monster_id,
+        request.image_name,
+        request.custom_prompt,
+    )
+    return {"batch_id": batch_id}
 
 
 @router.get(
@@ -155,3 +148,41 @@ async def set_default_image(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la définition de l'image par défaut: {str(e)}",
         )
+
+
+@router.websocket("/ws/{batch_id}")
+async def websocket_image_generation(websocket: WebSocket, batch_id: str):
+    """
+    WebSocket pour tracker la génération d'une image personnalisée.
+    Se connecte à ce WebSocket après avoir reçu un batch_id de la route /generate.
+
+    Args:
+        websocket: Connexion WebSocket
+        batch_id: ID du batch de génération
+    """
+    settings = get_settings()
+    await websocket.accept()
+    logger.info(f"WebSocket connecté pour batch_id={batch_id}")
+    redis = await aioredis.from_url(
+        f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0", decode_responses=True
+    )
+    pubsub = redis.pubsub()
+    await pubsub.subscribe(f"batch:{batch_id}")
+    try:
+        while True:
+            message = await pubsub.get_message(
+                ignore_subscribe_messages=True, timeout=1.0
+            )
+            if message and message["type"] == "message":
+                msg = message["data"]
+                logger.info(f"Envoi WebSocket batch_id={batch_id} : {msg[:100]}")
+                await websocket.send_text(msg)
+                if msg == "Génération terminée":
+                    break
+            await asyncio.sleep(0.1)
+    finally:
+        await pubsub.unsubscribe(f"batch:{batch_id}")
+        await pubsub.close()
+        await redis.close()
+    await websocket.close()
+    logger.info(f"WebSocket fermé pour batch_id={batch_id}")
