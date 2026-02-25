@@ -14,6 +14,8 @@ from app.schemas.admin import (
     MonsterDetail,
     ReviewRequest,
     CorrectionRequest,
+    UpdateMonsterRequest,
+    RejectMonsterRequest,
     DashboardStats,
 )
 from app.core.constants import MonsterStateEnum
@@ -133,14 +135,14 @@ async def review_monster(
 
     - **action**: "approve" ou "reject"
     - **notes**: Notes optionnelles
-    - **corrected_data**: Données corrigées si nécessaire
+
+    Note: Le monstre doit être en état PENDING_REVIEW et avoir des données valides.
+    Pour modifier les données avant review, utilisez la route /update.
     """
     try:
         metadata = service.review_monster(
             monster_id,
-            request.action,
             request.notes,
-            request.corrected_data,
             admin_name=request.admin_name,
         )
 
@@ -148,7 +150,7 @@ async def review_monster(
             "status": "success",
             "monster_id": monster_id,
             "new_state": metadata.state,
-            "message": f"Monster {request.action.value}d successfully",
+            "message": "Monster reviewed successfully",
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -164,15 +166,16 @@ async def correct_defective_monster(
     service: AdminService = Depends(get_admin_service),
 ):
     """
-    Corrige un monstre défectueux.
+    Marque un monstre défectueux comme corrigé.
 
-    Le monstre doit être en état DEFECTIVE.
+    Le monstre doit être en état DEFECTIVE et avoir des données valides.
     Après correction, il passe en PENDING_REVIEW.
+
+    Note: Pour modifier les données du monstre, utilisez d'abord la route /update.
     """
     try:
         metadata = service.correct_defective(
             monster_id,
-            request.corrected_data,
             request.notes,
             admin_name=request.admin_name,
         )
@@ -187,6 +190,77 @@ async def correct_defective_monster(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Error correcting monster {monster_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/monsters/{monster_id}/update")
+async def update_monster_data(
+    monster_id: str,
+    request: UpdateMonsterRequest,
+    service: AdminService = Depends(get_admin_service),
+):
+    """
+    Met à jour les données d'un monstre.
+
+    - **monster_data**: Nouvelles données du monstre
+    - **skip_validation**: Si True, autorise les modifications même si les données ne sont pas valides (default: False)
+    - **notes**: Notes optionnelles
+
+    États autorisés: GENERATED, PENDING_REVIEW, DEFECTIVE
+    """
+    try:
+        metadata = service.update_monster_data(
+            monster_id,
+            request.monster_data,
+            request.skip_validation,
+            request.notes,
+            admin_name=request.admin_name,
+        )
+
+        return {
+            "status": "success",
+            "monster_id": monster_id,
+            "state": metadata.state,
+            "is_valid": metadata.is_valid,
+            "message": "Monster data updated successfully",
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error updating monster {monster_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/monsters/{monster_id}/reject")
+async def reject_monster(
+    monster_id: str,
+    request: RejectMonsterRequest,
+    service: AdminService = Depends(get_admin_service),
+):
+    """
+    Rejette un monstre.
+
+    - **notes**: Notes optionnelles expliquant le rejet
+
+    États autorisés: GENERATED, PENDING_REVIEW, DEFECTIVE
+    """
+    try:
+        metadata = service.reject_monster(
+            monster_id,
+            request.notes,
+            admin_name=request.admin_name,
+        )
+
+        return {
+            "status": "success",
+            "monster_id": monster_id,
+            "new_state": metadata.state,
+            "message": "Monster rejected successfully",
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error rejecting monster {monster_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

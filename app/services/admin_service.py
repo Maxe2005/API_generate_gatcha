@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 from app.repositories.monster.repository import MonsterRepository
 from app.repositories.monster.state_repository import MonsterStateRepository
 from app.repositories.monster.transition_repository import TransitionRepository
-from app.schemas.json_monster import MonsterBase
 from app.services.state_manager import MonsterStateManager
 from app.services.validation_service import MonsterValidationService
 from app.schemas.metadata import MonsterMetadata
@@ -30,7 +29,6 @@ from app.schemas.admin import (
     DashboardStats,
 )
 from app.services.mappeur.monster_mapper import (
-    map_json_monster,
     map_monster_to_json,
     map_monster_to_summary,
     map_monster_metadata_to_summary,
@@ -144,9 +142,7 @@ class AdminService:
     def review_monster(
         self,
         monster_id: str,
-        action: TransitionActionEnum,
         notes: Optional[str] = None,
-        corrected_data: Optional[MonsterBase] = None,
         admin_name: str = "admin",
     ) -> MonsterMetadata:
         """Review un monstre (approve ou reject)"""
@@ -161,23 +157,16 @@ class AdminService:
                 f"Monster must be in PENDING_REVIEW state, current: {monster.metadata.state}"
             )
 
-        # Déterminer l'état cible
-        if action == TransitionActionEnum.APPROVE:
-            target_state = MonsterStateEnum.APPROVED
-        elif action == TransitionActionEnum.REJECT:
-            target_state = MonsterStateEnum.REJECTED
-        else:
-            raise ValueError(f"Invalid action: {action}")
+        # Vérifier que les données actuelles sont valides
+        if not monster.monster_data:
+            raise ValueError("Monster data is missing")
 
-        # Si corrected_data fourni, valider et mettre à jour
-        if corrected_data:
-            validation_result = self.validation_service.validate(
-                map_json_monster(corrected_data)
+        validation_result = self.validation_service.validate(monster.monster_data)
+        if not validation_result.is_valid:
+            raise ValueError(
+                "Cannot review monster: current data is not valid. Please update the monster data first.",
+                validation_result.to_dict(),
             )
-            if not validation_result.is_valid:
-                raise ValueError(
-                    "Corrected data is invalid", validation_result.to_dict()
-                )
 
         # Mettre à jour les métadonnées
         monster.metadata.reviewed_by = admin_name
@@ -187,20 +176,19 @@ class AdminService:
         # Transition d'état
         metadata = self.state_manager.perform_transition(
             monster.metadata,
-            target_state,
+            MonsterStateEnum.APPROVED,
             monster_data=monster.monster_data,
             actor=admin_name,
-            note=notes or f"Review: {action.value}",
+            note=notes or f"Review: APPROVED by {admin_name}",
         )
 
-        logger.info(f"Monster {monster_id} reviewed: {action.value} by {admin_name}")
+        logger.info(f"Monster {monster_id} reviewed: APPROVED by {admin_name}")
 
         return metadata
 
     def correct_defective(
         self,
         monster_id: str,
-        corrected_data: Dict[str, Any],
         notes: Optional[str] = None,
         admin_name: str = "admin",
     ) -> MonsterMetadata:
@@ -215,15 +203,18 @@ class AdminService:
                 f"Monster must be in DEFECTIVE state, current: {monster.metadata.state}"
             )
 
-        # Valider les données corrigées
-        validation_result = self.validation_service.validate(corrected_data)
+        # Vérifier que les données actuelles sont valides
+        if not monster.monster_data:
+            raise ValueError("Monster data is missing")
+
+        validation_result = self.validation_service.validate(monster.monster_data)
         if not validation_result.is_valid:
             raise ValueError(
-                "Corrected data is still invalid", validation_result.to_dict()
+                "Cannot correct monster: current data is still invalid. Please update the monster data first.",
+                validation_result.to_dict(),
             )
 
-        # Mettre à jour les données
-        monster.monster_data = corrected_data
+        # Mettre à jour les métadonnées de validation
         monster.metadata.is_valid = True
         monster.metadata.validation_errors = None
 
@@ -233,13 +224,133 @@ class AdminService:
             MonsterStateEnum.PENDING_REVIEW,
             monster_data=monster.monster_data,
             actor=admin_name,
-            note="Corrected by admin",
+            note=notes or f"Corrected by admin {admin_name}",
         )
 
         logger.info(f"Monster {monster_id} corrected by {admin_name}")
 
         return metadata
-    
+
+    def update_monster_data(
+        self,
+        monster_id: str,
+        monster_data: Dict[str, Any],
+        skip_validation: bool = False,
+        notes: Optional[str] = None,
+        admin_name: str = "admin",
+    ) -> MonsterMetadata:
+        """Met à jour les données d'un monstre"""
+
+        monster = self.state_repository.get(monster_id)
+        if not monster:
+            raise ValueError(f"Monster {monster_id} not found")
+
+        # Vérifier que le monstre est dans un état modifiable
+        modifiable_states = [
+            MonsterStateEnum.GENERATED,
+            MonsterStateEnum.PENDING_REVIEW,
+            MonsterStateEnum.DEFECTIVE,
+        ]
+        if monster.metadata.state not in modifiable_states:
+            raise ValueError(
+                f"Monster cannot be updated in state {monster.metadata.state}. "
+                f"Allowed states: {[s.value for s in modifiable_states]}"
+            )
+
+        # Valider les nouvelles données si nécessaire
+        validation_result = self.validation_service.validate(monster_data)
+        if not validation_result.is_valid and not skip_validation:
+            raise ValueError(
+                "Monster data is invalid. Set skip_validation=True to force update.",
+                validation_result.to_dict(),
+            )
+
+        # Mettre à jour les données
+        monster.monster_data = monster_data
+        monster.metadata.is_valid = validation_result.is_valid
+        monster.metadata.updated_at = datetime.now(timezone.utc)
+
+        # Mettre à jour les erreurs de validation
+        if validation_result.is_valid:
+            monster.metadata.validation_errors = None
+        else:
+            monster.metadata.validation_errors = [
+                {
+                    "field": e.field,
+                    "error_type": e.error_type,
+                    "message": e.message,
+                }
+                for e in validation_result.errors
+            ]
+
+        # Ajouter une entrée dans l'historique
+        from app.schemas.metadata import StateTransition
+
+        transition = StateTransition(
+            from_state=monster.metadata.state,
+            to_state=monster.metadata.state,  # L'état ne change pas
+            timestamp=datetime.now(timezone.utc),
+            actor=admin_name,
+            note=notes
+            or f"Data updated (valid={validation_result.is_valid}, skip_validation={skip_validation})",
+        )
+        monster.metadata.history.append(transition)
+
+        # Sauvegarder
+        self.state_repository.save(monster.metadata, monster.monster_data)
+
+        # Sauvegarder la transition dans la base de données
+        self.state_repository.save_transition(monster_id, transition)
+
+        logger.info(
+            f"Monster {monster_id} data updated by {admin_name} "
+            f"(valid={validation_result.is_valid}, skip_validation={skip_validation})"
+        )
+
+        return monster.metadata
+
+    def reject_monster(
+        self,
+        monster_id: str,
+        notes: Optional[str] = None,
+        admin_name: str = "admin",
+    ) -> MonsterMetadata:
+        """Rejette un monstre"""
+
+        monster = self.state_repository.get(monster_id)
+        if not monster:
+            raise ValueError(f"Monster {monster_id} not found")
+
+        # Vérifier que le monstre est dans un état rejectable
+        rejectable_states = [
+            MonsterStateEnum.GENERATED,
+            MonsterStateEnum.PENDING_REVIEW,
+            MonsterStateEnum.DEFECTIVE,
+        ]
+        if monster.metadata.state not in rejectable_states:
+            raise ValueError(
+                f"Monster cannot be rejected in state {monster.metadata.state}. "
+                f"Allowed states: {[s.value for s in rejectable_states]}"
+            )
+
+        # Mettre à jour les métadonnées
+        monster.metadata.reviewed_by = admin_name
+        monster.metadata.review_date = datetime.now(timezone.utc)
+        monster.metadata.review_notes = notes
+
+        # Transition vers REJECTED
+        metadata = self.state_manager.perform_transition(
+            monster.metadata,
+            MonsterStateEnum.REJECTED,
+            monster_data=monster.monster_data,
+            actor=admin_name,
+            note=notes or f"Rejected by admin {admin_name}",
+        )
+
+        logger.info(f"Monster {monster_id} rejected by {admin_name}")
+
+        return metadata
+
     def get_monster_name(self, monster_id: str) -> Optional[str]:
         """Récupère le nom d'un monstre à partir de son ID"""
 
@@ -347,7 +458,9 @@ class AdminService:
 
                 # Valider les données
                 if not monster.monster_data:
-                    logger.warning(f"Monster data is missing for monster_id: {monster_id}")
+                    logger.warning(
+                        f"Monster data is missing for monster_id: {monster_id}"
+                    )
                     continue
                 validation_result = self.validation_service.validate(
                     monster.monster_data
@@ -463,7 +576,7 @@ class AdminService:
                     "monster_id": monster_id,
                     "reason": f"State is {monster.metadata.state}, not GENERATED",
                 }
-            
+
             if not monster.monster_data:
                 logger.warning(f"Monster data is missing for monster_id: {monster_id}")
                 return {

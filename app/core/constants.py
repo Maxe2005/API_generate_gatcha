@@ -14,10 +14,15 @@ Principes appliqués :
 import enum
 from typing import Dict, Set, Tuple
 
-from app.core.json_monster_config import MonsterJsonSkillAttributes, MonsterJsonSkillRatioAttributes, MonsterJsonStatsAttributes
+from app.core.json_monster_config import (
+    MonsterJsonSkillAttributes,
+    MonsterJsonSkillRatioAttributes,
+    MonsterJsonStatsAttributes,
+)
 
 
 # ========== ENUMS POUR SQLALCHEMY ET PYDANTIC ==========
+
 
 class EnumBase(str, enum.Enum):
     """Base pour tous les enums de l'application, avec une méthode utilitaire"""
@@ -26,13 +31,13 @@ class EnumBase(str, enum.Enum):
     def values_set(cls) -> Set[str]:
         """Retourne un set de toutes les valeurs de l'enum"""
         return {item.value for item in cls}
-    
+
     @classmethod
     def values_list(cls) -> list:
         """Retourne une liste de toutes les valeurs de l'enum"""
         return [item.value for item in cls]
-    
-    
+
+
 class MonsterStateEnum(EnumBase):
     """États possibles d'un monstre dans son cycle de vie"""
 
@@ -51,6 +56,7 @@ class TransitionActionEnum(EnumBase):
     REJECT = "REJECT"
     CORRECT = "CORRECT"
     TRANSMIT = "TRANSMIT"
+    UPDATE = "UPDATE"
 
 
 class ElementEnum(EnumBase):

@@ -8,7 +8,12 @@ Schémas pour l'API d'administration des monstres
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from app.core.constants import ElementEnum, MonsterStateEnum, RankEnum, TransitionActionEnum
+from app.core.constants import (
+    ElementEnum,
+    MonsterStateEnum,
+    RankEnum,
+    TransitionActionEnum,
+)
 from app.schemas.json_monster import MonsterBase
 from app.schemas.metadata import MonsterMetadata
 
@@ -63,16 +68,32 @@ class MonsterDetail(BaseModel):
 class ReviewRequest(RequestContext):
     """Requête pour reviewer un monstre"""
 
-    action: TransitionActionEnum
     notes: Optional[str] = Field(None, max_length=1000)
-    corrected_data: Optional[MonsterBase] = None
 
 
 class CorrectionRequest(RequestContext):
     """Requête pour corriger un monstre défectueux"""
 
-    corrected_data: Dict[str, Any]
     notes: Optional[str] = None
+
+
+class UpdateMonsterRequest(RequestContext):
+    """Requête pour modifier les données d'un monstre"""
+
+    monster_data: Dict[str, Any] = Field(
+        ..., description="Nouvelles données du monstre"
+    )
+    skip_validation: bool = Field(
+        default=False,
+        description="Autoriser les modifications même si les données ne sont pas valides",
+    )
+    notes: Optional[str] = Field(None, max_length=1000)
+
+
+class RejectMonsterRequest(RequestContext):
+    """Requête pour rejeter un monstre"""
+
+    notes: Optional[str] = Field(None, max_length=1000)
 
 
 class TransmitRequest(RequestContext):
