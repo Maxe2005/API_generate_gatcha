@@ -20,6 +20,7 @@ from app.schemas.image import (
     MonsterImageResponse,
     MonsterImageListResponse,
     SetDefaultImageRequest,
+    RenameImageRequest,
 )
 from app.services.tasks import generate_custom_image
 from app.core.config import get_settings
@@ -147,6 +148,53 @@ async def set_default_image(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la définition de l'image par défaut: {str(e)}",
+        )
+
+
+@router.patch(
+    "/{monster_id}/{image_id}/rename",
+    response_model=MonsterImageResponse,
+    summary="Renommer une image d'un monstre",
+    description="Renomme une image existante d'un monstre.",
+)
+async def rename_image(
+    monster_id: str,
+    image_id: int,
+    request: RenameImageRequest,
+    image_service: ImageService = Depends(get_image_service),
+):
+    """
+    Renomme une image d'un monstre.
+
+    Args:
+        monster_id: UUID du monstre
+        image_id: ID de l'image à renommer
+        request: Nouveau nom de l'image
+
+    Returns:
+        MonsterImageResponse: L'image mise à jour
+
+    Raises:
+        404: Si le monstre ou l'image n'existe pas
+        400: Si l'image n'appartient pas au monstre
+    """
+    try:
+        result = image_service.rename_image(monster_id, image_id, request.new_name)
+        logger.info(f"Image {image_id} renommée en '{request.new_name}'")
+        return result
+    except ValueError as e:
+        logger.error(f"Erreur de validation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST
+            if "n'appartient pas" in str(e)
+            else status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors du renommage de l'image: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors du renommage de l'image: {str(e)}",
         )
 
 

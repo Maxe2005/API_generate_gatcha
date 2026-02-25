@@ -225,3 +225,44 @@ class ImageService:
         )
 
         return MonsterImageResponse.model_validate(db_image)
+
+    def rename_image(
+        self, monster_id: str, image_id: int, new_name: str
+    ) -> MonsterImageResponse:
+        """
+        Renomme une image d'un monstre.
+
+        Args:
+            monster_id: UUID du monstre
+            image_id: ID de l'image à renommer
+            new_name: Nouveau nom de l'image
+
+        Returns:
+            MonsterImageResponse: L'image mise à jour
+
+        Raises:
+            ValueError: Si le monstre ou l'image n'existe pas
+        """
+        # Récupérer le monstre
+        monster = self.monster_repo.get_by_uuid(monster_id)
+        if not monster:
+            raise ValueError(f"Monstre avec UUID {monster_id} non trouvé")
+
+        # Vérifier que l'image appartient au monstre
+        image = self.image_repo.get_image_by_id(image_id)
+        if not image:
+            raise ValueError(f"Image avec ID {image_id} non trouvée")
+
+        if int(image.monster_id) != int(monster.id):  # type: ignore
+            raise ValueError(
+                f"L'image {image_id} n'appartient pas au monstre {monster_id}"
+            )
+
+        # Renommer l'image
+        db_image = self.image_repo.rename_image(image_id, new_name)
+
+        logger.info(
+            f"Image {image_id} du monstre {monster_id} renommée en '{new_name}'"
+        )
+
+        return MonsterImageResponse.model_validate(db_image)

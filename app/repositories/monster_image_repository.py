@@ -192,3 +192,28 @@ class MonsterImageRepository:
         self.db.commit()
         logger.info(f"Image {image_id} supprimée")
         return True
+
+    def rename_image(self, image_id: int, new_name: str) -> MonsterImage:
+        """
+        Renomme une image.
+
+        Args:
+            image_id: ID de l'image à renommer
+            new_name: Nouveau nom de l'image
+
+        Returns:
+            MonsterImage: L'image mise à jour
+
+        Raises:
+            ValueError: Si l'image n'existe pas
+        """
+        image = self.get_image_by_id(image_id)
+        if not image:
+            raise ValueError(f"Image avec ID {image_id} non trouvée")
+
+        image.image_name = new_name  # type: ignore
+        self.db.commit()
+        self.db.refresh(image)
+
+        logger.info(f"Image {image_id} renommée en '{new_name}'")
+        return image

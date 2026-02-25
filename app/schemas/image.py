@@ -54,3 +54,9 @@ class SetDefaultImageRequest(BaseModel):
     """Schéma pour définir l'image par défaut"""
 
     image_id: int = Field(..., description="ID de l'image à définir comme défaut")
+
+
+class RenameImageRequest(BaseModel):
+    """Schéma pour renommer une image"""
+
+    new_name: str = Field(..., description="Nouveau nom de l'image")
