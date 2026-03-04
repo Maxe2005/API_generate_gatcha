@@ -26,13 +26,16 @@ class BananaClient:
         self.output_dir = "app/static/images"
         self.minio_client = MinioClientWrapper()
 
-    async def generate_pixel_art(self, prompt: str, filename_base: str) -> dict:
+    async def generate_pixel_art(
+        self, prompt: str, filename_base: str, model: str = "gemini-3-pro-image-preview"
+    ) -> dict:
         """
         Generates an image using Google's Gemini-2.5-flash-image model.
         Returns a dict with the MinIO URL and the raw image key.
         args:
             prompt: Visual description
             filename_base: sanitized monster name for the file
+            model: Gemini model to use for image generation
         Returns:
             dict with keys:
                 - image_url: URL of the optimized WebP image
@@ -46,7 +49,7 @@ class BananaClient:
         # Wrapped function for the thread executor
         def _generate():
             response = self.client.models.generate_content(
-                model="gemini-3-pro-image-preview",  # Using 2.0-flash or 2.5 if available as per user request example implies newer models
+                model=model,  # Using 2.0-flash or 2.5 if available as per user request example implies newer models
                 contents=[full_prompt],
                 config=genai.types.GenerateContentConfig(
                     image_config=genai.types.ImageConfig(
@@ -143,6 +146,7 @@ class BananaClient:
         prompt: str,
         aspect_ratio: str,
         image_size: str,
+        model: str = "gemini-3-pro-image-preview",
         image_input: Image.Image | None = None,
     ) -> bytes:
         """
@@ -159,7 +163,7 @@ class BananaClient:
                 contents.append(image_input)
 
             response = self.client.models.generate_content(
-                model="gemini-3-pro-image-preview",
+                model=model,
                 contents=contents,
                 config=genai.types.GenerateContentConfig(
                     image_config=genai.types.ImageConfig(

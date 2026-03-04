@@ -51,20 +51,21 @@ async def generate_custom_image_endpoint(
     Lance la génération en tâche de fond (Celery) et retourne un batch_id pour le suivi.
 
     Args:
-        request: Données de la requête (monster_id, image_name, custom_prompt)
+        request: Données de la requête (monster_id, image_name, custom_prompt, model)
 
     Returns:
         dict: {"batch_id": batch_id} - À utiliser pour se connecter au WebSocket /ws/{batch_id}
     """
     batch_id = str(uuid.uuid4())
     logger.info(
-        f"Lancement de la génération d'image: batch_id={batch_id}, monster_id={request.monster_id}, image_name={request.image_name}"
+        f"Lancement de la génération d'image: batch_id={batch_id}, monster_id={request.monster_id}, image_name={request.image_name}, model={request.model}"
     )
     generate_custom_image.delay(  # pyright: ignore[reportFunctionMemberAccess]
         batch_id,
         request.monster_id,
         request.image_name,
         request.custom_prompt,
+        request.model,
     )
     return {"batch_id": batch_id}
 

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from typing import Optional
 from app.clients.banana import BananaClient
+from app.core.constants import GeminiModelEnum
 import os
 import io
 from PIL import Image
@@ -20,6 +21,10 @@ async def generate_simple_image(
         ..., description="Name of the file to save (without extension or with .png)"
     ),
     prompt: str = Form(..., description="Description of image"),
+    model: GeminiModelEnum = Form(
+        default=GeminiModelEnum.GEMINI_3_PRO_IMAGE,
+        description="Modèle Gemini à utiliser pour la génération d'images",
+    ),
     image: Optional[UploadFile] = File(
         None, description="Optional input image for generation"
     ),
@@ -31,6 +36,7 @@ async def generate_simple_image(
     - image_size: e.g. "1024x1024" or logic supported by client (client uses "4K" but let's pass what user sends and let client/gemini validation handle it, though client expects logic)
     - output_image_name: Name of the file to save (without extension or with .png)
     - prompt: Description of image
+    - model: Modèle Gemini à utiliser (défaut: gemini-3-pro-image-preview)
     - image: Optional input image file
     """
     client = BananaClient()
@@ -46,6 +52,7 @@ async def generate_simple_image(
             prompt=prompt,
             aspect_ratio=aspect_ratio,
             image_size=image_size,
+            model=model.value,
             image_input=pil_image,
         )
 

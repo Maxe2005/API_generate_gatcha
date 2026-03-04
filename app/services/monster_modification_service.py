@@ -22,8 +22,7 @@ import logging
 
 from app.models.monster import Monster, Skill, MonsterState
 from app.repositories.monster.state_repository import MonsterStateRepository
-from app.schemas.metadata import MonsterWithMetadata
-from app.schemas.monster import MonsterUpdate, MonsterStructured 
+from app.schemas.monster import MonsterUpdate, MonsterStructured
 from app.schemas.skill import SkillCreate, SkillUpdate, SkillStructured
 
 from app.core.constants import MonsterStateEnum
@@ -62,7 +61,6 @@ class MonsterModificationService:
         self.db = db
         self.monster_repo = MonsterRepository(db)
         self.state_repository = MonsterStateRepository(db)
-
 
     def _check_monster_is_modifiable(self, monster_state: MonsterState) -> None:
         """
@@ -119,19 +117,41 @@ class MonsterModificationService:
         monster: Monster = self.monster_repo.get_by_uuid(monster_id)
         if not monster:
             raise MonsterModificationError(f"Monster {monster_id} not found")
-        
+
         monster_state = monster.state
 
         # Vérifier que le monstre est modifiable
         self._check_monster_is_modifiable(monster_state)
 
-        # Appliquer les modifications
-        update_data = updates.model_dump(exclude_unset=True)
+        # Appliquer les modifications (sauf skills)
+        update_data = updates.model_dump(exclude_unset=True, exclude={"skills"})
         for field, value in update_data.items():
             if hasattr(monster, field):
                 setattr(monster, field, value)
 
+        # Gérer les skills si fournis
+        if updates.skills is not None:
+            logger.info(f"Updating skills for monster {monster_id}")
+            # Supprimer les skills existantes
+            self.db.query(Skill).filter(Skill.monster_id == monster.id).delete()
+
+            # Créer les nouvelles skills
+            for skill_data in updates.skills:
+                new_skill = Skill(
+                    monster_id=monster.id,
+                    name=skill_data.name,
+                    description=skill_data.description,
+                    damage=skill_data.damage,
+                    cooldown=skill_data.cooldown,
+                    lvl_max=skill_data.lvl_max,
+                    rank=skill_data.rank,
+                    ratio_stat=skill_data.ratio_stat,
+                    ratio_percent=skill_data.ratio_percent,
+                )
+                self.db.add(new_skill)
+
         # Mettre à jour le timestamp
+        monster.updated_at = datetime.now(timezone.utc)  # type: ignore
         monster_state.updated_at = datetime.now(timezone.utc)  # type: ignore
 
         # Persister

@@ -91,7 +91,11 @@ class ImageService:
         return map_image_to_response(db_image)
 
     async def create_custom_image_for_monster(
-        self, monster_id: str, image_name: str, custom_prompt: str
+        self,
+        monster_id: str,
+        image_name: str,
+        custom_prompt: str,
+        model: str = "gemini-3-pro-image-preview",
     ) -> MonsterImageResponse | None:
         """
         Crée une nouvelle image personnalisée pour un monstre existant.
@@ -100,6 +104,7 @@ class ImageService:
             monster_id: UUID du monstre
             image_name: Nom de l'image à créer
             custom_prompt: Prompt personnalisé (sera injecté dans IMAGE_GENERATION)
+            model: Modèle Gemini à utiliser pour la génération d'images
 
         Returns:
             MonsterImageResponse: L'image créée ou None si une erreur survient
@@ -114,14 +119,14 @@ class ImageService:
             raise ValueError(f"Monstre avec ID {monster_id} non trouvé")
 
         logger.info(
-            f"Génération d'une image personnalisée '{image_name}' pour le monstre {monster_id}"
+            f"Génération d'une image personnalisée '{image_name}' pour le monstre {monster_id} avec le modèle {model}"
         )
 
         # Générer l'image via BananaClient (qui gère aussi l'upload MinIO)
         safe_image_name = image_name.lower().replace(" ", "_")
         try:
             result = await self.banana_client.generate_pixel_art(
-                custom_prompt, safe_image_name
+                custom_prompt, safe_image_name, model
             )
             image_url = result["image_url"]
             raw_image_key = result["raw_image_key"]

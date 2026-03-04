@@ -81,6 +81,14 @@ class RankEnum(EnumBase):
     UNKNOWN = "UNKNOWN"
 
 
+class GeminiModelEnum(EnumBase):
+    """Modèles Gemini disponibles pour la génération d'images"""
+
+    GEMINI_3_PRO_IMAGE = "gemini-3-pro-image-preview"
+    GEMINI_3_1_FLASH_IMAGE = "gemini-3.1-flash-image-preview"
+    GEMINI_2_FLASH_IMAGE = "gemini-2-flash-image"
+
+
 class StatEnum(EnumBase):
     """Stats possibles pour les ratios de compétences"""
 

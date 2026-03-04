@@ -54,7 +54,11 @@ def generate_monsters(batch_id: str, monster_count: int, prompt: str | None = No
 
 @celery_app.task(name="app.services.generation_tasks.generate_custom_image")
 def generate_custom_image(
-    batch_id: str, monster_id: str, image_name: str, custom_prompt: str
+    batch_id: str,
+    monster_id: str,
+    image_name: str,
+    custom_prompt: str,
+    model: str = "gemini-3-pro-image-preview",
 ):
     """
     Génère une image personnalisée pour un monstre en tâche de fond, publie sur Redis.
@@ -76,6 +80,7 @@ def generate_custom_image(
                 monster_id=monster_id,
                 image_name=image_name,
                 custom_prompt=custom_prompt,
+                model=model,
             )
         )
         if result is None:

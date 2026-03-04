@@ -1,0 +1,25 @@
+voici un monstre de gatcha avec l'un de ses skills : {
+        "nom": "Sphinx Golem",
+        "element": "LIGHT",
+        "rang": "LEGENDARY",
+        "stats": {
+            "hp": 900,
+            "atk": 170,
+            "def": 180,
+            "vit": 30
+        },
+        "description_carte": "Un gardien de pierre légendaire imprégné de la sagesse du désert.",
+        "description_visuelle": "Un golem massif à l'apparence d'un sphinx. Il est sculpté dans du grès doré et orné de hiéroglyphes lumineux. Ses yeux brillent d'une lumière divine.",
+        "skills": [
+           {
+                "name": "Sagesse Ancestrale",
+                "description": "Restaure une grande quantité de ses points de vie et augmente temporairement son attaque et sa défense.",
+                "damage": 0,
+                "ratio": {
+                    "stat": "HP",
+                    "percent": 0.5
+                },
+                "cooldown": 10,
+                "lvlMax": 100,
+                "rank": "LEGENDARY"
+            }]} génère une image au format 1:2 qui montre l'execution de ce skill, base-toi sur l'image du monstre ainsi que sur la description du skill. High-quality digital fantasy art, dynamic pose, cinematic lighting, sharp focus. The image must be a clean character in action illustration WITHOUT any text, writing, numbers, stats, UI elements, borders, card frames, or game interface overlays. Just the monster using his skill and the background scenery. Masterpiece, 4k resolution

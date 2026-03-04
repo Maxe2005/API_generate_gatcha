@@ -55,3 +55,4 @@ class MonsterUpdate(BaseModel):
     vit: Optional[int] = None
     description_carte: Optional[str] = None
     description_visuelle: Optional[str] = None
+    skills: Optional[List[SkillCreate]] = None
