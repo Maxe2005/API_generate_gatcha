@@ -149,7 +149,7 @@ class AdminService:
         notes: Optional[str] = None,
         admin_name: str = "admin",
     ) -> MonsterMetadata:
-        """Review un monstre (approve ou reject)"""
+        """Review un monstre : approve"""
 
         monster = self.state_repository.get(monster_id)
         if not monster:
@@ -162,15 +162,8 @@ class AdminService:
             )
 
         # Vérifier que les données actuelles sont valides
-        if not monster.monster_data:
-            raise ValueError("Monster data is missing")
-
-        validation_result = self.validation_service.validate(monster.monster_data)
-        if not validation_result.is_valid:
-            raise ValueError(
-                "Cannot review monster: current data is not valid. Please update the monster data first.",
-                validation_result.to_dict(),
-            )
+        if monster.monster_data:
+            raise ValueError("Monster data is still in json format (usually impossible in PENDING_REVIEW state)")
 
         # Mettre à jour les métadonnées
         monster.metadata.reviewed_by = admin_name

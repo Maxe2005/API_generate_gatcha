@@ -12,7 +12,6 @@ from app.core.constants import (
     ElementEnum,
     MonsterStateEnum,
     RankEnum,
-    TransitionActionEnum,
 )
 from app.schemas.json_monster import MonsterBase
 from app.schemas.metadata import MonsterMetadata
