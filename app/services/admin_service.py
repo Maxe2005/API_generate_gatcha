@@ -32,8 +32,8 @@ from app.services.mappeur.monster_mapper import (
     map_monster_to_json,
     map_monster_to_summary,
     map_monster_metadata_to_summary,
+    map_payload_to_monster_update,
 )
-from app.schemas.monster import MonsterUpdate
 from app.schemas.metadata import StateTransition
 
 
@@ -301,7 +301,7 @@ class AdminService:
             # Monstre structuré : modifier via MonsterModificationService
             try:
                 # Convertir les données reçues en MonsterUpdate
-                updates = MonsterUpdate(**monster_data)
+                updates = map_payload_to_monster_update(monster_data)
 
                 # Utiliser le service de modification pour les monstres structurés
                 self.modification_service.update_monster(
@@ -323,7 +323,9 @@ class AdminService:
         monster.metadata.is_valid = validation_result.is_valid
         monster.metadata.updated_at = datetime.now(timezone.utc)
 
-        self.state_repository.save(monster.metadata, monster.monster_data if structured_monster else None)
+        self.state_repository.save(
+            monster.metadata, monster.monster_data if structured_monster else None
+        )
 
         transition = StateTransition(
             from_state=monster.metadata.state,

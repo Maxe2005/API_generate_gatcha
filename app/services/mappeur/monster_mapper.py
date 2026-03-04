@@ -13,7 +13,7 @@ from app.models.monster.skill import Skill
 from app.schemas.admin import MonsterSummary
 from app.schemas.json_monster import MonsterBase, Skill as SkillBase
 from app.schemas.metadata import MonsterMetadata, MonsterWithMetadata
-from app.schemas.monster import MonsterStructured
+from app.schemas.monster import MonsterStructured, MonsterUpdate
 from app.schemas.skill import SkillStructured
 
 
@@ -34,7 +34,9 @@ def map_monster_to_summary(metadata: MonsterMetadata, monster: Monster):
     )
 
 
-def map_monster_metadata_to_summary(metadata: MonsterMetadata, monster: MonsterWithMetadata):
+def map_monster_metadata_to_summary(
+    metadata: MonsterMetadata, monster: MonsterWithMetadata
+):
     """
     Mappe un monstre issu du json brut et ses métadonnées vers un MonsterSummary.
     """
@@ -53,8 +55,12 @@ def map_monster_metadata_to_summary(metadata: MonsterMetadata, monster: MonsterW
     return MonsterSummary(
         monster_id=metadata.monster_id,
         name=monster.monster_data.get(MonsterJsonAttributes.NAME.value, "Unknown"),
-        element=monster.monster_data.get(MonsterJsonAttributes.ELEMENT.value, ElementEnum.UNKNOWN.value),
-        rank=monster.monster_data.get(MonsterJsonAttributes.RANK.value, RankEnum.UNKNOWN.value),
+        element=monster.monster_data.get(
+            MonsterJsonAttributes.ELEMENT.value, ElementEnum.UNKNOWN.value
+        ),
+        rank=monster.monster_data.get(
+            MonsterJsonAttributes.RANK.value, RankEnum.UNKNOWN.value
+        ),
         state=metadata.state,
         created_at=metadata.created_at,
         updated_at=metadata.updated_at,
@@ -75,6 +81,7 @@ def map_global_structured_monster(monster: Monster) -> MonsterStructured:
         skills=skills,
     )
 
+
 def map_structured_skill(skill_db: Skill) -> SkillStructured:
     return SkillStructured(
         skill_id=skill_db.id,  # type: ignore
@@ -88,7 +95,8 @@ def map_structured_skill(skill_db: Skill) -> SkillStructured:
         ratio_percent=skill_db.ratio_percent,  # type: ignore
     )
 
-def map_monster_to_json(monster: Monster) -> MonsterBase :
+
+def map_monster_to_json(monster: Monster) -> MonsterBase:
     return MonsterBase(
         nom=monster.nom,  # type: ignore
         element=monster.element,  # type: ignore
@@ -119,6 +127,7 @@ def map_monster_to_json(monster: Monster) -> MonsterBase :
         ImageUrl=monster.image_url,  # type: ignore
     )
 
+
 def map_json_monster(monster_json: MonsterBase) -> Dict[str, Any]:
     return {
         "nom": monster_json.nom,
@@ -145,4 +154,19 @@ def map_json_monster(monster_json: MonsterBase) -> Dict[str, Any]:
         ],
         "image_url": monster_json.ImageUrl,
     }
-    
+
+
+def map_payload_to_monster_update(monster_data: Dict[str, Any]) -> MonsterUpdate:
+    """
+    Convertit un payload JSON de monstre (format API avec stats/ratio/lvlMax)
+    vers un schéma MonsterUpdate pour les monstres structurés.
+    """
+    parsed_monster = MonsterBase.model_validate(monster_data)
+    mapped_data = map_json_monster(parsed_monster)
+
+    if "def" in mapped_data:
+        mapped_data["def_"] = mapped_data.pop("def")
+
+    mapped_data.pop("image_url", None)
+
+    return MonsterUpdate(**mapped_data)
