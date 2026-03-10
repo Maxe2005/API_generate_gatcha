@@ -112,6 +112,25 @@ class DashboardStats(BaseModel):
     recent_activity: List[Dict[str, Any]]
 
 
+class StatSummary(BaseModel):
+    """Résumé min/moyenne/max pour une statistique."""
+
+    min: int
+    avg: float
+    max: int
+
+
+class MonsterStatsByStateResponse(BaseModel):
+    """Statistiques de combat agrégées pour un état donné."""
+
+    state: MonsterStateEnum
+    total_monsters: int
+    hp: Optional[StatSummary] = None
+    vit: Optional[StatSummary] = None
+    def_: Optional[StatSummary] = None
+    atk: Optional[StatSummary] = None
+
+
 class ConfigUpdate(RequestContext):
     """Mise à jour de la configuration"""
 

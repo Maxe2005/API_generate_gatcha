@@ -27,6 +27,7 @@ from app.schemas.admin import (
     MonsterSummary,
     MonsterDetail,
     DashboardStats,
+    MonsterStatsByStateResponse,
 )
 from app.services.mappeur.monster_mapper import (
     map_monster_to_json,
@@ -42,6 +43,12 @@ logger = logging.getLogger(__name__)
 
 class AdminService:
     """Service d'administration des monstres"""
+
+    _STATS_STATE_HIERARCHY = [
+        MonsterStateEnum.PENDING_REVIEW,
+        MonsterStateEnum.APPROVED,
+        MonsterStateEnum.TRANSMITTED,
+    ]
 
     def __init__(self, db: Session):
         self.state_repository = MonsterStateRepository(db)
@@ -163,7 +170,9 @@ class AdminService:
 
         # Vérifier que les données actuelles sont valides
         if monster.monster_data:
-            raise ValueError("Monster data is still in json format (usually impossible in PENDING_REVIEW state)")
+            raise ValueError(
+                "Monster data is still in json format (usually impossible in PENDING_REVIEW state)"
+            )
 
         # Mettre à jour les métadonnées
         monster.metadata.reviewed_by = admin_name
@@ -453,6 +462,36 @@ class AdminService:
             transmission_rate=transmission_rate,
             avg_review_time_hours=avg_review_time,
             recent_activity=recent_activity[:10],
+        )
+
+    def get_stats_by_state(
+        self, state: MonsterStateEnum
+    ) -> MonsterStatsByStateResponse:
+        """
+        Récupère les statistiques min/moyenne/max des stats par état minimum.
+
+        Hiérarchie appliquée:
+        - PENDING_REVIEW -> [PENDING_REVIEW, APPROVED, TRANSMITTED]
+        - APPROVED -> [APPROVED, TRANSMITTED]
+        - TRANSMITTED -> [TRANSMITTED]
+        """
+        if state not in self._STATS_STATE_HIERARCHY:
+            allowed = [s.value for s in self._STATS_STATE_HIERARCHY]
+            raise ValueError(
+                f"Invalid state for stats hierarchy: {state.value}. Allowed: {allowed}"
+            )
+
+        min_index = self._STATS_STATE_HIERARCHY.index(state)
+        selected_states = self._STATS_STATE_HIERARCHY[min_index:]
+        stats = self.monster_repository.get_stats_by_states(selected_states)
+
+        return MonsterStatsByStateResponse(
+            state=state,
+            total_monsters=stats["total_monsters"],
+            hp=stats["hp"],
+            vit=stats["vit"],
+            def_=stats["def"],
+            atk=stats["atk"],
         )
 
     def process_generated_monsters(self) -> Dict[str, Any]:

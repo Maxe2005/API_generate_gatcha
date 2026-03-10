@@ -17,6 +17,7 @@ from app.schemas.admin import (
     UpdateMonsterRequest,
     RejectMonsterRequest,
     DashboardStats,
+    MonsterStatsByStateResponse,
 )
 from app.core.constants import MonsterStateEnum
 from app.services.validation_service import MonsterValidationService
@@ -280,6 +281,31 @@ async def get_dashboard_stats(service: AdminService = Depends(get_admin_service)
         return service.get_dashboard_stats()
     except Exception as e:
         logger.error(f"Error getting dashboard stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/stats/monsters", response_model=MonsterStatsByStateResponse)
+async def get_monsters_stats_by_state(
+    state: MonsterStateEnum = Query(...),
+    service: AdminService = Depends(get_admin_service),
+):
+    """
+    Récupère les statistiques de combat agrégées par état.
+
+    Retourne min/moyenne/max pour:
+    - hp
+    - vit
+    - def
+    - atk
+
+    Le filtrage est effectué par le service à partir du paramètre `state`.
+    """
+    try:
+        return service.get_stats_by_state(state)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error getting monster stats by state {state}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

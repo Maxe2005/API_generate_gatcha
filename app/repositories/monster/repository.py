@@ -6,13 +6,15 @@ Repository pour la gestion des monstres structurés (Monster) via PostgreSQL.
 Gère la persistance des données structurées des monstres.
 """
 
-from typing import Optional
+from typing import Optional, Dict, Any, List
 import logging
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
-from app.models.monster import Monster
+from app.models.monster import Monster, MonsterState
+from app.core.constants import MonsterStateEnum
 from app.schemas.monster import MonsterUpdate
 
 logger = logging.getLogger(__name__)
@@ -48,7 +50,7 @@ class MonsterRepository:
         except Exception as e:
             logger.error(f"Failed to get monster by ID {monster_db_id}: {e}")
             return None
-    
+
     def get_by_uuid(self, monster_uuid: str) -> Optional[Monster]:
         """
         Récupère un monstre par son UUID.
@@ -90,7 +92,7 @@ class MonsterRepository:
                 f"Failed to get monster by monster_state_id {monster_state_id}: {e}"
             )
             return None
-    
+
     def get_all(self) -> list[Monster]:
         """
         Récupère tous les monstres.
@@ -103,6 +105,81 @@ class MonsterRepository:
         except Exception as e:
             logger.error(f"Failed to get all monsters: {e}")
             return []
+
+    def get_stats_by_states(self, states: List[MonsterStateEnum]) -> Dict[str, Any]:
+        """
+        Calcule min/avg/max des stats (hp, vit, def, atk) pour une liste d'états.
+
+        Args:
+            states: États des monstres à prendre en compte
+
+        Returns:
+            Dictionnaire avec total_monsters et les agrégats pour chaque stat.
+        """
+        try:
+            result = (
+                self.db.query(
+                    func.count(Monster.id).label("total"),
+                    func.min(Monster.hp).label("hp_min"),
+                    func.avg(Monster.hp).label("hp_avg"),
+                    func.max(Monster.hp).label("hp_max"),
+                    func.min(Monster.vit).label("vit_min"),
+                    func.avg(Monster.vit).label("vit_avg"),
+                    func.max(Monster.vit).label("vit_max"),
+                    func.min(Monster.def_).label("def_min"),
+                    func.avg(Monster.def_).label("def_avg"),
+                    func.max(Monster.def_).label("def_max"),
+                    func.min(Monster.atk).label("atk_min"),
+                    func.avg(Monster.atk).label("atk_avg"),
+                    func.max(Monster.atk).label("atk_max"),
+                )
+                .join(MonsterState, Monster.monster_state_id == MonsterState.id)
+                .filter(MonsterState.state.in_(states))
+                .one()
+            )
+
+            total = int(result.total or 0)
+            if total == 0:
+                return {
+                    "total_monsters": 0,
+                    "hp": None,
+                    "vit": None,
+                    "def": None,
+                    "atk": None,
+                }
+
+            return {
+                "total_monsters": total,
+                "hp": {
+                    "min": int(result.hp_min),
+                    "avg": float(result.hp_avg),
+                    "max": int(result.hp_max),
+                },
+                "vit": {
+                    "min": int(result.vit_min),
+                    "avg": float(result.vit_avg),
+                    "max": int(result.vit_max),
+                },
+                "def": {
+                    "min": int(result.def_min),
+                    "avg": float(result.def_avg),
+                    "max": int(result.def_max),
+                },
+                "atk": {
+                    "min": int(result.atk_min),
+                    "avg": float(result.atk_avg),
+                    "max": int(result.atk_max),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Failed to compute stats for states {states}: {e}")
+            return {
+                "total_monsters": 0,
+                "hp": None,
+                "vit": None,
+                "def": None,
+                "atk": None,
+            }
 
     def update(self, monster_db_id: int, updates: MonsterUpdate) -> Optional[Monster]:
         """
