@@ -92,7 +92,7 @@ class TransmissionService:
                 metadata,
                 MonsterStateEnum.TRANSMITTED,
                 actor=admin_name,
-                note="Successfully transmitted to invocation API",
+                note="Successfully transmitted to invocation API" if not force else "Monster retransmitted successfully",
             )
 
             logger.info(f"Monster {monster_id} transmitted successfully")

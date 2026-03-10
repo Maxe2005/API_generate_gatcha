@@ -60,7 +60,9 @@ class MonsterStateManager:
             MonsterStateEnum.TRANSMITTED,
             MonsterStateEnum.PENDING_REVIEW,
         ],
-        MonsterStateEnum.TRANSMITTED: [],
+        MonsterStateEnum.TRANSMITTED: [
+            MonsterStateEnum.TRANSMITTED  # Permet la retransmission
+        ],
         MonsterStateEnum.REJECTED: [],
     }
 
