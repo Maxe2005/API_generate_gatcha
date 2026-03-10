@@ -7,10 +7,13 @@ Client pour communiquer avec l'API d'invocation.
 
 import httpx
 import asyncio
-from typing import Dict, Any
+from typing import Dict, Any, List
 import logging
+from enum import Enum
 
 from app.clients.base import BaseClient
+from app.models.monster.monster import Monster
+from app.models.monster.skill import Skill
 
 logger = logging.getLogger(__name__)
 
@@ -33,56 +36,58 @@ class InvocationApiClient(BaseClient):
         self.max_retries = 3
         self.retry_delay = 2
 
-    def _map_monster_to_invocation_format(
-        self, monster_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    @staticmethod
+    def _serialize_enum(value: Any) -> Any:
+        """Retourne la valeur d'un Enum (ex: EARTH) au lieu de sa représentation Python."""
+        if isinstance(value, Enum):
+            return value.value
+        return value
+
+    def _map_monster_to_invocation_format(self, monster: Monster) -> Dict[str, Any]:
         """
         Convertit notre format de monstre vers le format de l'API d'invocation.
         Mapping: nom → name, rang → rank, def_ → def
         """
+        monster_skills: List[Skill] = monster.skills
         skills = []
-        for skill in monster_data.get("skills", []):
+        for skill in monster_skills:
             skills.append(
                 {
-                    "name": skill.get("name"),
-                    "description": skill.get("description"),
-                    "damage": skill.get("damage"),
+                    "name": skill.name,
+                    "description": skill.description,
+                    "damage": skill.damage,
                     "ratio": {
-                        "stat": skill.get("ratio", {}).get("stat"),
-                        "percent": skill.get("ratio", {}).get("percent"),
+                        "stat": self._serialize_enum(skill.ratio_stat),
+                        "percent": skill.ratio_percent,
                     },
-                    "cooldown": int(skill.get("cooldown", 0)),
-                    "lvlMax": int(skill.get("lvlMax", 5)),
-                    "rank": skill.get("rank"),
+                    "cooldown": skill.cooldown,
+                    "lvlMax": skill.lvl_max,
+                    "rank": self._serialize_enum(skill.rank),
                 }
             )
 
         return {
-            "name": monster_data.get("nom"),
-            "element": monster_data.get("element"),
-            "rank": monster_data.get("rang"),
+            "name": monster.nom,
+            "element": self._serialize_enum(monster.element),
+            "rank": self._serialize_enum(monster.rang),
             "stats": {
-                "hp": int(monster_data.get("stats", {}).get("hp", 0)),
-                "atk": int(monster_data.get("stats", {}).get("atk", 0)),
-                "def": int(
-                    monster_data.get("stats", {}).get(
-                        "def", monster_data.get("stats", {}).get("def_", 0)
-                    )
-                ),
-                "vit": int(monster_data.get("stats", {}).get("vit", 0)),
+                "hp": monster.hp,
+                "atk": monster.atk,
+                "def": monster.def_,
+                "vit": monster.vit,
             },
-            "visualDescription": monster_data.get("description_visuelle", ""),
-            "cardDescription": monster_data.get("description_carte", ""),
-            "imageUrl": monster_data.get("image_url", ""),
+            "visualDescription": monster.description_visuelle,
+            "cardDescription": monster.description_carte,
+            "imageUrl": monster.image_url,
             "skills": skills,
         }
 
-    async def create_monster(self, monster_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_monster(self, monster: Monster) -> Dict[str, Any]:
         """
         Envoie un monstre à l'API d'invocation.
 
         Args:
-            monster_data: Données du monstre dans notre format
+            monster: Objet Monster dans notre format
 
         Returns:
             Réponse de l'API d'invocation
@@ -91,7 +96,8 @@ class InvocationApiClient(BaseClient):
             InvocationApiError: En cas d'échec
         """
         # Convertir au format de l'API d'invocation
-        payload = self._map_monster_to_invocation_format(monster_data)
+        payload = self._map_monster_to_invocation_format(monster)
+        print(f"Payload for Invocation API: {payload}")
 
         endpoint = f"{self.base_url}/api/invocation/monsters/create"
 
@@ -104,6 +110,7 @@ class InvocationApiClient(BaseClient):
                         json=payload,
                         headers={"accept": "*/*", "Content-Type": "application/json"},
                     )
+                    print(f"Invocation API response: {response.json()}")
 
                     if response.status_code in [200, 201]:
                         logger.info(
@@ -145,10 +152,15 @@ class InvocationApiClient(BaseClient):
 
     async def health_check(self) -> bool:
         """Vérifie si l'API d'invocation est accessible"""
+        health_url = f"{self.base_url}/actuator/health"
+        logger.info(f"Performing health check on Invocation API: {health_url}")
         try:
             async with httpx.AsyncClient(timeout=5) as client:
-                response = await client.get(f"{self.base_url}/health")
+                response = await client.get(health_url)
+                logger.info(
+                    f"Health check response: status={response.status_code}, body={response.text}"
+                )
                 return response.status_code == 200
-        except Exception as e:
-            logger.error(f"Health check failed: {e}")
+        except httpx.RequestError as e:
+            logger.error(f"Health check failed for {health_url}: {e}")
             return False

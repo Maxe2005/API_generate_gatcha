@@ -12,6 +12,9 @@ from sqlalchemy.orm import Session
 
 from app.clients.invocation_api import InvocationApiClient, InvocationApiError
 from app.repositories.monster import MonsterRepository
+from app.repositories.monster.state_repository import MonsterStateRepository
+from app.repositories.monster.transition_repository import TransitionRepository
+from app.schemas.admin import MonsterListFilter
 from app.services.state_manager import MonsterStateManager
 from app.core.constants import MonsterStateEnum
 
@@ -21,18 +24,27 @@ logger = logging.getLogger(__name__)
 class TransmissionService:
     """Service de transmission des monstres vers l'API d'invocation"""
 
-    def __init__(self, db: Session, invocation_api_url: str = "http://localhost:8085"):
+    def __init__(
+        self, db: Session, invocation_api_url: str = "http://host.docker.internal:8085"
+    ):
         self.invocation_client = InvocationApiClient(base_url=invocation_api_url)
         self.repository = MonsterRepository(db)
-        self.state_manager = MonsterStateManager()
+        self.state_repository = MonsterStateRepository(db)
+        self.structure_repository = TransitionRepository(db)
+        self.state_manager = MonsterStateManager(
+            self.state_repository, self.structure_repository
+        )
 
-    async def transmit_monster(self, monster_id: str, force: bool = False) -> dict:
+    async def transmit_monster(
+        self, monster_id: str, force: bool = False, admin_name: str = "system"
+    ) -> dict:
         """
         Transmet un monstre vers l'API d'invocation.
 
         Args:
             monster_id: ID du monstre à transmettre
             force: Si True, retransmet même si déjà transmis
+            admin_name: Nom de l'administrateur effectuant la transmission
 
         Returns:
             dict avec le résultat de la transmission
@@ -42,48 +54,44 @@ class TransmissionService:
             InvocationApiError: Si la transmission échoue
         """
         # Récupérer le monstre
-        monster = self.repository.get(monster_id)
+        monster = self.repository.get_by_uuid(monster_id)
         if not monster:
             raise ValueError(f"Monster {monster_id} not found")
 
+        monsterState = self.state_repository.get(monster_id)
+        if not monsterState:
+            raise ValueError(f"Monster state for {monster_id} not found")
+        metadata = monsterState.metadata
+
         # Vérifier l'état
-        if monster.metadata.state == MonsterStateEnum.TRANSMITTED and not force:
+        if metadata.state == MonsterStateEnum.TRANSMITTED and not force:
             return {
                 "status": "already_transmitted",
                 "monster_id": monster_id,
-                "transmitted_at": monster.metadata.transmitted_at,
+                "transmitted_at": metadata.transmitted_at,
                 "message": "Monster already transmitted. Use force=true to retransmit.",
             }
 
-        if monster.metadata.state != MonsterStateEnum.APPROVED and not force:
+        if metadata.state != MonsterStateEnum.APPROVED and not force:
             raise ValueError(
-                f"Monster must be in APPROVED state, current: {monster.metadata.state}"
+                f"Monster must be in APPROVED state, current: {metadata.state}"
             )
 
         # Tenter la transmission
         try:
-            response = await self.invocation_client.create_monster(monster.monster_data)
+            response = await self.invocation_client.create_monster(monster)
 
             # Mettre à jour les métadonnées
-            monster.metadata.transmitted_at = datetime.now(timezone.utc)
-            monster.metadata.transmission_attempts += 1
-            monster.metadata.last_transmission_error = None
-            monster.metadata.invocation_api_id = response.get("id")
+            metadata.transmitted_at = datetime.now(timezone.utc)
+            metadata.transmission_attempts += 1
+            metadata.last_transmission_error = None
+            metadata.invocation_api_id = response.get("id")
 
             # Transition vers TRANSMITTED
-            metadata = self.state_manager.transition(
-                monster.metadata,
+            metadata = self.state_manager.perform_transition(
+                metadata,
                 MonsterStateEnum.TRANSMITTED,
-                actor="system",
-                note="Successfully transmitted to invocation API",
-            )
-
-            # Sauvegarder
-            self.repository.save(metadata, monster.monster_data)
-            self.repository.move_to_state(
-                monster_id,
-                MonsterStateEnum.TRANSMITTED,
-                actor="system",
+                actor=admin_name,
                 note="Successfully transmitted to invocation API",
             )
 
@@ -99,11 +107,11 @@ class TransmissionService:
 
         except InvocationApiError as e:
             # Enregistrer l'erreur
-            monster.metadata.transmission_attempts += 1
-            monster.metadata.last_transmission_error = str(e)
-            monster.metadata.updated_at = datetime.now(timezone.utc)
+            metadata.transmission_attempts += 1
+            metadata.last_transmission_error = str(e)
+            metadata.updated_at = datetime.now(timezone.utc)
 
-            self.repository.save(monster.metadata, monster.monster_data)
+            self.state_repository.save(metadata)
 
             logger.error(f"Failed to transmit monster {monster_id}: {e}")
 
@@ -119,9 +127,10 @@ class TransmissionService:
         Returns:
             dict avec les résultats de la transmission
         """
-        approved_monsters = self.repository.list_by_state(
-            MonsterStateEnum.APPROVED, limit=max_count or 1000
+        filter: MonsterListFilter = MonsterListFilter(
+            state=MonsterStateEnum.APPROVED, limit=max_count if max_count else 1000
         )
+        approved_monsters = self.state_repository.list_filtred(filter)
 
         results = {
             "total": len(approved_monsters),

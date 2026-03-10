@@ -12,6 +12,8 @@ services:
       - minio
       - postgres
       - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - gatcha_network
 
@@ -34,6 +36,8 @@ services:
       - .:/app
     env_file:
       - .env.docker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - gatcha_network
 
@@ -41,7 +45,7 @@ services:
     image: postgres:16-alpine
     container_name: gatcha_postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: gatcha_user
       POSTGRES_PASSWORD: gatcha_password

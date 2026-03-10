@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # PostgreSQL
     POSTGRES_HOST: str = "postgres"
-    POSTGRES_PORT: int = 5432
+    POSTGRES_PORT: int = 5433
     POSTGRES_USER: str = "gatcha_user"
     POSTGRES_PASSWORD: str = "gatcha_password"
     POSTGRES_DB: str = "gatcha_db"
@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     MINIO_PUBLIC_URL: str = "http://localhost:9000"
 
     # API Invocation
-    INVOCATION_API_URL: str = "http://localhost:8085"
+    INVOCATION_API_URL: str = "http://host.docker.internal:8085"
     INVOCATION_API_TIMEOUT: int = 30
     INVOCATION_API_MAX_RETRIES: int = 3
     INVOCATION_API_RETRY_DELAY: int = 2
