@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.repositories.monster.repository import MonsterRepository
 from app.repositories.monster.state_repository import MonsterStateRepository
 from app.repositories.monster.transition_repository import TransitionRepository
+from app.repositories.monster.update_event_repository import UpdateEventRepository
 from app.services.state_manager import MonsterStateManager
 from app.services.validation_service import MonsterValidationService
 from app.services.monster_modification_service import MonsterModificationService
@@ -41,6 +42,42 @@ from app.schemas.metadata import StateTransition
 logger = logging.getLogger(__name__)
 
 
+def compute_changed_fields(before: dict, after: dict, prefix: str = "") -> dict:
+    """
+    Calcule les champs modifiés entre deux snapshots JSON.
+
+    Returns:
+        {
+            "changed_fields": ["field1", "nested.field2"],
+            "diff_payload": {
+                "field1": {"before": old_val, "after": new_val},
+                "nested.field2": {"before": old_val, "after": new_val}
+            }
+        }
+    """
+    changed_fields = []
+    diff_payload = {}
+
+    # Vérifier toutes les clés
+    all_keys = set(before.keys()) | set(after.keys())
+
+    for key in all_keys:
+        path = f"{prefix}{key}" if not prefix else f"{prefix}.{key}"
+        before_val = before.get(key)
+        after_val = after.get(key)
+
+        if isinstance(before_val, dict) and isinstance(after_val, dict):
+            # Récursion pour les objets imbriqués
+            nested = compute_changed_fields(before_val, after_val, path)
+            changed_fields.extend(nested["changed_fields"])
+            diff_payload.update(nested["diff_payload"])
+        elif before_val != after_val:
+            changed_fields.append(path)
+            diff_payload[path] = {"before": before_val, "after": after_val}
+
+    return {"changed_fields": changed_fields, "diff_payload": diff_payload}
+
+
 class AdminService:
     """Service d'administration des monstres"""
 
@@ -54,6 +91,7 @@ class AdminService:
         self.state_repository = MonsterStateRepository(db)
         self.structure_repository = TransitionRepository(db)
         self.monster_repository = MonsterRepository(db)
+        self.update_event_repository = UpdateEventRepository(db)
         self.state_manager = MonsterStateManager(
             self.state_repository, self.structure_repository
         )
@@ -263,6 +301,11 @@ class AdminService:
                 f"Allowed states: {[s.value for s in modifiable_states]}"
             )
 
+        # Mémoriser l'état avant
+        validation_before = monster.metadata.is_valid
+        storage_mode_before = "structured" if monster.metadata.monster else "json"
+        old_data = monster.monster_data.copy() if monster.monster_data else {}
+
         # Valider les nouvelles données si nécessaire
         validation_result = self.validation_service.validate(monster_data)
         if not validation_result.is_valid and not skip_validation:
@@ -317,8 +360,11 @@ class AdminService:
             except Exception as e:
                 logger.error(f"Error updating structured monster {monster_id}: {e}")
                 raise ValueError(f"Failed to update monster data: {str(e)}")
-
         else:
+            # Calculer les changed_fields et diff pour JSON
+            change_info = compute_changed_fields(old_data, monster_data)
+            changed_fields = change_info["changed_fields"]
+            diff_payload = change_info["diff_payload"]
             # Mettre à jour les données
             monster.monster_data = monster_data
 
@@ -326,21 +372,33 @@ class AdminService:
         monster.metadata.updated_at = datetime.now(timezone.utc)
 
         self.state_repository.save(
-            monster.metadata, monster.monster_data if structured_monster else None
+            monster.metadata, monster.monster_data if not structured_monster else None
         )
 
-        transition = StateTransition(
-            from_state=monster.metadata.state,
-            to_state=monster.metadata.state,  # L'état ne change pas
-            timestamp=datetime.now(timezone.utc),
-            actor=admin_name,
-            note=notes
+        # Créer un événement d'update (pas une transition d'état)
+        storage_mode_after = "structured" if monster.metadata.monster else "json"
+
+        # Pour les monstres structurés, on n'a pas de changed_fields détaillés pour l'instant
+        changed_fields_list = (
+            [] if structured_monster else change_info["changed_fields"]
+        )
+        diff_for_event = None if structured_monster else change_info["diff_payload"]
+
+        self.update_event_repository.create(
+            monster_id=monster_id,
+            actor_type="admin",
+            actor_name=admin_name,
+            source="admin_update_endpoint",
+            validation_before=validation_before,
+            validation_after=validation_result.is_valid,
+            storage_mode_before=storage_mode_before,
+            storage_mode_after=storage_mode_after,
+            changed_fields=changed_fields_list,
+            reason=notes
             or f"Data updated (valid={validation_result.is_valid}, skip_validation={skip_validation})",
+            skip_validation=skip_validation,
+            diff_payload=diff_for_event,
         )
-        monster.metadata.history.append(transition)
-
-        # Sauvegarder la transition dans la base de données
-        self.state_repository.save_transition(monster_id, transition)
 
         # Re-récupérer le monstre depuis la BD pour avoir les données fraîches
         updated_monster = self.state_repository.get(monster_id)

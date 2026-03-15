@@ -19,9 +19,11 @@ from app.schemas.admin import (
     DashboardStats,
     MonsterStatsByStateResponse,
 )
+from app.schemas.update_event import TimelineEvent, MonsterHistory
 from app.core.constants import MonsterStateEnum
 from app.services.validation_service import MonsterValidationService
 from app.models.base import get_db
+from app.repositories.monster.update_event_repository import UpdateEventRepository
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,11 @@ validation_service = MonsterValidationService()
 def get_admin_service(db: Session = Depends(get_db)) -> AdminService:
     """Dependency injection"""
     return AdminService(db)
+
+
+def get_update_event_repository(db: Session = Depends(get_db)) -> UpdateEventRepository:
+    """Dependency injection"""
+    return UpdateEventRepository(db)
 
 
 # ===== New Lifecycle Management Endpoints =====
@@ -94,30 +101,90 @@ async def get_monster_detail(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/monsters/{monster_id}/history")
+@router.get("/monsters/{monster_id}/history", response_model=MonsterHistory)
 async def get_monster_history(
-    monster_id: str, service: AdminService = Depends(get_admin_service)
+    monster_id: str,
+    order: str = Query("desc", pattern="^(asc|desc)$"),
+    service: AdminService = Depends(get_admin_service),
+    update_repo: UpdateEventRepository = Depends(get_update_event_repository),
 ):
-    """Récupère l'historique complet des transitions d'un monstre"""
+    """
+    Récupère l'historique complet d'un monstre sous forme de timeline unifiée.
+
+    Combine:
+    - Transitions d'état (state_transition)
+    - Événements de mise à jour (data_update)
+
+    Triés par date (descendant par défaut, croissant si order=asc).
+
+    **Réponse:**
+    - monster_id: UUID du monstre
+    - current_state: État actuel
+    - timeline: Liste des événements, chacun avec:
+      - event_type: 'state_transition' | 'data_update'
+      - happened_at: Timestamp
+      - actor: Qui a effectué l'action
+      - summary: Description brève
+      - details: Données spécifiques au type d'événement
+    """
     try:
         monster = service.state_repository.get(monster_id)
         if not monster:
             raise HTTPException(status_code=404, detail="Monster not found")
 
-        return {
-            "monster_id": monster_id,
-            "current_state": monster.metadata.state,
-            "history": [
-                {
-                    "from_state": t.from_state,
-                    "to_state": t.to_state,
-                    "timestamp": t.timestamp,
-                    "actor": t.actor,
-                    "note": t.note,
-                }
-                for t in monster.metadata.history
-            ],
-        }
+        timeline: List[TimelineEvent] = []
+
+        # 1. Ajouter les transitions d'état
+        for t in monster.metadata.history:
+            timeline.append(
+                TimelineEvent(
+                    event_type="state_transition",
+                    happened_at=t.timestamp,
+                    actor=t.actor,
+                    summary=f"{t.from_state or 'NEW'} → {t.to_state}",
+                    details={
+                        "from_state": t.from_state.value if t.from_state else None,
+                        "to_state": t.to_state.value,
+                        "note": t.note,
+                    },
+                )
+            )
+
+        # 2. Ajouter les événements de mise à jour
+        update_events = update_repo.get_by_monster_id(monster_id)
+        for evt in update_events:
+            timeline.append(
+                TimelineEvent(
+                    event_type="data_update",
+                    happened_at=evt.occurred_at,
+                    actor=evt.actor_name,
+                    summary=f"Updated {len(evt.changed_fields)} field(s)",
+                    details={
+                        "changed_fields": evt.changed_fields,
+                        "validation_before": evt.validation_before,
+                        "validation_after": evt.validation_after,
+                        "skip_validation": evt.skip_validation,
+                        "storage_mode_before": evt.storage_mode_before,
+                        "storage_mode_after": evt.storage_mode_after,
+                        "reason": evt.reason,
+                        "source": evt.source,
+                        "diff_payload": evt.diff_payload,
+                    },
+                )
+            )
+
+        # 3. Trier la timeline par date
+        timeline.sort(
+            key=lambda e: e.happened_at,
+            reverse=True if order == "desc" else False,
+        )
+
+        return MonsterHistory(
+            monster_id=monster_id,
+            current_state=monster.metadata.state.value,
+            timeline=timeline,
+        )
+
     except HTTPException:
         raise
     except Exception as e:

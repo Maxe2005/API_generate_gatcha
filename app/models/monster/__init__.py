@@ -16,10 +16,12 @@ from app.models.monster.monster import Monster
 from app.models.monster.skill import Skill
 from app.models.monster.state import MonsterState
 from app.models.monster.transition import StateTransitionModel
+from app.models.monster.update_event import UpdateEventModel
 
 __all__ = [
     "Monster",
     "Skill",
     "MonsterState",
     "StateTransitionModel",
+    "UpdateEventModel",
 ]
