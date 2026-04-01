@@ -21,7 +21,10 @@ from app.schemas.image import (
     MonsterImageListResponse,
     SetDefaultImageRequest,
     RenameImageRequest,
+    SignedUrlRequestItem,
+    SignedUrlResponseItem,
 )
+from app.services.signed_urls_service import generate_signed_urls
 from app.services.tasks import generate_custom_image
 from app.core.config import get_settings
 
@@ -196,6 +199,27 @@ async def rename_image(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors du renommage de l'image: {str(e)}",
+        )
+
+
+@router.post(
+    "/signed-urls",
+    response_model=list[SignedUrlResponseItem],
+    summary="Générer des URLs présignées pour accéder aux high-res",
+    description="Reçoit une liste d'objets {id, url} et retourne des URLs présignées pour les high-res correspondants.",
+)
+async def get_signed_urls(
+    items: list[SignedUrlRequestItem]
+):
+    try:
+        return generate_signed_urls(items)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.exception("Erreur lors de get_signed_urls")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors de la génération des URLs présignées: {str(e)}",
         )
 
 

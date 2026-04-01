@@ -2,6 +2,7 @@ from minio import Minio
 from app.core.config import get_settings
 from app.utils.image_utils import optimize_for_web
 from pathlib import Path
+from datetime import timedelta
 import io
 
 
@@ -103,3 +104,20 @@ class MinioClientWrapper:
         except Exception:
             return False
         return False
+
+    def presigned_get_object(self, object_name: str, expires_seconds: int = 120) -> str:
+        """
+        Génère une URL présignée pour récupérer un objet dans le bucket RAW (high-res).
+
+        Args:
+            object_name: clé de l'objet dans le bucket raw (ex: "monsters/foo.png")
+            expires_seconds: durée de validité en secondes
+
+        Returns:
+            str: URL présignée
+        """
+        return self.client.presigned_get_object(
+            self.settings.MINIO_BUCKET_RAW,
+            object_name,
+            expires=timedelta(seconds=expires_seconds),
+        )

@@ -66,3 +66,22 @@ class RenameImageRequest(BaseModel):
     """Schéma pour renommer une image"""
 
     new_name: str = Field(..., description="Nouveau nom de l'image")
+
+
+class SignedUrlRequestItem(BaseModel):
+    """Item d'entrée: identifiant interne et URL low-res publique"""
+
+    id: int = Field(..., description="ID interne de l'image")
+    url: str = Field(..., description="URL low-res publique (entrée)")
+
+
+class SignedUrlResponseItem(BaseModel):
+    """Item de réponse pour les URLs présignées"""
+
+    id: int = Field(..., description="ID interne de l'image")
+    input_url: str = Field(..., description="URL low-res fournie en entrée")
+    signed_url: Optional[str] = Field(
+        None, description="URL présignée pour accéder au high-res"
+    )
+    expires_in: int = Field(0, description="Durée de validité en secondes")
+    error: Optional[str] = Field(None, description="Message d'erreur si non générée")
