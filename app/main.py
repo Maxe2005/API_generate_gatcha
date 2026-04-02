@@ -2,7 +2,14 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
-from app.api.v1.endpoints import gatcha, nano_banana, admin, transmission, images
+from app.api.v1.endpoints import (
+    gatcha,
+    nano_banana,
+    admin,
+    transmission,
+    images,
+    import_export,
+)
 from app.core.config import get_settings
 from app.models.base import init_db
 from app.clients.minio_client import MinioClientWrapper
@@ -80,6 +87,11 @@ app.include_router(
     admin.router,
     prefix=f"{settings.API_V1_STR}/admin",
     tags=["admin"],
+)
+app.include_router(
+    import_export.router,
+    prefix=f"{settings.API_V1_STR}/external",
+    tags=["external"],
 )
 app.include_router(
     transmission.router,
