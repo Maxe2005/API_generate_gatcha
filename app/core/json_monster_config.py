@@ -4,9 +4,9 @@ NB_SKILLS_MIN = 4
 NB_SKILLS_MAX = 6
 
 class MonsterJsonAttributes(Enum):
-    NAME = "nom"
+    NAME = "name"
     ELEMENT = "element"
-    RANK = "rang"
+    RANK = "rank"
     STATS = "stats"
     DESCRIPTION_CARD = "description_carte"
     DESCRIPTION_VISUAL = "description_visuelle"

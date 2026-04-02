@@ -36,7 +36,6 @@ from app.services.mappeur.monster_mapper import (
     map_monster_metadata_to_summary,
     map_payload_to_monster_update,
 )
-from app.schemas.metadata import StateTransition
 
 
 logger = logging.getLogger(__name__)
@@ -467,12 +466,12 @@ class AdminService:
             if not structured_monster:
                 logger.warning(f"Structured monster not found for UUID: {monster_id}")
                 return None
-            return structured_monster.nom  # type: ignore
+            return structured_monster.name  # type: ignore
         else:
             if not monster.monster_data:
                 logger.warning(f"Monster data is missing for monster_id: {monster_id}")
                 return None
-            return monster.monster_data.get("nom", "Unknown")
+            return monster.monster_data.get("name", "Unknown")
 
     def get_dashboard_stats(self) -> DashboardStats:
         """Récupère les statistiques du dashboard"""
@@ -617,7 +616,7 @@ class AdminService:
                     details.append(
                         {
                             "monster_id": monster_id,
-                            "name": monster.monster_data.get("nom", "Unknown"),
+                            "name": monster.monster_data.get("name", "Unknown"),
                             "action": "moved_to_pending_review",
                             "is_valid": True,
                         }
@@ -661,7 +660,7 @@ class AdminService:
                     details.append(
                         {
                             "monster_id": monster_id,
-                            "name": monster.monster_data.get("nom", "Unknown"),
+                            "name": monster.monster_data.get("name", "Unknown"),
                             "action": "moved_to_defective",
                             "is_valid": False,
                             "error_count": len(validation_errors),
@@ -753,7 +752,7 @@ class AdminService:
             return {
                 "status": "success",
                 "monster_id": monster_id,
-                "name": monster.monster_data.get("nom", "Unknown"),
+                "name": monster.monster_data.get("name", "Unknown"),
                 "action": action,
                 "is_valid": is_valid,
                 "error_count": error_count if not is_valid else 0,

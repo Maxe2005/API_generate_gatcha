@@ -69,12 +69,12 @@ class ImportExportService:
             )
 
         monster_json = {
-            MonsterJsonAttributes.NAME.value: monster.nom,
+            MonsterJsonAttributes.NAME.value: monster.name,
             MonsterJsonAttributes.ELEMENT.value: monster.element.value
-            if monster.element
+            if monster.element.value
             else None,
-            MonsterJsonAttributes.RANK.value: monster.rang.value
-            if monster.rang
+            MonsterJsonAttributes.RANK.value: monster.rank.value
+            if monster.rank.value
             else None,
             MonsterJsonAttributes.STATS.value: {
                 MonsterJsonStatsAttributes.HP.value: monster.hp,

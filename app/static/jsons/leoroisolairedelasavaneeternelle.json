@@ -1,7 +1,7 @@
 {
-    "nom": "Leo, Roi Solaire de la Savane Éternelle",
+    "name": "Leo, Roi Solaire de la Savane Éternelle",
     "element": "FIRE",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 900.0,
         "atk": 190.0,

@@ -1,7 +1,7 @@
 {
-    "nom": "Capricorn, Ascendant de la Montagne Immuable",
+    "name": "Capricorn, Ascendant de la Montagne Immuable",
     "element": "EARTH",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 950.0,
         "atk": 90.0,

@@ -34,7 +34,7 @@ def create_monster() -> Dict[str, Any]:
         return {}
 
     monster = response.json()
-    print(f"✅ Monstre créé: {monster.get('nom', 'Unknown')}")
+    print(f"✅ Monstre créé: {monster.get('name', 'Unknown')}")
     print(f"   Monster ID: {monster.get('monster_id', 'N/A')}")
     print(f"   Image URL: {monster.get('image_path', 'N/A')}")
 

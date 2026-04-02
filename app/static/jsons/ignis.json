@@ -1,7 +1,7 @@
 {
-    "nom": "Ignis",
+    "name": "Ignis",
     "element": "FIRE",
-    "rang": "EPIC",
+    "rank": "EPIC",
     "stats": {
         "hp": 750,
         "atk": 160,

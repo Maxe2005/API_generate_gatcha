@@ -1,7 +1,7 @@
 {
-    "nom": "Scorpio, the Venomtail",
+    "name": "Scorpio, the Venomtail",
     "element": "WATER",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 680.0,
         "atk": 195.0,

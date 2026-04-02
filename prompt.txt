@@ -1,7 +1,7 @@
 voici un monstre de gatcha avec l'un de ses skills : {
-        "nom": "Sphinx Golem",
+        "name": "Sphinx Golem",
         "element": "LIGHT",
-        "rang": "LEGENDARY",
+        "rank": "LEGENDARY",
         "stats": {
             "hp": 900,
             "atk": 170,

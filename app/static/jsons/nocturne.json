@@ -1,7 +1,7 @@
 {
-    "nom": "Nocturne",
+    "name": "Nocturne",
     "element": "DARKNESS",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 900,
         "atk": 200,

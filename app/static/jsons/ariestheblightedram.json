@@ -1,7 +1,7 @@
 {
-    "nom": "Aries, the Blighted Ram",
+    "name": "Aries, the Blighted Ram",
     "element": "FIRE",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 750.0,
         "atk": 180.0,

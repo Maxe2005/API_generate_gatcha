@@ -198,12 +198,12 @@ class MonsterRepository:
                 return None
 
             # Mettre à jour les champs fournis
-            if updates.nom is not None:
-                monster.nom = updates.nom  # type: ignore
+            if updates.name is not None:
+                monster.name = updates.name  # type: ignore
             if updates.element is not None:
                 monster.element = updates.element  # type: ignore
-            if updates.rang is not None:
-                monster.rang = updates.rang  # type: ignore
+            if updates.rank is not None:
+                monster.rank = updates.rank  # type: ignore
             if updates.hp is not None:
                 monster.hp = updates.hp  # type: ignore
             if updates.atk is not None:

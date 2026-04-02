@@ -1,7 +1,7 @@
 {
-    "nom": "Neon Scourge",
+    "name": "Neon Scourge",
     "element": "LIGHT",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 850.0,
         "atk": 185.0,

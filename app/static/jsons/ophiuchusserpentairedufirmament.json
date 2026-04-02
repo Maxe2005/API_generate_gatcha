@@ -1,7 +1,7 @@
 {
-    "nom": "Ophiuchus, Serpentaire du Firmament",
+    "name": "Ophiuchus, Serpentaire du Firmament",
     "element": "WIND",
-    "rang": "COMMON",
+    "rank": "COMMON",
     "stats": {
         "hp": 400.0,
         "atk": 100.0,

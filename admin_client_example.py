@@ -156,7 +156,7 @@ def workflow_fix_monster(filename: str):
     # Get details
     monster = client.get_defective_monster(filename)
 
-    print(f"\nOriginal data for '{monster['monster_data']['nom']}':")
+    print(f"\nOriginal data for '{monster['monster_data']['name']}':")
     print(json.dumps(monster["monster_data"], indent=2))
 
     print("\n❌ Validation errors:")
@@ -178,9 +178,9 @@ def workflow_fix_monster(filename: str):
         print(f"   Fixed to: FIRE")
 
     # Fix rank if invalid
-    if corrected_data.get("rang") not in rules["valid_ranks"]:
-        print(f"\n⚠️  Invalid rank '{corrected_data['rang']}'")
-        corrected_data["rang"] = "COMMON"  # Default fix
+    if corrected_data.get("rank") not in rules["valid_ranks"]:
+        print(f"\n⚠️  Invalid rank '{corrected_data['rank']}'")
+        corrected_data["rank"] = "COMMON"  # Default fix
         print(f"   Fixed to: COMMON")
 
     # Validate corrections

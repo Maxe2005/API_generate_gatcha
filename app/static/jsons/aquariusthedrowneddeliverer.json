@@ -1,7 +1,7 @@
 {
-    "nom": "Aquarius, the Drowned Deliverer",
+    "name": "Aquarius, the Drowned Deliverer",
     "element": "WATER",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 580.0,
         "atk": 110.0,

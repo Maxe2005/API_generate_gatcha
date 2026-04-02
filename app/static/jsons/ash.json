@@ -1,7 +1,7 @@
 {
-    "nom": "Ash",
+    "name": "Ash",
     "element": "FIRE",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 450,
         "atk": 120,

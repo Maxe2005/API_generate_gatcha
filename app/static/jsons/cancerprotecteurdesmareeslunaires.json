@@ -1,7 +1,7 @@
 {
-    "nom": "Cancer, Protecteur des Marées Lunaires",
+    "name": "Cancer, Protecteur des Marées Lunaires",
     "element": "WATER",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 750.0,
         "atk": 110.0,

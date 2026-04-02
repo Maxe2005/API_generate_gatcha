@@ -1,7 +1,7 @@
 {
-    "nom": "Gemini, the Severed Souls",
+    "name": "Gemini, the Severed Souls",
     "element": "DARKNESS",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 600.0,
         "atk": 190.0,

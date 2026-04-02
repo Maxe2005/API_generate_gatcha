@@ -1,7 +1,7 @@
 {
-    "nom": "Ophiuchus, the Forgotten Serpent",
+    "name": "Ophiuchus, the Forgotten Serpent",
     "element": "WIND",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 500.0,
         "atk": 200.0,

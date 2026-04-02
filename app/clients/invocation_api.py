@@ -46,7 +46,7 @@ class InvocationApiClient(BaseClient):
     def _map_monster_to_invocation_format(self, monster: Monster) -> Dict[str, Any]:
         """
         Convertit notre format de monstre vers le format de l'API d'invocation.
-        Mapping: nom → name, rang → rank, def_ → def
+        Mapping: def_ → def
         """
         monster_skills: List[Skill] = monster.skills
         skills = []
@@ -67,9 +67,9 @@ class InvocationApiClient(BaseClient):
             )
 
         return {
-            "name": monster.nom,
+            "name": monster.name,
             "element": self._serialize_enum(monster.element),
-            "rank": self._serialize_enum(monster.rang),
+            "rank": self._serialize_enum(monster.rank),
             "stats": {
                 "hp": monster.hp,
                 "atk": monster.atk,

@@ -1,7 +1,7 @@
 {
-    "nom": "Virgo, the Corrupted Harvest",
+    "name": "Virgo, the Corrupted Harvest",
     "element": "EARTH",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 650.0,
         "atk": 100.0,

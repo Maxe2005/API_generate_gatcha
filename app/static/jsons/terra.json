@@ -1,7 +1,7 @@
 {
-    "nom": "Terra",
+    "name": "Terra",
     "element": "EARTH",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 600,
         "atk": 100,

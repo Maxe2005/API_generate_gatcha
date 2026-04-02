@@ -49,9 +49,9 @@ class Monster(Base):
     )
 
     # Informations de base
-    nom = Column(String, nullable=False, index=True)
+    name = Column(String, nullable=False, index=True)
     element = Column(SQLEnum(ElementEnum), nullable=False, index=True)
-    rang = Column(SQLEnum(RankEnum), nullable=False, index=True)
+    rank = Column(SQLEnum(RankEnum), nullable=False, index=True)
 
     # Stats
     hp = Column(Integer, nullable=False)
@@ -94,5 +94,5 @@ class Monster(Base):
 
     def __repr__(self):
         return (
-            f"<Monster(nom='{self.nom}', element='{self.element}', rang='{self.rang}')>"
+            f"<Monster(name='{self.name}', element='{self.element}', rank='{self.rank}')>"
         )

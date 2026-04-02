@@ -1,7 +1,7 @@
 {
-    "nom": "Capricorn, the Shattered Idol",
+    "name": "Capricorn, the Shattered Idol",
     "element": "EARTH",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 850.0,
         "atk": 80.0,

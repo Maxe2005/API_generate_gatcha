@@ -147,5 +147,5 @@ if __name__ == "__main__":
     print("\n=== BATCH_BRAINSTORM ===")
     print(GatchaPrompts.BATCH_BRAINSTORM(3, "Forêt enchantée"))
     print("\n=== BATCH_SKILLS ===")
-    fake_monsters_json = '[{"nom": "Test", "element": "FIRE", "rang": "RARE", "stats": {"hp": 100, "atk": 50, "def": 30, "vit": 20}, "description_carte": "Un monstre test", "description_visuelle": "Rouge et féroce"}]'
+    fake_monsters_json = '[{"name": "Test", "element": "FIRE", "rank": "RARE", "stats": {"hp": 100, "atk": 50, "def": 30, "vit": 20}, "description_carte": "Un monstre test", "description_visuelle": "Rouge et féroce"}]'
     print(GatchaPrompts.BATCH_SKILLS(fake_monsters_json))

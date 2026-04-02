@@ -1,7 +1,7 @@
 {
-    "nom": "Pisces, Danseurs des Rêves Aquatiques",
+    "name": "Pisces, Danseurs des Rêves Aquatiques",
     "element": "WATER",
-    "rang": "EPIC",
+    "rank": "EPIC",
     "stats": {
         "hp": 600.0,
         "atk": 135.0,

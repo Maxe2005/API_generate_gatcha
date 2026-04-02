@@ -1,7 +1,7 @@
 {
-    "nom": "Flamèche",
+    "name": "Flamèche",
     "element": "FIRE",
-    "rang": "COMMON",
+    "rank": "COMMON",
     "stats": {
         "hp": 250.0,
         "atk": 50.0,

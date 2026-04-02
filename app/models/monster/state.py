@@ -100,10 +100,10 @@ class MonsterState(Base):
 
     def __repr__(self):
         name = (
-            self.monster.nom
+            self.monster.name
             if self.monster
-            else self.monster_data.get("nom", "N/A")
+            else self.monster_data.get("name", "N/A")
             if self.monster_data is not None
             else "N/A"
         )
-        return f"<MonsterState(monster_id='{self.monster_id}', state='{self.state}', nom='{name}')>"
+        return f"<MonsterState(monster_id='{self.monster_id}', state='{self.state}', name='{name}')>"

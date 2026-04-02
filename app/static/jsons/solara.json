@@ -1,7 +1,7 @@
 {
-    "nom": "Solara",
+    "name": "Solara",
     "element": "LIGHT",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 950,
         "atk": 180,

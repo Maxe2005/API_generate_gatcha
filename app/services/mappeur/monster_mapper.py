@@ -23,9 +23,9 @@ def map_monster_to_summary(metadata: MonsterMetadata, monster: Monster):
     """
     return MonsterSummary(
         monster_id=monster.monster_uuid,  # type: ignore
-        name=monster.nom,  # type: ignore
+        name=monster.name,  # type: ignore
         element=monster.element,  # type: ignore
-        rank=monster.rang,  # type: ignore
+        rank=monster.rank,  # type: ignore
         state=metadata.state,
         created_at=metadata.created_at,
         updated_at=metadata.updated_at,
@@ -73,9 +73,9 @@ def map_global_structured_monster(monster: Monster) -> MonsterStructured:
     skills = [map_structured_skill(s) for s in monster.skills]  # type: ignore
     return MonsterStructured(
         monster_uuid=monster.monster_uuid,  # type: ignore
-        nom=monster.nom,  # type: ignore
+        name=monster.name,  # type: ignore
         element=monster.element,  # type: ignore
-        rang=monster.rang,  # type: ignore
+        rank=monster.rank,  # type: ignore
         description_carte=monster.description_carte,  # type: ignore
         description_visuelle=monster.description_visuelle,  # type: ignore*
         skills=skills,
@@ -98,9 +98,9 @@ def map_structured_skill(skill_db: Skill) -> SkillStructured:
 
 def map_monster_to_json(monster: Monster) -> MonsterBase:
     return MonsterBase(
-        nom=monster.nom,  # type: ignore
+        name=monster.name,  # type: ignore
         element=monster.element,  # type: ignore
-        rang=monster.rang,  # type: ignore
+        rank=monster.rank,  # type: ignore
         stats={
             "hp": monster.hp,  # type: ignore
             "atk": monster.atk,  # type: ignore
@@ -130,9 +130,9 @@ def map_monster_to_json(monster: Monster) -> MonsterBase:
 
 def map_json_monster(monster_json: MonsterBase) -> Dict[str, Any]:
     return {
-        "nom": monster_json.nom,
+        "name": monster_json.name,
         "element": monster_json.element,
-        "rang": monster_json.rang,
+        "rank": monster_json.rank,
         "hp": monster_json.stats.hp,
         "atk": monster_json.stats.atk,
         "def": monster_json.stats.def_,

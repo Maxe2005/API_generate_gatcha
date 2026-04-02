@@ -1,7 +1,7 @@
 {
-    "nom": "Leo, the Shadowmane",
+    "name": "Leo, the Shadowmane",
     "element": "DARKNESS",
-    "rang": "EPIC",
+    "rank": "EPIC",
     "stats": {
         "hp": 700.0,
         "atk": 170.0,

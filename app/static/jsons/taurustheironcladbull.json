@@ -1,7 +1,7 @@
 {
-    "nom": "Taurus, the Ironclad Bull",
+    "name": "Taurus, the Ironclad Bull",
     "element": "EARTH",
-    "rang": "EPIC",
+    "rank": "EPIC",
     "stats": {
         "hp": 900.0,
         "atk": 150.0,

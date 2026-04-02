@@ -1,7 +1,7 @@
 {
-    "nom": "Libra, Juge des Étoiles Équilibrées",
+    "name": "Libra, Juge des Étoiles Équilibrées",
     "element": "LIGHT",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 550.0,
         "atk": 120.0,

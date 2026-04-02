@@ -1,7 +1,7 @@
 {
-    "nom": "Kitsune No Akuma",
+    "name": "Kitsune No Akuma",
     "element": "FIRE",
-    "rang": "EPIC",
+    "rank": "EPIC",
     "stats": {
         "hp": 750.0,
         "atk": 180.0,

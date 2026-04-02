@@ -1,7 +1,7 @@
 {
-    "nom": "Tatou-Roc, le Titan Ancestral",
+    "name": "Tatou-Roc, le Titan Ancestral",
     "element": "EARTH",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 950.0,
         "atk": 180.0,

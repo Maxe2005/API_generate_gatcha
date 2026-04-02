@@ -1,7 +1,7 @@
 {
-    "nom": "Sagittarius, Archer Céleste des Mondes Lointains",
+    "name": "Sagittarius, Archer Céleste des Mondes Lointains",
     "element": "WIND",
-    "rang": "EPIC",
+    "rank": "EPIC",
     "stats": {
         "hp": 500.0,
         "atk": 200.0,

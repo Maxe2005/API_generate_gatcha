@@ -7,6 +7,7 @@ Crée des monstres structurés à partir de JSON.
 Gère la transition JSON → Monster structuré + Skills.
 """
 
+from os import name
 from typing import Optional, Dict, Any
 import logging
 
@@ -62,9 +63,9 @@ class TransitionRepository:
             monster = Monster(
                 monster_uuid=monster_state.monster_id,
                 monster_state_id=monster_state.id,
-                nom=monster_json[MonsterJsonAttributes.NAME.value],
+                name=monster_json[MonsterJsonAttributes.NAME.value],
                 element=monster_json[MonsterJsonAttributes.ELEMENT.value],
-                rang=monster_json[MonsterJsonAttributes.RANK.value],
+                rank=monster_json[MonsterJsonAttributes.RANK.value],
                 hp=monster_json[MonsterJsonAttributes.STATS.value][
                     MonsterJsonStatsAttributes.HP.value
                 ],
@@ -111,7 +112,7 @@ class TransitionRepository:
                 self.db.add(skill)
 
             # Create default image entry in monster_images table
-            image_name = monster.nom
+            image_name = monster.name
             image_url: str = monster_json[MonsterJsonAttributes.IMAGE_URL.value]
             raw_image_key = image_url.replace(f"{self.settings.MINIO_PUBLIC_URL}{self.settings.MINIO_BUCKET_ASSETS}", f"{self.settings.MINIO_BUCKET_RAW}")  # Extract raw image key from URL
             image = MonsterImage(

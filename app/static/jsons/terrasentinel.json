@@ -1,7 +1,7 @@
 {
-    "nom": "Terra Sentinel",
+    "name": "Terra Sentinel",
     "element": "EARTH",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 600,
         "atk": 70,

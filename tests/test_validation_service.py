@@ -82,9 +82,9 @@ class TestMonsterValidation:
     @pytest.fixture
     def valid_monster(self):
         return {
-            "nom": "Dragon",
+            "name": "Dragon",
             "element": "FIRE",
-            "rang": "RARE",
+            "rank": "RARE",
             "stats": {
                 "hp": 500.0,
                 "atk": 100.0,
@@ -153,7 +153,7 @@ class TestMonsterValidation:
     def test_multiple_errors(self, validator, valid_monster):
         valid_monster["element"] = "INVALID"
         valid_monster["stats"]["hp"] = 10.0  # Too low
-        valid_monster["rang"] = "SUPER_RARE"
+        valid_monster["rank"] = "SUPER_RARE"
         result = validator.validate(valid_monster)
         assert result.is_valid is False
         assert len(result.errors) >= 3
@@ -196,9 +196,9 @@ class TestValidationExamples:
 
         for stat_name, value, should_be_valid in test_cases:
             monster = {
-                "nom": "Test",
+                "name": "Test",
                 "element": "FIRE",
-                "rang": "COMMON",
+                "rank": "COMMON",
                 "stats": {
                     "hp": 100.0 if stat_name != "hp" else value,
                     "atk": 100.0 if stat_name != "atk" else value,

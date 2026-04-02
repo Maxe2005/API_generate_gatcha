@@ -1,7 +1,7 @@
 {
-    "nom": "Scorpio, Seigneur des Abysses Venimeuses",
+    "name": "Scorpio, Seigneur des Abysses Venimeuses",
     "element": "DARKNESS",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 800.0,
         "atk": 175.0,

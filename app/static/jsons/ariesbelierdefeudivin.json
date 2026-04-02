@@ -1,7 +1,7 @@
 {
-    "nom": "Aries, Bélier de Feu Divin",
+    "name": "Aries, Bélier de Feu Divin",
     "element": "FIRE",
-    "rang": "LEGENDARY",
+    "rank": "LEGENDARY",
     "stats": {
         "hp": 850.0,
         "atk": 185.0,

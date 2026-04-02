@@ -33,9 +33,9 @@ class MonsterStats(BaseModel):
 class MonsterBase(BaseModel):
     """Monstre de base au format JSON"""
 
-    nom: str = Field(..., description="le nom du monstre")
+    name: str = Field(..., description="le nom du monstre")
     element: str = Field(..., description="|".join(ElementEnum._member_names_))
-    rang: str = Field(..., description="|".join(RankEnum._member_names_))
+    rank: str = Field(..., description="|".join(RankEnum._member_names_))
     stats: MonsterStats
     description_carte: str = Field(
         ...,

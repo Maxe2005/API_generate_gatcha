@@ -42,7 +42,7 @@ class GatchaService:
 
     def _get_filename_base(self, monster_data: Dict[str, Any]) -> str:
         """Build a safe filename base from monster name."""
-        monster_name = monster_data.get("nom", "unknown_monster")
+        monster_name = monster_data.get("name", "unknown_monster")
         # Simple sanitization: lowercase, remove spaces and special chars
         filename_base = (
             "".join(c for c in monster_name.lower() if c.isalnum())
@@ -144,10 +144,10 @@ class GatchaService:
         save_success = self.state_repository.save(metadata, monster_data)
         if not save_success:
             logger.error(
-                f"Échec de la sauvegarde du monstre {monster_data.get('nom', 'unknown')} (ID: {metadata.monster_id})"
+                f"Échec de la sauvegarde du monstre {monster_data.get('name', 'unknown')} (ID: {metadata.monster_id})"
             )
             raise RuntimeError(
-                f"Échec de la sauvegarde du monstre {monster_data.get('nom', 'unknown')} (ID: {metadata.monster_id})"
+                f"Échec de la sauvegarde du monstre {monster_data.get('name', 'unknown')} (ID: {metadata.monster_id})"
             )
 
         # Auto-transition valid monsters to PENDING_REVIEW ou DEFECTIVE
@@ -168,7 +168,7 @@ class GatchaService:
                 note="Monster marked as defective after validation failure",
             )
             logger.warning(
-                "Monster validation failed: %s", monster_data.get("nom", "unknown")
+                "Monster validation failed: %s", monster_data.get("name", "unknown")
             )
             logger.warning(validation_result.get_error_summary())
 
@@ -204,7 +204,7 @@ class GatchaService:
         result = await self._process_monster_asset(
             profile_data, prompt, batch_id=batch_id
         )
-        logger.info(f"Monster '{result.nom}' created")
+        logger.info(f"Monster '{result.name}' created")
         run_async(send_monster_update(batch_id, result.model_dump()))
         return result
 
@@ -312,7 +312,7 @@ class GatchaService:
             # Progress Log
             percent = int(((idx - 1) / total_monsters) * 100)
             bar = "▓" * (percent // 5) + "░" * (20 - (percent // 5))
-            monster_name = monster_data.get("nom", "Unknown")
+            monster_name = monster_data.get("name", "Unknown")
             logger.info(
                 f"   Assets Progress: [{bar}] {percent}% - Processing '{monster_name}' ({idx}/{total_monsters})"
             )

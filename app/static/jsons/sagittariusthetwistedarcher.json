@@ -1,7 +1,7 @@
 {
-    "nom": "Sagittarius, the Twisted Archer",
+    "name": "Sagittarius, the Twisted Archer",
     "element": "FIRE",
-    "rang": "EPIC",
+    "rank": "EPIC",
     "stats": {
         "hp": 620.0,
         "atk": 185.0,

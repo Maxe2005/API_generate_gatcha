@@ -1,7 +1,7 @@
 {
-    "nom": "Virgo, Déesse de la Moisson Céleste",
+    "name": "Virgo, Déesse de la Moisson Céleste",
     "element": "EARTH",
-    "rang": "EPIC",
+    "rank": "EPIC",
     "stats": {
         "hp": 650.0,
         "atk": 140.0,

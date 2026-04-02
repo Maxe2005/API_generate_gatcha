@@ -1,7 +1,7 @@
 {
-    "nom": "Cancer, the Carapace King",
+    "name": "Cancer, the Carapace King",
     "element": "WATER",
-    "rang": "RARE",
+    "rank": "RARE",
     "stats": {
         "hp": 800.0,
         "atk": 90.0,

@@ -1,7 +1,7 @@
 {
-    "nom": "Gemini, Émissaires du Crépuscule",
+    "name": "Gemini, Émissaires du Crépuscule",
     "element": "DARKNESS",
-    "rang": "EPIC",
+    "rank": "EPIC",
     "stats": {
         "hp": 600.0,
         "atk": 160.0,
