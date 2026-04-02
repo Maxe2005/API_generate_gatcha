@@ -121,3 +121,11 @@ class MinioClientWrapper:
             object_name,
             expires=timedelta(seconds=expires_seconds),
         )
+
+    def object_exists(self, bucket_name: str, object_name: str) -> bool:
+        """Vérifie si un objet existe dans le bucket en interrogeant son statut."""
+        try:
+            self.client.stat_object(bucket_name, object_name)
+            return True
+        except Exception:
+            return False

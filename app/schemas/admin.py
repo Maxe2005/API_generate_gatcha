@@ -34,7 +34,7 @@ class MonsterListFilter(BaseModel):
     element: Optional[ElementEnum] = None
     rank: Optional[RankEnum] = None
     is_valid: Optional[bool] = None
-    limit: int = Field(default=50, ge=1, le=200)
+    limit: int = Field(default=10_000, ge=1, le=100_000)
     offset: int = Field(default=0, ge=0)
     sort_by: str = Field(default="created_at")
     order: str = Field(default="desc", pattern="^(asc|desc)$")

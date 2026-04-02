@@ -6,10 +6,12 @@ Routes:
 - POST /import : upload zip pour import
 """
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response
+from pydantic import Field, BaseModel
 from sqlalchemy.orm import Session
-import io
 import logging
 
 from app.models.base import get_db
@@ -19,6 +21,10 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+class ExportRequest(BaseModel):
+    """Schéma d'entrée pour l'export des monstres"""
+    uuids: Optional[list[str]] = Field(None, description="Liste des UUIDs des monstres à exporter (optionnel)")
+
 
 def get_import_export_service(db: Session = Depends(get_db)) -> ImportExportService:
     return ImportExportService(db)
@@ -26,19 +32,20 @@ def get_import_export_service(db: Session = Depends(get_db)) -> ImportExportServ
 
 @router.post("/monsters/export")
 async def export_monsters(
-    request: dict = None,
+    request: Optional[ExportRequest] = None,
     service: ImportExportService = Depends(get_import_export_service),
 ):
     """Export des monstres. Body optionnel: {"uuids": ["uuid1", ...]}"""
     try:
-        uuids = None
-        if request and isinstance(request, dict):
-            uuids = request.get("uuids")
-
+        uuids = request.uuids if request else None
+        print(f"Exporting monsters with UUIDs: {uuids}")
         data = service.export_monsters(uuids)
-        buf = io.BytesIO(data)
-        headers = {"Content-Disposition": "attachment; filename=monsters_export.zip"}
-        return StreamingResponse(buf, media_type="application/zip", headers=headers)
+        print(f"Exported data size: {len(data)} bytes")
+        headers = {
+            "Content-Disposition": "attachment; filename=monsters_export.zip",
+            "Content-Length": str(len(data)),
+        }
+        return Response(content=data, media_type="application/zip", headers=headers)
     except Exception as e:
         logger.exception("Error exporting monsters")
         raise HTTPException(status_code=500, detail=str(e))

@@ -100,7 +100,7 @@ class ImportExportService:
         if uuids:
             ids_to_export = uuids
         else:
-            metas = self.state_repo.list_all(limit=100000, offset=0)
+            metas = self.state_repo.list_all(limit=10, offset=0)
             ids_to_export = [m.monster_id for m in metas]
 
         buf = io.BytesIO()
@@ -138,28 +138,33 @@ class ImportExportService:
                     monster_struct = self.monster_repo.get_by_uuid(mid)
                     if monster_struct:
                         imgs = self.image_repo.get_images_by_monster_id(
-                            monster_struct.id
+                            monster_struct.id # type: ignore
                         )
                         for im in imgs:
+                            id = int(im.id) if im.id else None # type: ignore
+                            raw_image_key = str(im.raw_image_key) if im.raw_image_key else None # type: ignore
+                            image_url = str(im.image_url) if im.image_url else None # type: ignore
+                            image_name = str(im.image_name) if im.image_name else None # type: ignore
+                            prompt = str(im.prompt) if im.prompt else None # type: ignore
                             images_list.append(
                                 {
-                                    "id": int(im.id),
-                                    "image_name": im.image_name,
-                                    "image_url": im.image_url,
-                                    "prompt": im.prompt,
+                                    "id": id,
+                                    "image_name": image_name,
+                                    "image_url": image_url,
+                                    "prompt": prompt,
                                     "is_default": bool(im.is_default),
-                                    "raw_image_key": im.raw_image_key,
+                                    "raw_image_key": raw_image_key,
                                 }
                             )
                             # try download raw image from minio
                             raw_key = None
                             try:
                                 # derive raw key: often raw key is like "monsters/<stem>.png"
-                                if im.raw_image_key:
-                                    raw_key = im.raw_image_key
-                                elif im.image_url:
+                                if raw_image_key:
+                                    raw_key = raw_image_key
+                                elif image_url:
                                     # fallback: derive from image_url
-                                    name = PurePosixPath(im.image_url).name
+                                    name = PurePosixPath(image_url).name
                                     stem = PurePosixPath(name).stem
                                     raw_key = f"monsters/{stem}.png"
                                 else:
@@ -222,6 +227,7 @@ class ImportExportService:
                         meta = None
 
                     # Save state
+                    skip_root = False
                     if meta and "monster_id" in meta:
                         # Build minimal MonsterMetadata-like dict
                         from app.schemas.metadata import MonsterMetadata
@@ -233,8 +239,22 @@ class ImportExportService:
                                 if k in MonsterMetadata.__fields__
                             }
                         )
-                        self.state_repo.save(meta_obj, monster_data)
-                        summary["imported"].append(root)
+                        # Si le monstre structuré existe déjà en base, on le rejette proprement
+                        try:
+                            existing = self.monster_repo.get_by_uuid(meta_obj.monster_id)
+                            if existing:
+                                summary.setdefault("skipped", []).append(
+                                    {"root": root, "reason": "monster_exists"}
+                                )
+                                skip_root = True
+                            else:
+                                self.state_repo.save(meta_obj, monster_data)
+                                summary["imported"].append(root)
+                        except Exception as e:
+                            logger.warning(f"Error checking existing monster for {meta_obj.monster_id}: {e}")
+                            # attempt to save state if check failed
+                            self.state_repo.save(meta_obj, monster_data)
+                            summary["imported"].append(root)
 
                         # Si le monstre est en TRANSMITTED, préparer la transmission en batch
                         from app.core.constants import MonsterStateEnum
@@ -266,6 +286,11 @@ class ImportExportService:
                     except KeyError:
                         imgs = []
 
+                    # upload images present in zip (skip if monster was rejected)
+                    if skip_root:
+                        # skip image uploads for this root
+                        continue
+
                     # upload images present in zip
                     for name in zf.namelist():
                         if not name.startswith(f"{root}/images/"):
@@ -278,24 +303,50 @@ class ImportExportService:
                             # upload raw
                             stem = PurePosixPath(rel).stem
                             raw_key = f"monsters/{stem}.png"
-                            self.minio.upload_image(
-                                self.settings.MINIO_BUCKET_RAW,
-                                raw_key,
-                                data,
-                                content_type="image/png",
-                            )
+                            # n'uploadez que si l'objet raw n'existe pas déjà
+                            try:
+                                if not self.minio.object_exists(self.settings.MINIO_BUCKET_RAW, raw_key):
+                                    self.minio.upload_image(
+                                        self.settings.MINIO_BUCKET_RAW,
+                                        raw_key,
+                                        data,
+                                        content_type="image/png",
+                                    )
+                                else:
+                                    logger.info(f"Raw image already exists, skipping upload: {raw_key}")
+                            except Exception:
+                                # si check échoue, fallback: tenter l'upload
+                                self.minio.upload_image(
+                                    self.settings.MINIO_BUCKET_RAW,
+                                    raw_key,
+                                    data,
+                                    content_type="image/png",
+                                )
                             # create webp and upload to assets
                             try:
                                 from app.utils.image_utils import optimize_for_web
 
                                 webp_io = optimize_for_web(data)
                                 webp_name = f"{stem}.webp"
-                                self.minio.upload_image(
-                                    self.settings.MINIO_BUCKET_ASSETS,
-                                    webp_name,
-                                    webp_io.getvalue(),
-                                    content_type="image/webp",
-                                )
+                                # n'uploadez que si webp n'existe pas déjà
+                                try:
+                                    if not self.minio.object_exists(self.settings.MINIO_BUCKET_ASSETS, webp_name):
+                                        self.minio.upload_image(
+                                            self.settings.MINIO_BUCKET_ASSETS,
+                                            webp_name,
+                                            webp_io.getvalue(),
+                                            content_type="image/webp",
+                                        )
+                                    else:
+                                        logger.info(f"Webp already exists, skipping upload: {webp_name}")
+                                except Exception:
+                                    # fallback: tenter l'upload
+                                    self.minio.upload_image(
+                                        self.settings.MINIO_BUCKET_ASSETS,
+                                        webp_name,
+                                        webp_io.getvalue(),
+                                        content_type="image/webp",
+                                    )
                             except Exception:
                                 logger.warning(f"Could not create webp for {rel}")
 

@@ -51,7 +51,7 @@ def get_update_event_repository(db: Session = Depends(get_db)) -> UpdateEventRep
 @router.get("/monsters", response_model=List[MonsterSummary])
 async def list_monsters(
     state: Optional[MonsterStateEnum] = Query(None),
-    limit: int = Query(50, ge=1, le=200),
+    limit: int = Query(10_000, ge=1, le=100_000),
     offset: int = Query(0, ge=0),
     sort_by: str = Query("created_at"),
     order: str = Query("desc", pattern="^(asc|desc)$"),
@@ -61,7 +61,7 @@ async def list_monsters(
     Liste tous les monstres avec filtres optionnels.
 
     - **state**: Filtrer par état (optionnel)
-    - **limit**: Nombre max de résultats (1-200)
+    - **limit**: Nombre max de résultats (1-100_000, default: 10_000)
     - **offset**: Pagination
     - **sort_by**: Champ de tri
     - **order**: Ordre (asc|desc)
