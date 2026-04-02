@@ -6,7 +6,7 @@ Routes:
 - POST /import : upload zip pour import
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import io
@@ -52,7 +52,7 @@ async def import_monsters(
     """Import des monstres depuis un fichier zip uploadé."""
     try:
         content = await file.read()
-        result = service.import_monsters(content)
+        result = await service.import_monsters(content)
         return {"status": "ok", "result": result}
     except Exception as e:
         logger.exception("Error importing monsters")

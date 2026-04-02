@@ -193,7 +193,7 @@ class ImportExportService:
         buf.seek(0)
         return buf.getvalue()
 
-    def import_monsters(self, zip_bytes: bytes) -> Dict[str, Any]:
+    async def import_monsters(self, zip_bytes: bytes) -> Dict[str, Any]:
         """
         Importe les monstres depuis une archive zip (format attendu décrit dans l'API).
         Retourne un résumé sommaire.
@@ -203,6 +203,7 @@ class ImportExportService:
         with zipfile.ZipFile(buf, mode="r") as zf:
             # parcourir les racines (un dossier par monster)
             roots = set(p.split("/")[0] for p in zf.namelist() if p.strip())
+            monsters_to_transmit: List = []
             for root in roots:
                 try:
                     # lire monster.json
@@ -234,6 +235,27 @@ class ImportExportService:
                         )
                         self.state_repo.save(meta_obj, monster_data)
                         summary["imported"].append(root)
+
+                        # Si le monstre est en TRANSMITTED, préparer la transmission en batch
+                        from app.core.constants import MonsterStateEnum
+
+                        try:
+                            if meta_obj.state == MonsterStateEnum.TRANSMITTED:
+                                # récupérer DB MonsterState
+                                db_state = self.state_repo.get_db_object(meta_obj.monster_id)
+                                if db_state and (not db_state.monster) and monster_data:
+                                    # créer le monstre structuré à partir du JSON
+                                    try:
+                                        self.transition_repo.create_structured_monster_from_json(db_state, monster_data)
+                                    except Exception as e:
+                                        logger.warning(f"Could not create structured monster for {meta_obj.monster_id}: {e}")
+
+                                # récupérer le structuré et l'ajouter à la liste
+                                monster_struct = self.monster_repo.get_by_uuid(meta_obj.monster_id)
+                                if monster_struct:
+                                    monsters_to_transmit.append(monster_struct)
+                        except Exception as e:
+                            logger.warning(f"Error while preparing transmission for {meta_obj.monster_id}: {e}")
                     else:
                         summary["skipped"].append(root)
 
@@ -283,5 +305,17 @@ class ImportExportService:
                 except Exception as e:
                     logger.exception(f"Error importing root {root}: {e}")
                     summary["errors"].append({"root": root, "error": str(e)})
+
+            # Après avoir traité tous les roots, transmettre en batch si besoin
+            if monsters_to_transmit:
+                try:
+                    from app.clients.invocation_api import InvocationApiClient
+
+                    client = InvocationApiClient(base_url=self.settings.INVOCATION_API_URL)
+                    resp = await client.create_monsters_batch(monsters_to_transmit)
+                    summary["batch_response"] = resp
+                except Exception as e:
+                    logger.exception(f"Failed to transmit batch after import: {e}")
+                    summary.setdefault("errors", []).append({"batch_transmit": str(e)})
 
         return summary

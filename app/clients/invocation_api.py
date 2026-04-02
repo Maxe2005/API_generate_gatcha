@@ -150,6 +150,54 @@ class InvocationApiClient(BaseClient):
 
         raise InvocationApiError("Max retries exceeded")
 
+    async def create_monsters_batch(self, monsters: list[Monster]) -> Dict[str, Any]:
+        """
+        Envoie un batch de monstres à l'API d'invocation en une seule requête.
+        Inclut l'uuid du monstre sous la clé `uuid` pour préserver l'identifiant.
+        """
+        payloads = []
+        for monster in monsters:
+            p = self._map_monster_to_invocation_format(monster)
+            # include uuid to avoid creating a new one
+            p["uuid"] = monster.monster_uuid
+            payloads.append(p)
+
+        endpoint = f"{self.base_url}/api/invocation/monsters/batch_create"
+
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(
+                        endpoint,
+                        json={"monsters": payloads},
+                        headers={"accept": "*/*", "Content-Type": "application/json"},
+                    )
+                    if response.status_code in [200, 201]:
+                        logger.info("Batch transmitted successfully")
+                        return response.json()
+                    else:
+                        error_msg = f"API returned {response.status_code}: {response.text}"
+                        logger.warning(f"Attempt {attempt}/{self.max_retries} failed: {error_msg}")
+                        if attempt < self.max_retries:
+                            await asyncio.sleep(self.retry_delay * attempt)
+                        else:
+                            raise InvocationApiError(error_msg)
+
+            except httpx.TimeoutException as e:
+                logger.warning(f"Attempt {attempt}/{self.max_retries} timeout: {e}")
+                if attempt < self.max_retries:
+                    await asyncio.sleep(self.retry_delay * attempt)
+                else:
+                    raise InvocationApiError(f"Timeout after {self.max_retries} attempts")
+            except httpx.RequestError as e:
+                logger.error(f"Request error on attempt {attempt}/{self.max_retries}: {e}")
+                if attempt < self.max_retries:
+                    await asyncio.sleep(self.retry_delay * attempt)
+                else:
+                    raise InvocationApiError(f"Request failed: {str(e)}")
+
+        raise InvocationApiError("Max retries exceeded for batch")
+
     async def health_check(self) -> bool:
         """Vérifie si l'API d'invocation est accessible"""
         health_url = f"{self.base_url}/actuator/health"
