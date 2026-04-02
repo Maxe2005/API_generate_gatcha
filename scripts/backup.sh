@@ -12,9 +12,9 @@ POSTGRES_DB="${POSTGRES_DB:-gatcha_db}"
 
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-admin}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-password123}"
-MINIO_HOST="${MINIO_HOST:-gatcha_generator_minio}"
+MINIO_HOST="${MINIO_HOST:-minio}"
 MINIO_PORT="${MINIO_PORT:-9000}"
-DOCKER_NETWORK="${DOCKER_NETWORK:-gatcha_network}"
+DOCKER_NETWORK="${DOCKER_NETWORK:-api_generate_gatcha_gatcha_network}"
 
 mkdir -p "$BACKUP_PATH/postgres" "$BACKUP_PATH/minio"
 

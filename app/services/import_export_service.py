@@ -8,7 +8,7 @@ Fonctions principales:
 - import_monsters(zip_bytes: bytes) -> dict (résumé)
 """
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 import io
 import zipfile
 import json
@@ -50,25 +50,7 @@ class ImportExportService:
         monster = self.monster_repo.get_by_uuid(monster_uuid)
         if not monster:
             return None
-
-        skills = []
-        for s in monster.skills:
-            skills.append(
-                {
-                    MonsterJsonSkillAttributes.NAME.value: s.name,
-                    MonsterJsonSkillAttributes.DESCRIPTION.value: s.description,
-                    MonsterJsonSkillAttributes.DAMAGE.value: s.damage,
-                    MonsterJsonSkillAttributes.COOLDOWN.value: s.cooldown,
-                    MonsterJsonSkillAttributes.LVL_MAX.value: s.lvl_max,
-                    MonsterJsonSkillAttributes.RANK.value: s.rank,
-                    MonsterJsonSkillAttributes.RATIO.value: {
-                        "stat": s.ratio_stat,
-                        "percent": s.ratio_percent,
-                    },
-                }
-            )
-
-        monster_json = {
+        return {
             MonsterJsonAttributes.NAME.value: monster.name,
             MonsterJsonAttributes.ELEMENT.value: monster.element.value
             if monster.element.value
@@ -85,118 +67,116 @@ class ImportExportService:
             MonsterJsonAttributes.DESCRIPTION_CARD.value: monster.description_carte,
             MonsterJsonAttributes.DESCRIPTION_VISUAL.value: monster.description_visuelle,
             MonsterJsonAttributes.IMAGE_URL.value: monster.image_url,
-            MonsterJsonAttributes.SKILLS.value: skills,
+            MonsterJsonAttributes.SKILLS.value: self._serialize_skills(monster),
         }
 
-        return monster_json
+    def _serialize_skills(self, monster) -> List[Dict[str, Any]]:
+        skills: List[Dict[str, Any]] = []
+        for s in monster.skills:
+            skills.append(
+                {
+                    MonsterJsonSkillAttributes.NAME.value: s.name,
+                    MonsterJsonSkillAttributes.DESCRIPTION.value: s.description,
+                    MonsterJsonSkillAttributes.DAMAGE.value: s.damage,
+                    MonsterJsonSkillAttributes.COOLDOWN.value: s.cooldown,
+                    MonsterJsonSkillAttributes.LVL_MAX.value: s.lvl_max,
+                    MonsterJsonSkillAttributes.RANK.value: s.rank,
+                    MonsterJsonSkillAttributes.RATIO.value: {
+                        "stat": s.ratio_stat,
+                        "percent": s.ratio_percent,
+                    },
+                }
+            )
+        return skills
 
     def export_monsters(self, uuids: Optional[List[str]] = None) -> bytes:
         """
         Exporte les monstres donnés (par uuid). Si uuids is None -> exporte tous.
         Retourne les bytes d'une archive zip.
         """
-        # Récupérer la liste des monsters à exporter
-        ids_to_export: List[str] = []
-        if uuids:
-            ids_to_export = uuids
-        else:
-            metas = self.state_repo.list_all(limit=10, offset=0)
-            ids_to_export = [m.monster_id for m in metas]
-
+        ids = self._get_ids_to_export(uuids)
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
-            for mid in ids_to_export:
+            for mid in ids:
                 try:
-                    m = self.state_repo.get(mid)
-                    if not m:
-                        logger.warning(f"Monster state not found for {mid}, skipping")
-                        continue
-
-                    # monster.json : préférer monster_data stocké sinon reconstruire
-                    monster_data = m.monster_data
-                    if monster_data is None:
-                        monster_data = self._reconstruct_monster_json(mid)
-
-                    zf.writestr(
-                        f"{mid}/monster.json",
-                        json.dumps(monster_data or {}, ensure_ascii=False),
-                    )
-
-                    # meta.json : sérialiser metadata + update events
-                    meta_dict = m.metadata.dict()
-                    # ajouter update events explicitement
-                    events = self.update_repo.get_by_monster_id(mid)
-                    meta_dict["update_events"] = [e.__dict__ for e in events]
-                    zf.writestr(
-                        f"{mid}/meta.json",
-                        json.dumps(meta_dict, default=str, ensure_ascii=False),
-                    )
-
-                    # images
-                    images_list = []
-                    # si monstre structuré existe
-                    monster_struct = self.monster_repo.get_by_uuid(mid)
-                    if monster_struct:
-                        imgs = self.image_repo.get_images_by_monster_id(
-                            monster_struct.id # type: ignore
-                        )
-                        for im in imgs:
-                            id = int(im.id) if im.id else None # type: ignore
-                            raw_image_key = str(im.raw_image_key) if im.raw_image_key else None # type: ignore
-                            image_url = str(im.image_url) if im.image_url else None # type: ignore
-                            image_name = str(im.image_name) if im.image_name else None # type: ignore
-                            prompt = str(im.prompt) if im.prompt else None # type: ignore
-                            images_list.append(
-                                {
-                                    "id": id,
-                                    "image_name": image_name,
-                                    "image_url": image_url,
-                                    "prompt": prompt,
-                                    "is_default": bool(im.is_default),
-                                    "raw_image_key": raw_image_key,
-                                }
-                            )
-                            # try download raw image from minio
-                            raw_key = None
-                            try:
-                                # derive raw key: often raw key is like "monsters/<stem>.png"
-                                if raw_image_key:
-                                    raw_key = raw_image_key
-                                elif image_url:
-                                    # fallback: derive from image_url
-                                    name = PurePosixPath(image_url).name
-                                    stem = PurePosixPath(name).stem
-                                    raw_key = f"monsters/{stem}.png"
-                                else:
-                                    logger.warning(
-                                        f"Could not derive raw key for image {im.id}"
-                                    )
-                                    continue
-
-                                obj = self.minio.client.get_object(
-                                    self.settings.MINIO_BUCKET_RAW, raw_key
-                                )
-                                data = obj.read()
-                                obj.close()
-                                obj.release_conn()
-                                zf.writestr(
-                                    f"{mid}/images/{PurePosixPath(raw_key).name}", data
-                                )
-                            except Exception as e:
-                                logger.warning(
-                                    f"Could not fetch raw image {mid} {raw_key if raw_key else 'unknown'}: {e}"
-                                )
-
-                    zf.writestr(
-                        f"{mid}/images/images.json",
-                        json.dumps(images_list, ensure_ascii=False),
-                    )
-
+                    self._write_monster_to_zip(mid, zf)
                 except Exception as e:
                     logger.exception(f"Error exporting monster {mid}: {e}")
 
         buf.seek(0)
         return buf.getvalue()
+
+    def _get_ids_to_export(self, uuids: Optional[List[str]]) -> List[str]:
+        if uuids:
+            return uuids
+        metas = self.state_repo.list_all(limit=10, offset=0)
+        return [m.monster_id for m in metas]
+
+    def _write_monster_to_zip(self, mid: str, zf: zipfile.ZipFile) -> None:
+        m = self.state_repo.get(mid)
+        if not m:
+            logger.warning(f"Monster state not found for {mid}, skipping")
+            return
+
+        monster_data = m.monster_data or self._reconstruct_monster_json(mid)
+        zf.writestr(f"{mid}/monster.json", json.dumps(monster_data or {}, ensure_ascii=False))
+
+        meta_dict = m.metadata.dict()
+        meta_dict["update_events"] = self._serialize_update_events(mid)
+        zf.writestr(f"{mid}/meta.json", json.dumps(meta_dict, default=str, ensure_ascii=False))
+
+        images_list = []
+        monster_struct = self.monster_repo.get_by_uuid(mid)
+        if monster_struct:
+            images_list = self._collect_images_and_write(mid, monster_struct, zf)
+
+        zf.writestr(f"{mid}/images/images.json", json.dumps(images_list, ensure_ascii=False))
+
+    def _serialize_update_events(self, mid: str) -> List[Dict[str, Any]]:
+        events = self.update_repo.get_by_monster_id(mid)
+        return [e.__dict__ for e in events] # type: ignore
+
+    def _collect_images_and_write(self, mid: str, monster_struct, zf: zipfile.ZipFile) -> List[Dict[str, Any]]:
+        images_list: List[Dict[str, Any]] = []
+        imgs = self.image_repo.get_images_by_monster_id(monster_struct.id)  # type: ignore
+        for im in imgs:
+            id_v = int(im.id) if im.id else None # type: ignore
+            raw_image_key = str(im.raw_image_key) if im.raw_image_key else None # type: ignore
+            image_url = str(im.image_url) if im.image_url else None # type: ignore
+            image_name = str(im.image_name) if im.image_name else None # type: ignore
+            prompt = str(im.prompt) if im.prompt else None # type: ignore
+            images_list.append(
+                {
+                    "id": id_v,
+                    "image_name": image_name,
+                    "image_url": image_url,
+                    "prompt": prompt,
+                    "is_default": bool(im.is_default),
+                    "raw_image_key": raw_image_key,
+                }
+            )
+
+            raw_key = None
+            try:
+                if raw_image_key:
+                    raw_key = raw_image_key
+                elif image_url:
+                    name = PurePosixPath(image_url).name
+                    stem = PurePosixPath(name).stem
+                    raw_key = f"monsters/{stem}.png"
+                else:
+                    logger.warning(f"Could not derive raw key for image {im.id}")
+                    continue
+
+                obj = self.minio.client.get_object(self.settings.MINIO_BUCKET_RAW, raw_key)
+                data = obj.read()
+                obj.close()
+                obj.release_conn()
+                zf.writestr(f"{mid}/images/{PurePosixPath(raw_key).name}", data)
+            except Exception as e:
+                logger.warning(f"Could not fetch raw image {mid} {raw_key if raw_key else 'unknown'}: {e}")
+
+        return images_list
 
     async def import_monsters(self, zip_bytes: bytes) -> Dict[str, Any]:
         """
@@ -206,158 +186,31 @@ class ImportExportService:
         summary: Dict[str, Any] = {"imported": [], "skipped": [], "errors": []}
         buf = io.BytesIO(zip_bytes)
         with zipfile.ZipFile(buf, mode="r") as zf:
-            # parcourir les racines (un dossier par monster)
             roots = set(p.split("/")[0] for p in zf.namelist() if p.strip())
             monsters_to_transmit: List = []
             for root in roots:
                 try:
-                    # lire monster.json
-                    try:
-                        monster_raw = zf.read(f"{root}/monster.json")
-                        monster_data = json.loads(monster_raw)
-                    except KeyError:
-                        monster_data = None
+                    monster_data = self._read_json_from_zip(zf, root, "monster.json")
+                    meta = self._read_json_from_zip(zf, root, "meta.json")
 
-                    # lire meta.json
-                    meta = None
-                    try:
-                        meta_raw = zf.read(f"{root}/meta.json")
-                        meta = json.loads(meta_raw)
-                    except KeyError:
-                        meta = None
+                    skip_root, meta_obj = self._save_state_from_meta(meta, monster_data, root, summary)
 
-                    # Save state
-                    skip_root = False
-                    if meta and "monster_id" in meta:
-                        # Build minimal MonsterMetadata-like dict
-                        from app.schemas.metadata import MonsterMetadata
+                    imgs = self._read_json_from_zip(zf, root, "images/images.json") or []
 
-                        meta_obj = MonsterMetadata(
-                            **{
-                                k: meta[k]
-                                for k in meta.keys()
-                                if k in MonsterMetadata.__fields__
-                            }
-                        )
-                        # Si le monstre structuré existe déjà en base, on le rejette proprement
-                        try:
-                            existing = self.monster_repo.get_by_uuid(meta_obj.monster_id)
-                            if existing:
-                                summary.setdefault("skipped", []).append(
-                                    {"root": root, "reason": "monster_exists"}
-                                )
-                                skip_root = True
-                            else:
-                                self.state_repo.save(meta_obj, monster_data)
-                                summary["imported"].append(root)
-                        except Exception as e:
-                            logger.warning(f"Error checking existing monster for {meta_obj.monster_id}: {e}")
-                            # attempt to save state if check failed
-                            self.state_repo.save(meta_obj, monster_data)
-                            summary["imported"].append(root)
-
-                        # Si le monstre est en TRANSMITTED, préparer la transmission en batch
-                        from app.core.constants import MonsterStateEnum
-
-                        try:
-                            if meta_obj.state == MonsterStateEnum.TRANSMITTED:
-                                # récupérer DB MonsterState
-                                db_state = self.state_repo.get_db_object(meta_obj.monster_id)
-                                if db_state and (not db_state.monster) and monster_data:
-                                    # créer le monstre structuré à partir du JSON
-                                    try:
-                                        self.transition_repo.create_structured_monster_from_json(db_state, monster_data)
-                                    except Exception as e:
-                                        logger.warning(f"Could not create structured monster for {meta_obj.monster_id}: {e}")
-
-                                # récupérer le structuré et l'ajouter à la liste
-                                monster_struct = self.monster_repo.get_by_uuid(meta_obj.monster_id)
-                                if monster_struct:
-                                    monsters_to_transmit.append(monster_struct)
-                        except Exception as e:
-                            logger.warning(f"Error while preparing transmission for {meta_obj.monster_id}: {e}")
-                    else:
-                        summary["skipped"].append(root)
-
-                    # images
-                    try:
-                        imgs_raw = zf.read(f"{root}/images/images.json")
-                        imgs = json.loads(imgs_raw)
-                    except KeyError:
-                        imgs = []
-
-                    # upload images present in zip (skip if monster was rejected)
                     if skip_root:
-                        # skip image uploads for this root
                         continue
 
-                    # upload images present in zip
-                    for name in zf.namelist():
-                        if not name.startswith(f"{root}/images/"):
-                            continue
-                        rel = name[len(f"{root}/images/") :]
-                        if rel in ("", "images.json"):
-                            continue
-                        try:
-                            data = zf.read(name)
-                            # upload raw
-                            stem = PurePosixPath(rel).stem
-                            raw_key = f"monsters/{stem}.png"
-                            # n'uploadez que si l'objet raw n'existe pas déjà
-                            try:
-                                if not self.minio.object_exists(self.settings.MINIO_BUCKET_RAW, raw_key):
-                                    self.minio.upload_image(
-                                        self.settings.MINIO_BUCKET_RAW,
-                                        raw_key,
-                                        data,
-                                        content_type="image/png",
-                                    )
-                                else:
-                                    logger.info(f"Raw image already exists, skipping upload: {raw_key}")
-                            except Exception:
-                                # si check échoue, fallback: tenter l'upload
-                                self.minio.upload_image(
-                                    self.settings.MINIO_BUCKET_RAW,
-                                    raw_key,
-                                    data,
-                                    content_type="image/png",
-                                )
-                            # create webp and upload to assets
-                            try:
-                                from app.utils.image_utils import optimize_for_web
+                    self._upload_images_from_zip(zf, root)
 
-                                webp_io = optimize_for_web(data)
-                                webp_name = f"{stem}.webp"
-                                # n'uploadez que si webp n'existe pas déjà
-                                try:
-                                    if not self.minio.object_exists(self.settings.MINIO_BUCKET_ASSETS, webp_name):
-                                        self.minio.upload_image(
-                                            self.settings.MINIO_BUCKET_ASSETS,
-                                            webp_name,
-                                            webp_io.getvalue(),
-                                            content_type="image/webp",
-                                        )
-                                    else:
-                                        logger.info(f"Webp already exists, skipping upload: {webp_name}")
-                                except Exception:
-                                    # fallback: tenter l'upload
-                                    self.minio.upload_image(
-                                        self.settings.MINIO_BUCKET_ASSETS,
-                                        webp_name,
-                                        webp_io.getvalue(),
-                                        content_type="image/webp",
-                                    )
-                            except Exception:
-                                logger.warning(f"Could not create webp for {rel}")
-
-                        except Exception as e:
-                            logger.warning(f"Failed to import image {name}: {e}")
+                    if meta_obj:
+                        append_struct = self._prepare_structured_monster_for_transmit(meta_obj, monster_data)
+                        if append_struct:
+                            monsters_to_transmit.append(append_struct)
 
                 except Exception as e:
                     logger.exception(f"Error importing root {root}: {e}")
                     summary["errors"].append({"root": root, "error": str(e)})
 
-            # Après avoir traité tous les roots, transmettre en batch si besoin
             if monsters_to_transmit:
                 try:
                     from app.clients.invocation_api import InvocationApiClient
@@ -370,3 +223,93 @@ class ImportExportService:
                     summary.setdefault("errors", []).append({"batch_transmit": str(e)})
 
         return summary
+
+    def _read_json_from_zip(self, zf: zipfile.ZipFile, root: str, name: str) -> Optional[Any]:
+        try:
+            raw = zf.read(f"{root}/{name}")
+            return json.loads(raw)
+        except KeyError:
+            return None
+
+    def _save_state_from_meta(self, meta: Optional[Dict[str, Any]], monster_data: Optional[Dict[str, Any]], root: str, summary: Dict[str, Any]) -> Tuple[bool, Optional[Any]]:
+        # returns (skip_root, meta_obj)
+        skip_root = False
+        meta_obj = None
+        if meta and "monster_id" in meta:
+            from app.schemas.metadata import MonsterMetadata
+
+            meta_obj = MonsterMetadata(
+                **{k: meta[k] for k in meta.keys() if k in MonsterMetadata.__fields__}
+            )
+            try:
+                existing = self.state_repo.get(meta_obj.monster_id)
+                if existing:
+                    summary.setdefault("skipped", []).append({"root": root, "reason": "monster_exists"})
+                    skip_root = True
+                else:
+                    self.state_repo.save(meta_obj, monster_data)
+                    summary["imported"].append(root)
+            except Exception as e:
+                logger.warning(f"Error checking existing monster for {meta_obj.monster_id}: {e}")
+                self.state_repo.save(meta_obj, monster_data)
+                summary["imported"].append(root)
+        else:
+            summary.setdefault("skipped", []).append(root)
+
+        return skip_root, meta_obj
+
+    def _upload_images_from_zip(self, zf: zipfile.ZipFile, root: str) -> None:
+        for name in zf.namelist():
+            if not name.startswith(f"{root}/images/"):
+                continue
+            rel = name[len(f"{root}/images/") :]
+            if rel in ("", "images.json"):
+                continue
+            try:
+                data = zf.read(name)
+                stem = PurePosixPath(rel).stem
+                raw_key = f"monsters/{stem}.png"
+                try:
+                    if not self.minio.object_exists(self.settings.MINIO_BUCKET_RAW, raw_key):
+                        self.minio.upload_image(self.settings.MINIO_BUCKET_RAW, raw_key, data, content_type="image/png")
+                    else:
+                        logger.info(f"Raw image already exists, skipping upload: {raw_key}")
+                except Exception:
+                    self.minio.upload_image(self.settings.MINIO_BUCKET_RAW, raw_key, data, content_type="image/png")
+
+                try:
+                    from app.utils.image_utils import optimize_for_web
+
+                    webp_io = optimize_for_web(data)
+                    webp_name = f"{stem}.webp"
+                    try:
+                        if not self.minio.object_exists(self.settings.MINIO_BUCKET_ASSETS, webp_name):
+                            self.minio.upload_image(self.settings.MINIO_BUCKET_ASSETS, webp_name, webp_io.getvalue(), content_type="image/webp")
+                        else:
+                            logger.info(f"Webp already exists, skipping upload: {webp_name}")
+                    except Exception:
+                        self.minio.upload_image(self.settings.MINIO_BUCKET_ASSETS, webp_name, webp_io.getvalue(), content_type="image/webp")
+                except Exception:
+                    logger.warning(f"Could not create webp for {rel}")
+
+            except Exception as e:
+                logger.warning(f"Failed to import image {name}: {e}")
+
+    def _prepare_structured_monster_for_transmit(self, meta_obj, monster_data: Optional[Dict[str, Any]]):
+        from app.core.constants import MonsterStateEnum
+
+        try:
+            if meta_obj.state == MonsterStateEnum.TRANSMITTED:
+                db_state = self.state_repo.get_db_object(meta_obj.monster_id)
+                if db_state and (not db_state.monster) and monster_data:
+                    try:
+                        self.transition_repo.create_structured_monster_from_json(db_state, monster_data)
+                    except Exception as e:
+                        logger.warning(f"Could not create structured monster for {meta_obj.monster_id}: {e}")
+
+                monster_struct = self.monster_repo.get_by_uuid(meta_obj.monster_id)
+                return monster_struct
+        except Exception as e:
+            logger.warning(f"Error while preparing transmission for {meta_obj.monster_id}: {e}")
+
+        return None
