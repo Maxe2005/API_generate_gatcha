@@ -31,6 +31,7 @@ from app.schemas.admin import (
     MonsterStatsByStateResponse,
 )
 from app.services.mappeur.monster_mapper import (
+    map_json_monster,
     map_monster_to_json,
     map_monster_to_summary,
     map_monster_metadata_to_summary,
@@ -303,7 +304,12 @@ class AdminService:
         # Mémoriser l'état avant
         validation_before = monster.metadata.is_valid
         storage_mode_before = "structured" if monster.metadata.monster else "json"
-        old_data = monster.monster_data.copy() if monster.monster_data else {}
+        old_data = None
+        if monster.metadata.monster:
+            structured_monster = self.monster_repository.get_by_uuid(monster_id)
+            old_data = map_json_monster(map_monster_to_json(structured_monster))
+        else :
+            old_data = monster.monster_data.copy() if monster.monster_data else {}
 
         # Valider les nouvelles données si nécessaire
         validation_result = self.validation_service.validate(monster_data)
@@ -339,7 +345,10 @@ class AdminService:
                 f"Monster {monster_id} has inconsistent structured_monster={structured_monster} "
                 f"and state={monster.metadata.state}"
             )
-
+        # Calculer les changed_fields et diff pour JSON
+        change_info = compute_changed_fields(old_data, monster_data)
+        changed_fields = change_info["changed_fields"]
+        diff_payload = change_info["diff_payload"]
         # Déterminer si c'est un monstre JSON ou structuré
         if structured_monster:
             # Monstre structuré : modifier via MonsterModificationService
@@ -360,11 +369,6 @@ class AdminService:
                 logger.error(f"Error updating structured monster {monster_id}: {e}")
                 raise ValueError(f"Failed to update monster data: {str(e)}")
         else:
-            # Calculer les changed_fields et diff pour JSON
-            change_info = compute_changed_fields(old_data, monster_data)
-            changed_fields = change_info["changed_fields"]
-            diff_payload = change_info["diff_payload"]
-            # Mettre à jour les données
             monster.monster_data = monster_data
 
         monster.metadata.is_valid = validation_result.is_valid
@@ -377,12 +381,6 @@ class AdminService:
         # Créer un événement d'update (pas une transition d'état)
         storage_mode_after = "structured" if monster.metadata.monster else "json"
 
-        # Pour les monstres structurés, on n'a pas de changed_fields détaillés pour l'instant
-        changed_fields_list = (
-            [] if structured_monster else change_info["changed_fields"]
-        )
-        diff_for_event = None if structured_monster else change_info["diff_payload"]
-
         self.update_event_repository.create(
             monster_id=monster_id,
             actor_type="admin",
@@ -392,11 +390,11 @@ class AdminService:
             validation_after=validation_result.is_valid,
             storage_mode_before=storage_mode_before,
             storage_mode_after=storage_mode_after,
-            changed_fields=changed_fields_list,
+            changed_fields=changed_fields,
             reason=notes
             or f"Data updated (valid={validation_result.is_valid}, skip_validation={skip_validation})",
             skip_validation=skip_validation,
-            diff_payload=diff_for_event,
+            diff_payload=diff_payload,
         )
 
         # Re-récupérer le monstre depuis la BD pour avoir les données fraîches
