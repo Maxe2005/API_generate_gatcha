@@ -69,8 +69,12 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@gatcha.com
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGPASS_FILE: /pgpass/.pgpass
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./pgadmin/pgpass:/pgpass/.pgpass:ro
     networks:
       - gatcha_network
     depends_on:
