@@ -46,24 +46,12 @@ class UpdateEventModel(Base):
     actor_name = Column(String, nullable=False)  # Nom de l'utilisateur/système
     actor_id = Column(String, nullable=True)  # ID optionnel (user_id, service_id, etc.)
 
-    # Source et contexte
-    source = Column(
-        String, nullable=False
-    )  # Ex: admin_update_endpoint, auto_repair, etc.
     reason = Column(Text, nullable=True)  # Notes/raison de l'update
 
     # Validation
     validation_before = Column(Boolean, nullable=False)  # État de validité avant update
     validation_after = Column(Boolean, nullable=False)  # État de validité après update
     skip_validation = Column(Boolean, nullable=False, default=False)
-
-    # Stockage
-    storage_mode_before = Column(
-        String, nullable=False
-    )  # json|structured - comment les données étaient stockées
-    storage_mode_after = Column(
-        String, nullable=False
-    )  # json|structured - comment elles le sont après
 
     # Détails de changement
     changed_fields = Column(

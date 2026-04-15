@@ -155,6 +155,37 @@ def map_json_monster(monster_json: MonsterBase) -> Dict[str, Any]:
         "image_url": monster_json.ImageUrl,
     }
 
+def map_structured_to_json(monster: Monster) -> Dict[str, Any]:
+    return {
+        "name": monster.name,
+        "element": monster.element,
+        "rank": monster.rank,
+        "stats": {
+            "hp": monster.hp,
+            "atk": monster.atk,
+            "def": monster.def_,
+            "vit": monster.vit,
+        },
+        "description_carte": monster.description_carte,
+        "description_visuelle": monster.description_visuelle,
+        "skills": [
+            {
+                "name": s.name,
+                "description": s.description,
+                "damage": s.damage,
+                "cooldown": s.cooldown,
+                "lvl_max": s.lvl_max,
+                "rank": s.rank,
+                "ratio": {
+                    "stat": s.ratio_stat,
+                    "percent": s.ratio_percent,
+                },
+            }
+            for s in monster.skills
+        ],
+        "ImageUrl": monster.image_url,
+    }
+
 
 def map_payload_to_monster_update(monster_data: Dict[str, Any]) -> MonsterUpdate:
     """

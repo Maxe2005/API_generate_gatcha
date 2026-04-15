@@ -164,10 +164,7 @@ async def get_monster_history(
                         "validation_before": evt.validation_before,
                         "validation_after": evt.validation_after,
                         "skip_validation": evt.skip_validation,
-                        "storage_mode_before": evt.storage_mode_before,
-                        "storage_mode_after": evt.storage_mode_after,
                         "reason": evt.reason,
-                        "source": evt.source,
                         "diff_payload": evt.diff_payload,
                     },
                 )

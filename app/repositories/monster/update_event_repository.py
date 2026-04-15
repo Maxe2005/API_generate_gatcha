@@ -36,11 +36,8 @@ class UpdateEventRepository:
         monster_id: str,
         actor_type: str,
         actor_name: str,
-        source: str,
         validation_before: bool,
         validation_after: bool,
-        storage_mode_before: str,
-        storage_mode_after: str,
         changed_fields: List[str],
         actor_id: Optional[str] = None,
         reason: Optional[str] = None,
@@ -58,10 +55,7 @@ class UpdateEventRepository:
             source: Origine de l'update
             validation_before: État de validité avant
             validation_after: État de validité après
-            storage_mode_before: json|structured avant
-            storage_mode_after: json|structured après
             changed_fields: Champs modifiés
-            actor_id: ID optionnel de l'acteur
             reason: Notes optionnelles
             skip_validation: Si validation a été bypass
             diff_payload: Détail des changements (before/after pour champs modifiés)
@@ -89,13 +83,10 @@ class UpdateEventRepository:
                 actor_type=actor_type,
                 actor_name=actor_name,
                 actor_id=actor_id,
-                source=source,
                 reason=reason,
                 validation_before=validation_before,
                 validation_after=validation_after,
                 skip_validation=skip_validation,
-                storage_mode_before=storage_mode_before,
-                storage_mode_after=storage_mode_after,
                 changed_fields=changed_fields,
                 diff_payload=diff_payload or {},
                 request_context=request_context or {},
@@ -186,13 +177,10 @@ class UpdateEventRepository:
             actor_type=str(event.actor_type),  # type: ignore
             actor_name=str(event.actor_name),  # type: ignore
             actor_id=str(event.actor_id) if event.actor_id else None,  # type: ignore
-            source=str(event.source),  # type: ignore
             reason=str(event.reason) if event.reason else None,  # type: ignore
             validation_before=bool(event.validation_before),  # type: ignore
             validation_after=bool(event.validation_after),  # type: ignore
             skip_validation=bool(event.skip_validation),  # type: ignore
-            storage_mode_before=str(event.storage_mode_before),  # type: ignore
-            storage_mode_after=str(event.storage_mode_after),  # type: ignore
             changed_fields=list(event.changed_fields) if event.changed_fields else [],  # type: ignore
             diff_payload=dict(event.diff_payload) if event.diff_payload else None,  # type: ignore
             request_context=dict(event.request_context)

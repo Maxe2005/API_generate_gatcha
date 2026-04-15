@@ -31,51 +31,17 @@ from app.schemas.admin import (
     MonsterStatsByStateResponse,
 )
 from app.services.mappeur.monster_mapper import (
-    map_json_monster,
     map_monster_to_json,
     map_monster_to_summary,
     map_monster_metadata_to_summary,
     map_payload_to_monster_update,
+    map_structured_to_json,
 )
+
+from app.utils.changed_fields import compute_changed_fields
 
 
 logger = logging.getLogger(__name__)
-
-
-def compute_changed_fields(before: dict, after: dict, prefix: str = "") -> dict:
-    """
-    Calcule les champs modifiés entre deux snapshots JSON.
-
-    Returns:
-        {
-            "changed_fields": ["field1", "nested.field2"],
-            "diff_payload": {
-                "field1": {"before": old_val, "after": new_val},
-                "nested.field2": {"before": old_val, "after": new_val}
-            }
-        }
-    """
-    changed_fields = []
-    diff_payload = {}
-
-    # Vérifier toutes les clés
-    all_keys = set(before.keys()) | set(after.keys())
-
-    for key in all_keys:
-        path = f"{prefix}{key}" if not prefix else f"{prefix}.{key}"
-        before_val = before.get(key)
-        after_val = after.get(key)
-
-        if isinstance(before_val, dict) and isinstance(after_val, dict):
-            # Récursion pour les objets imbriqués
-            nested = compute_changed_fields(before_val, after_val, path)
-            changed_fields.extend(nested["changed_fields"])
-            diff_payload.update(nested["diff_payload"])
-        elif before_val != after_val:
-            changed_fields.append(path)
-            diff_payload[path] = {"before": before_val, "after": after_val}
-
-    return {"changed_fields": changed_fields, "diff_payload": diff_payload}
 
 
 class AdminService:
@@ -303,11 +269,11 @@ class AdminService:
 
         # Mémoriser l'état avant
         validation_before = monster.metadata.is_valid
-        storage_mode_before = "structured" if monster.metadata.monster else "json"
         old_data = None
-        if monster.metadata.monster:
+        structured_monster = bool(monster.metadata.monster)
+        if structured_monster:
             structured_monster = self.monster_repository.get_by_uuid(monster_id)
-            old_data = map_json_monster(map_monster_to_json(structured_monster))
+            old_data = map_structured_to_json(structured_monster)
         else :
             old_data = monster.monster_data.copy() if monster.monster_data else {}
 
@@ -332,7 +298,7 @@ class AdminService:
                 for e in validation_result.errors
             ]
 
-        structured_monster = bool(monster.metadata.monster)
+        
         if (
             structured_monster
             != monster.metadata.state
@@ -378,18 +344,12 @@ class AdminService:
             monster.metadata, monster.monster_data if not structured_monster else None
         )
 
-        # Créer un événement d'update (pas une transition d'état)
-        storage_mode_after = "structured" if monster.metadata.monster else "json"
-
         self.update_event_repository.create(
             monster_id=monster_id,
             actor_type="admin",
             actor_name=admin_name,
-            source="admin_update_endpoint",
             validation_before=validation_before,
             validation_after=validation_result.is_valid,
-            storage_mode_before=storage_mode_before,
-            storage_mode_after=storage_mode_after,
             changed_fields=changed_fields,
             reason=notes
             or f"Data updated (valid={validation_result.is_valid}, skip_validation={skip_validation})",
