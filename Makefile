@@ -1,4 +1,8 @@
-.PHONY: help install run clean docker-up docker-down db-migrate db-shell db-backup db-reset db-alembic-revision db-alembic-up db-alembic-down pgadmin backup-all restore-all backup-list
+.DEFAULT_GOAL := help
+
+.PHONY: help install run clean docker-up docker-down db-migrate db-shell db-backup db-reset db-alembic-revision db-alembic-up db-alembic-down pgadmin backup-all restore-all backup-list \
+	global-up global-down global-down-v global-reset-volumes global-ps global-logs global-build global-restart\
+	global-celery-up global-celery-down global-celery-logs global-celery-build global-celery-restart
 
 # Variables
 PYTHON = python3
@@ -104,3 +108,49 @@ migrate-json-to-postgres: ## Commande pour migrer les monstres JSON vers Postgre
 	  --minio-secret-key=password123 \
 	  --minio-bucket=game-assets \
 	  --minio-public-url=http://localhost:9000
+
+# ===== As a Submodule =====
+
+global-up: ## Start the service (if not already running)
+	docker compose -f ../docker-compose.yaml up -d --build api-generate-gatcha
+
+global-down: ## Stop the service (if running)
+	docker compose -f ../docker-compose.yaml down api-generate-gatcha
+
+global-down-v: ## Stop the service and remove its volumes (destructive: wipes all DB/minio data)
+	docker compose -f ../docker-compose.yaml down -v api-generate-gatcha
+
+global-reset-volumes: ## Reset all volumes and restart the service fresh
+	docker compose -f ../docker-compose.yaml down -v api-generate-gatcha
+	docker compose -f ../docker-compose.yaml up -d api-generate-gatcha
+
+global-ps: ## Show status of all containers in the service
+	docker compose -f ../docker-compose.yaml ps api-generate-gatcha
+
+global-logs: ## Tail logs for this service
+	docker compose -f ../docker-compose.yaml logs -f api-generate-gatcha
+
+global-build: ## Build this service images
+	docker compose -f ../docker-compose.yaml build api-generate-gatcha
+
+global-restart: ## Rebuild and restart this service (config/code change)
+	docker compose -f ../docker-compose.yaml down api-generate-gatcha
+	docker compose -f ../docker-compose.yaml up -d --build api-generate-gatcha
+
+# For celery tasks, you can use the following commands:
+
+global-celery-up: ## Start the service (if not already running)
+	docker compose -f ../docker-compose.yaml up -d --build celery
+
+global-celery-down: ## Stop the service (if running)
+	docker compose -f ../docker-compose.yaml down celery
+
+global-celery-logs: ## Tail logs for this service
+	docker compose -f ../docker-compose.yaml logs -f celery
+
+global-celery-build: ## Build this service images
+	docker compose -f ../docker-compose.yaml build celery
+
+global-celery-restart: ## Rebuild and restart this service (config/code change)
+	docker compose -f ../docker-compose.yaml down celery
+	docker compose -f ../docker-compose.yaml up -d --build celery
