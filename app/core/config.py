@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # PostgreSQL
     POSTGRES_HOST: str = "postgres"
-    POSTGRES_PORT: int = 5433
+    POSTGRES_PORT: int = 5434
     POSTGRES_USER: str = "gatcha_user"
     POSTGRES_PASSWORD: str = "gatcha_password"
     POSTGRES_DB: str = "gatcha_db"

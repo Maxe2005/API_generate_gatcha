@@ -100,7 +100,7 @@ TABLE: state_transitions (Historique complet)
 │ API (port 8000)                                         │
 │ └─ FastAPI + SQLAlchemy ORM                           │
 ├─────────────────────────────────────────────────────────┤
-│ PostgreSQL (port 5433)                                 │
+│ PostgreSQL (port 5434)                                 │
 │ └─ Database: gatcha_db / User: gatcha_user            │
 │    Healthcheck: ✅ Configuré                          │
 ├─────────────────────────────────────────────────────────┤
@@ -213,7 +213,7 @@ API Docs:          http://localhost:8000/docs
 pgAdmin:           http://localhost:5050
 MinIO Console:     http://localhost:9001
 
-PostgreSQL:        localhost:5433 (terminal)
+PostgreSQL:        localhost:5434 (terminal)
 pgAdmin Credentials:
   Email:           admin@gatcha.local
   Password:        admin

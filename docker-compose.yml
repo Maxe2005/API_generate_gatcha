@@ -45,7 +45,7 @@ services:
     image: postgres:16-alpine
     container_name: gatcha_postgres
     ports:
-      - "5433:5432"
+      - "5434:5432"
     environment:
       POSTGRES_USER: gatcha_user
       POSTGRES_PASSWORD: gatcha_password
