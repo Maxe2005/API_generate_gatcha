@@ -83,6 +83,21 @@ def collect_fixtures(fixtures_dir: Path) -> list[dict]:
     return entries
 
 
+def _collect_and_summarize(fixtures_dir: Path, pairs_only: bool) -> list[dict]:
+    entries = collect_fixtures(fixtures_dir)
+    if pairs_only:
+        entries = [e for e in entries if e["image"]]
+
+    with_image = sum(1 for e in entries if e["image"])
+    invalid = [e for e in entries if not e["is_valid"]]
+    logger.info(
+        f"{len(entries)} fixtures ({with_image} avec image, {len(invalid)} invalides)"
+    )
+    for e in invalid:
+        logger.warning(f"fixture invalide {e['slug']}: {'; '.join(e['errors'])}")
+    return entries
+
+
 def seed_image(minio_client, settings, entry: dict) -> None:
     """Upload raw + webp si absents, et renseigne ImageUrl/RawImageKey."""
     from app.utils.image_utils import optimize_for_web
@@ -119,40 +134,18 @@ def seed_image(minio_client, settings, entry: dict) -> None:
     entry["data"][MonsterJsonAttributes.RAW_IMAGE_KEY.value] = raw_key
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Seed des fixtures Postgres + MinIO")
-    parser.add_argument("--fixtures-dir", default=str(FIXTURES_DIR))
-    parser.add_argument("--pairs-only", action="store_true",
-                        help="Ne seed que les monstres ayant une image associée")
-    parser.add_argument("--process", action="store_true",
-                        help="Valide et transitionne les monstres seedés")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Affiche le plan sans toucher à la DB ni à MinIO")
-    args = parser.parse_args()
-
-    fixtures_dir = Path(args.fixtures_dir)
-    entries = collect_fixtures(fixtures_dir)
-    if args.pairs_only:
-        entries = [e for e in entries if e["image"]]
-
-    with_image = sum(1 for e in entries if e["image"])
-    invalid = [e for e in entries if not e["is_valid"]]
-    logger.info(
-        f"{len(entries)} fixtures ({with_image} avec image, {len(invalid)} invalides)"
-    )
-    for e in invalid:
-        logger.warning(f"fixture invalide {e['slug']}: {'; '.join(e['errors'])}")
-
-    if args.dry_run:
-        for e in entries:
-            image = e["image"].name if e["image"] else "—"
-            logger.info(f"[dry-run] {e['slug']:45s} image={image:30s} id={e['monster_id']}")
-        return 0
-
+def seed_fixtures(
+    fixtures_dir: Path = FIXTURES_DIR,
+    pairs_only: bool = False,
+    process: bool = False,
+) -> dict:
+    """Seed fixtures/ dans Postgres + MinIO ; idempotent, appelable au démarrage de l'app."""
     # Imports différés : la connexion DB/MinIO n'est requise qu'ici
     from app.clients.minio_client import MinioClientWrapper
     from app.models.base import SessionLocal, init_db
     from app.models.monster import MonsterState
+
+    entries = _collect_and_summarize(fixtures_dir, pairs_only)
 
     settings = get_settings()
     init_db()
@@ -196,7 +189,7 @@ def main() -> int:
             created += 1
             seeded_ids.append(monster_id)
 
-        if args.process and seeded_ids:
+        if process and seeded_ids:
             from app.services.admin_service import AdminService
 
             admin = AdminService(db)
@@ -209,7 +202,31 @@ def main() -> int:
 
     logger.info("=" * 60)
     logger.info(f"Seed terminé : {created} créés, {skipped} déjà présents"
-                + (f", {processed} traités" if args.process else ""))
+                + (f", {processed} traités" if process else ""))
+    return {"created": created, "skipped": skipped, "processed": processed}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Seed des fixtures Postgres + MinIO")
+    parser.add_argument("--fixtures-dir", default=str(FIXTURES_DIR))
+    parser.add_argument("--pairs-only", action="store_true",
+                        help="Ne seed que les monstres ayant une image associée")
+    parser.add_argument("--process", action="store_true",
+                        help="Valide et transitionne les monstres seedés")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Affiche le plan sans toucher à la DB ni à MinIO")
+    args = parser.parse_args()
+
+    fixtures_dir = Path(args.fixtures_dir)
+
+    if args.dry_run:
+        entries = _collect_and_summarize(fixtures_dir, args.pairs_only)
+        for e in entries:
+            image = e["image"].name if e["image"] else "—"
+            logger.info(f"[dry-run] {e['slug']:45s} image={image:30s} id={e['monster_id']}")
+        return 0
+
+    seed_fixtures(fixtures_dir=fixtures_dir, pairs_only=args.pairs_only, process=args.process)
     return 0
 
 

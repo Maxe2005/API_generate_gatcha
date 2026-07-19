@@ -12,7 +12,7 @@ from app.api.v1.endpoints import (
 )
 from app.core.config import get_settings
 from app.models.base import init_db
-from app.clients.minio_client import MinioClientWrapper
+from scripts.seed_fixtures import seed_fixtures
 import os
 import logging
 from logging.handlers import RotatingFileHandler
@@ -50,12 +50,11 @@ async def lifespan(app: FastAPI):
         raise
 
     try:
-        minio_client = MinioClientWrapper()
-        uploaded = minio_client.ensure_default_images()
-        if uploaded:
-            logger.info(f"MinIO seeded with {uploaded} default images")
+        stats = seed_fixtures()
+        if stats["created"]:
+            logger.info(f"Fixtures seeded: {stats['created']} monsters created")
     except Exception as e:
-        logger.error(f"Failed to seed MinIO with default images: {e}")
+        logger.error(f"Failed to seed fixtures: {e}")
 
     yield
 
