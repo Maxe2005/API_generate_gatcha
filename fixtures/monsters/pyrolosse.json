@@ -1,0 +1,63 @@
+{
+    "name": "Pyrolosse",
+    "element": "FIRE",
+    "rank": "EPIC",
+    "stats": {
+        "hp": 780,
+        "atk": 140,
+        "def": 130,
+        "vit": 55
+    },
+    "description_carte": "Colosse de roche en fusion forgé au cœur d'un volcan. Chacun de ses pas laisse une empreinte de lave bouillonnante.",
+    "description_visuelle": "A towering golem of molten rock and obsidian, cracks glowing orange with magma, massive fists smoking. Lava drips from its shoulders. Background: an erupting volcano crater with rivers of lava.",
+    "skills": [
+        {
+            "name": "Poing de Magma",
+            "description": "Écrase l'ennemi d'un poing en fusion.",
+            "damage": 85,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Peau d'Obsidienne",
+            "description": "Sa surface se vitrifie, augmentant fortement la défense.",
+            "damage": 0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 4,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Secousse Volcanique",
+            "description": "Frappe le sol, projetant des gerbes de lave alentour.",
+            "damage": 120,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.7
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Éruption Cardiaque",
+            "description": "Libère le magma de son cœur en une explosion dévastatrice.",
+            "damage": 190,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.9
+            },
+            "cooldown": 6,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        }
+    ]
+}

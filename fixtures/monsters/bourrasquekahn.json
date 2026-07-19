@@ -1,0 +1,63 @@
+{
+    "name": "Bourrasque-Kahn",
+    "element": "WIND",
+    "rank": "EPIC",
+    "stats": {
+        "hp": 640,
+        "atk": 150,
+        "def": 90,
+        "vit": 140
+    },
+    "description_carte": "Seigneur de guerre des steppes célestes. Il charge avec la fureur d'un ouragan et commande les vents comme une armée.",
+    "description_visuelle": "A fierce nomad warlord riding a swirling tornado, wearing armor of storm clouds and wielding a curved wind blade. His cloak billows violently. Background: endless steppes under a churning grey sky.",
+    "skills": [
+        {
+            "name": "Lame de Vent",
+            "description": "Tranche l'air d'un arc de vent coupant.",
+            "damage": 70,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Charge de l'Ouragan",
+            "description": "Charge l'ennemi porté par une bourrasque fulgurante.",
+            "damage": 130,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.9
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Cri de Ralliement",
+            "description": "Galvanise le lanceur, augmentant son attaque.",
+            "damage": 0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.35
+            },
+            "cooldown": 4,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Tempête des Steppes",
+            "description": "Déchaîne une tempête qui frappe tous les ennemis.",
+            "damage": 170,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 6,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        }
+    ]
+}

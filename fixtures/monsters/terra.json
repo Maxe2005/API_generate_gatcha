@@ -50,7 +50,7 @@
         {
             "name": "Fortify",
             "description": "Heals a small amount and increases defense slightly.",
-            "damage": -50.0,
+            "damage": 0,
             "ratio": {
                 "stat": "DEF",
                 "percent": 0.2

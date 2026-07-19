@@ -1,0 +1,75 @@
+{
+    "name": "Abyssal-Hydra",
+    "element": "WATER",
+    "rank": "LEGENDARY",
+    "stats": {
+        "hp": 920,
+        "atk": 175,
+        "def": 140,
+        "vit": 70
+    },
+    "description_carte": "Hydre des fosses abyssales aux sept têtes voraces. Chaque tête tranchée renforce la haine des autres.",
+    "description_visuelle": "A colossal seven-headed hydra rising from a deep ocean trench, scales of dark teal with bioluminescent markings, each head snapping with rows of needle teeth. Background: crushing black depths lit by abyssal glow.",
+    "skills": [
+        {
+            "name": "Morsures Multiples",
+            "description": "Chaque tête mord l'ennemi tour à tour.",
+            "damage": 90,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Torrent Abyssal",
+            "description": "Crache un torrent d'eau noire sous haute pression.",
+            "damage": 140,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Régénération Hydrique",
+            "description": "Fait repousser une tête, restaurant ses PV.",
+            "damage": 0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.3
+            },
+            "cooldown": 5,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Écailles des Profondeurs",
+            "description": "Durcit ses écailles, augmentant sa défense.",
+            "damage": 0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.45
+            },
+            "cooldown": 4,
+            "lvlMax": 5,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Fureur des Sept Têtes",
+            "description": "Toutes les têtes frappent en même temps dans un déchaînement final.",
+            "damage": 300,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.2
+            },
+            "cooldown": 7,
+            "lvlMax": 5,
+            "rank": "LEGENDARY"
+        }
+    ]
+}

@@ -1,0 +1,75 @@
+{
+    "name": "Aquasphère",
+    "element": "WATER",
+    "rank": "EPIC",
+    "stats": {
+        "hp": 680,
+        "atk": 120,
+        "def": 110,
+        "vit": 85
+    },
+    "description_carte": "Sphère d'eau vivante née d'une source sacrée. Elle absorbe les coups et les renvoie en déferlantes dévastatrices.",
+    "description_visuelle": "A large levitating sphere of living water with a glowing blue core, small fish silhouettes swimming inside it. Water tendrils extend from its surface. Background: a sacred spring in a crystal cave.",
+    "skills": [
+        {
+            "name": "Projection Aqueuse",
+            "description": "Projette un jet d'eau sous pression.",
+            "damage": 70,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Absorption",
+            "description": "Absorbe une partie des dégâts subis et restaure des PV.",
+            "damage": 0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.2
+            },
+            "cooldown": 4,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Bulle Écrasante",
+            "description": "Emprisonne l'ennemi dans une bulle qui implose.",
+            "damage": 110,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.7
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Déferlante Sacrée",
+            "description": "Libère toute l'eau absorbée en une vague dévastatrice.",
+            "damage": 180,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.9
+            },
+            "cooldown": 6,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Carapace Liquide",
+            "description": "Durcit sa surface, augmentant fortement la défense.",
+            "damage": 0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 5,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        }
+    ]
+}

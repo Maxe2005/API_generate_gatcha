@@ -1,0 +1,75 @@
+{
+    "name": "Magma-Drakon",
+    "element": "FIRE",
+    "rank": "LEGENDARY",
+    "stats": {
+        "hp": 900,
+        "atk": 195,
+        "def": 125,
+        "vit": 90
+    },
+    "description_carte": "Dragon ancestral né dans le manteau terrestre. Son souffle liquéfie la pierre et son vol embrase les cieux.",
+    "description_visuelle": "An ancient dragon with obsidian scales veined with glowing magma, wings of flame and smoke, exhaling a torrent of liquid fire. Background: a shattered volcanic mountain range under an ash-filled sky.",
+    "skills": [
+        {
+            "name": "Griffes Incandescentes",
+            "description": "Lacère l'ennemi de griffes chauffées à blanc.",
+            "damage": 95,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Souffle de Magma",
+            "description": "Crache un torrent de roche en fusion.",
+            "damage": 150,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.8
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Ailes de Fournaise",
+            "description": "Un battement d'ailes embrase l'air et accélère le dragon.",
+            "damage": 60,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.4
+            },
+            "cooldown": 4,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Cœur du Manteau",
+            "description": "Puise dans la chaleur tellurique pour restaurer ses PV.",
+            "damage": 0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.3
+            },
+            "cooldown": 5,
+            "lvlMax": 5,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Apocalypse Ignée",
+            "description": "Déclenche une pluie de météores de lave sur le champ de bataille.",
+            "damage": 330,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.3
+            },
+            "cooldown": 8,
+            "lvlMax": 5,
+            "rank": "LEGENDARY"
+        }
+    ]
+}

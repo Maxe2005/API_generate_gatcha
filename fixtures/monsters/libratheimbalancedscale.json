@@ -19,7 +19,7 @@
                 "stat": "ATK",
                 "percent": 0.7
             },
-            "cooldown": 1.5,
+            "cooldown": 2,
             "lvlMax": 5.0,
             "rank": "RARE"
         },
@@ -55,7 +55,7 @@
                 "stat": "ATK",
                 "percent": 1.2
             },
-            "cooldown": 4.5,
+            "cooldown": 5,
             "lvlMax": 5.0,
             "rank": "EPIC"
         },
@@ -67,7 +67,7 @@
                 "stat": "ATK",
                 "percent": 0.2
             },
-            "cooldown": 3.5,
+            "cooldown": 4,
             "lvlMax": 5.0,
             "rank": "COMMON"
         }

@@ -55,7 +55,7 @@
                 "stat": "ATK",
                 "percent": 1.4
             },
-            "cooldown": 4.5,
+            "cooldown": 5,
             "lvlMax": 5.0,
             "rank": "EPIC"
         }
