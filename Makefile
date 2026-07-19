@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help env install run clean docker-up docker-down db-migrate db-shell db-backup db-reset db-alembic-revision db-alembic-up db-alembic-down pgadmin backup-all restore-all backup-list \
+.PHONY: help env install run clean seed seed-process seed-dry-run docker-up docker-down db-migrate db-shell db-backup db-reset db-alembic-revision db-alembic-up db-alembic-down pgadmin backup-all restore-all backup-list \
 	global-up global-down global-down-v global-reset-volumes global-ps global-logs global-build global-restart\
 	global-celery-up global-celery-down global-celery-logs global-celery-build global-celery-restart
 
@@ -106,13 +106,16 @@ backup-list: ## Liste les sauvegardes disponibles
 	@ls -1 backups 2>/dev/null || echo "No backups found"
 
 
-migrate-json-to-postgres: ## Commande pour migrer les monstres JSON vers PostgreSQL avec accès MinIO
-	python3 scripts/migrate_json_to_postgres.py \
-	  --minio-endpoint=localhost:9000 \
-	  --minio-access-key=admin \
-	  --minio-secret-key=password123 \
-	  --minio-bucket=game-assets \
-	  --minio-public-url=http://localhost:9000
+# ===== Fixtures =====
+
+seed: ## Seed les fixtures Postgres + MinIO (idempotent, config via .env)
+	$(BIN)/python scripts/seed_fixtures.py
+
+seed-process: ## Seed puis transition des monstres (PENDING_REVIEW / DEFECTIVE)
+	$(BIN)/python scripts/seed_fixtures.py --process
+
+seed-dry-run: ## Affiche le plan de seed sans toucher à la DB ni à MinIO
+	$(BIN)/python scripts/seed_fixtures.py --dry-run
 
 # ===== As a Submodule =====
 

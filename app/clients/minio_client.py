@@ -55,7 +55,7 @@ class MinioClientWrapper:
         return f"{self.settings.MINIO_PUBLIC_URL}/{bucket_name}/{filename}"
 
     def ensure_default_images(
-        self, init_dir: str = "init_minio", raw_prefix: str = "monsters"
+        self, init_dir: str = "fixtures/images", raw_prefix: str = "monsters"
     ) -> int:
         if self._bucket_has_objects(self.settings.MINIO_BUCKET_RAW):
             return 0
