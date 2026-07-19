@@ -12,6 +12,18 @@ async def send_completion_message(batch_id: str):
     await send(batch_id, message)
 
 
+def is_terminal_message(message: str) -> bool:
+    """
+    Un message est terminal quand la génération est finie (clé "success").
+    Les messages "info"/"error"/"monster" peuvent arriver en cours de batch.
+    """
+    try:
+        payload = json.loads(message)
+    except (TypeError, ValueError):
+        return False
+    return isinstance(payload, dict) and "success" in payload
+
+
 async def send_monster_update(batch_id: str, monster_data: dict):
     monster = json.dumps(monster_data)
     message = json.dumps({"monster": monster})

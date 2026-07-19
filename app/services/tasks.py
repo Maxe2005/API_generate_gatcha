@@ -26,18 +26,12 @@ def generate_monsters(batch_id: str, monster_count: int, prompt: str | None = No
     try:
         if monster_count == 1:
             # Génération simple
-            result = asyncio.run(service.create_monster(prompt or "", batch_id))
-            if result is None:
-                return
+            asyncio.run(service.create_monster(prompt or "", batch_id))
         else:
             # Génération batch
-            result = asyncio.run(
+            asyncio.run(
                 service.create_batch_monsters(monster_count, prompt or "", batch_id)
             )
-            # Si la génération a échoué (ex: quota Gemini épuisé), on arrête proprement
-            if result == []:
-                return
-        asyncio.run(send_completion_message(batch_id))
     except Exception as e:
         import traceback
         from app.utils.send_messages_utils import send_info_message
@@ -49,6 +43,9 @@ def generate_monsters(batch_id: str, monster_count: int, prompt: str | None = No
             send_info_message(batch_id, f"Erreur critique lors de la génération : {e}")
         )
     finally:
+        # Toujours publier le message terminal, sinon les WebSockets abonnés
+        # au batch ne se ferment jamais (échec Gemini, quota, crash...)
+        asyncio.run(send_completion_message(batch_id))
         db.close()
 
 
@@ -75,7 +72,7 @@ def generate_custom_image(
 
     try:
         # Génération de l'image personnalisée
-        result = asyncio.run(
+        asyncio.run(
             service.create_custom_image_for_monster(
                 monster_id=monster_id,
                 image_name=image_name,
@@ -83,9 +80,6 @@ def generate_custom_image(
                 model=model,
             )
         )
-        if result is None:
-            return
-        asyncio.run(send_completion_message(batch_id))
     except Exception as e:
         import traceback
         from app.utils.send_messages_utils import send_info_message
@@ -99,4 +93,6 @@ def generate_custom_image(
             )
         )
     finally:
+        # Toujours publier le message terminal pour fermer les WebSockets abonnés
+        asyncio.run(send_completion_message(batch_id))
         db.close()
