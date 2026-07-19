@@ -217,7 +217,9 @@ class AdminService:
         if not monster.monster_data:
             raise ValueError("Monster data is missing")
 
-        validation_result = self.validation_service.validate(monster.monster_data)
+        validation_result = self.validation_service.validate(
+            monster.monster_data, is_image=True
+        )
         if not validation_result.is_valid:
             raise ValueError(
                 "Cannot correct monster: current data is still invalid. Please update the monster data first.",
@@ -278,7 +280,7 @@ class AdminService:
             old_data = monster.monster_data.copy() if monster.monster_data else {}
 
         # Valider les nouvelles données si nécessaire
-        validation_result = self.validation_service.validate(monster_data)
+        validation_result = self.validation_service.validate(monster_data, is_image=True)
         if not validation_result.is_valid and not skip_validation:
             raise ValueError(
                 "Monster data is invalid. Set skip_validation=True to force update.",
@@ -554,7 +556,7 @@ class AdminService:
                     )
                     continue
                 validation_result = self.validation_service.validate(
-                    monster.monster_data
+                    monster.monster_data, is_image=True
                 )
 
                 if validation_result.is_valid:
@@ -676,7 +678,9 @@ class AdminService:
                     "monster_id": monster_id,
                     "error": "Monster data is missing",
                 }
-            validation_result = self.validation_service.validate(monster.monster_data)
+            validation_result = self.validation_service.validate(
+                monster.monster_data, is_image=True
+            )
             if validation_result.is_valid:
                 monster.metadata = self.state_manager.perform_transition(
                     monster.metadata,
