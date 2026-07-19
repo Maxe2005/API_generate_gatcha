@@ -69,6 +69,23 @@ Une fois lancée, l'API utilise une base de données postgreSQL ainsi qu'une bas
 - **PostgreSQL(pgAdmin)** : http://localhost:5050 (utilisateur : `admin`, mot de passe : `admin`, base de données : `gatcha_db`)
 - **MinIO** : http://localhost:9000 (utilisateur : `minioadmin`, mot de passe : `minioadmin`)
 
+## Fixtures & Seed
+
+Le dossier `fixtures/` contient les données d'initialisation, liées 1:1 par slug :
+- `fixtures/monsters/<slug>.json` : profil complet du monstre (47 fichiers) ;
+- `fixtures/images/<slug>.png` : image associée quand elle existe (17 fichiers).
+
+```bash
+make seed-dry-run   # affiche le plan (aucun accès DB/MinIO requis)
+make seed           # upload MinIO (raw + webp) + insertion Postgres, idempotent
+make seed-process   # seed puis transition : PENDING_REVIEW (avec image) / DEFECTIVE (sans)
+```
+
+Le script utilise la configuration `.env` (surchargée par les variables d'environnement).
+Les `monster_id` sont déterministes (uuid5 du nom de fichier) : relancer le seed
+ne crée jamais de doublon. Pour ajouter une fixture : créer `fixtures/monsters/<slug>.json`
+(et idéalement `fixtures/images/<slug>.png`, slug en ascii minuscule) puis relancer `make seed`.
+
 ## Sauvegardes (PostgreSQL + MinIO)
 
 Les sauvegardes sont stockees dans le dossier `backups/` avec un nom horodate.
