@@ -98,6 +98,9 @@ class GatchaService:
             monster_data, fallback_prompt, filename, batch_id=batch_id
         )
         monster_data[MonsterJsonAttributes.IMAGE_URL.value] = image_url
+        # Conserver la clé du master 4K : elle est reprise lors de la
+        # structuration (PENDING_REVIEW) pour créer l'entrée MonsterImage
+        monster_data[MonsterJsonAttributes.RAW_IMAGE_KEY.value] = raw_image_key
 
         # VALIDATION STEP: Validate ImageUrl presence and format
         image_url_validation = self.validation_service.validate_image(monster_data)

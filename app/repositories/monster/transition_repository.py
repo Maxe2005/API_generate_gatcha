@@ -23,6 +23,7 @@ from app.core.json_monster_config import (
     MonsterJsonSkillRatioAttributes,
 )
 from app.core.config import get_settings
+from app.utils.image_keys import derive_raw_key_from_asset_url
 
 
 logger = logging.getLogger(__name__)
@@ -84,7 +85,7 @@ class TransitionRepository:
                 description_visuelle=monster_json[
                     MonsterJsonAttributes.DESCRIPTION_VISUAL.value
                 ],
-                image_url=monster_json[MonsterJsonAttributes.IMAGE_URL.value],
+                image_url=monster_json.get(MonsterJsonAttributes.IMAGE_URL.value),
             )
 
             self.db.add(monster)
@@ -113,8 +114,12 @@ class TransitionRepository:
 
             # Create default image entry in monster_images table
             image_name = monster.name
-            image_url: str = monster_json[MonsterJsonAttributes.IMAGE_URL.value]
-            raw_image_key = image_url.replace(f"{self.settings.MINIO_PUBLIC_URL}{self.settings.MINIO_BUCKET_ASSETS}", f"{self.settings.MINIO_BUCKET_RAW}")  # Extract raw image key from URL
+            image_url: str = monster_json.get(MonsterJsonAttributes.IMAGE_URL.value, "")
+            # Clé du master 4K persistée à la génération ; à défaut (anciens
+            # monstres, fixtures), dérivée de l'URL par convention de nommage
+            raw_image_key = monster_json.get(
+                MonsterJsonAttributes.RAW_IMAGE_KEY.value
+            ) or derive_raw_key_from_asset_url(image_url)
             image = MonsterImage(
                 monster_id=monster.id,
                 image_name=image_name,
