@@ -12,6 +12,7 @@ class MonsterJsonAttributes(Enum):
     DESCRIPTION_VISUAL = "description_visuelle"
     SKILLS = "skills"
     IMAGE_URL = "ImageUrl"
+    RAW_IMAGE_KEY = "RawImageKey"
 
 class MonsterJsonStatsAttributes(Enum):
     HP = "hp"

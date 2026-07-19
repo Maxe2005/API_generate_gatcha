@@ -10,6 +10,7 @@ import logging
 from app.core.config import get_settings
 from app.clients.minio_client import MinioClientWrapper
 from app.schemas.image import SignedUrlRequestItem, SignedUrlResponseItem
+from app.utils.image_keys import derive_raw_key_from_asset_url
 
 logger = logging.getLogger(__name__)
 
@@ -39,14 +40,12 @@ def generate_signed_urls(
         signed_url = None
         error = None
         try:
-            settings.MINIO_BUCKET_ASSETS
             url = it.url
             if settings.MINIO_BUCKET_ASSETS not in url:
                 raise ValueError(f"URL does not contain expected bucket name: {url}")
-            parsed = url.split(settings.MINIO_BUCKET_ASSETS)
-            if len(parsed) != 2:
-                raise ValueError(f"URL parsing failed for bucket name: {url}")
-            raw_key = "monsters/" + parsed[1].lstrip("/").replace(".webp", ".png")
+            raw_key = derive_raw_key_from_asset_url(url)
+            if not raw_key:
+                raise ValueError(f"Could not derive raw key from URL: {url}")
             signed_url = minio.presigned_get_object(raw_key, expires_seconds=expires)
         except Exception as e:
             logger.exception("Erreur génération signed url")

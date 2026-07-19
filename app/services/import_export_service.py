@@ -25,6 +25,7 @@ from app.repositories.monster.skill_repository import SkillRepository
 from app.repositories.monster.update_event_repository import UpdateEventRepository
 from app.repositories.monster.transition_repository import TransitionRepository
 from app.repositories.monster_image_repository import MonsterImageRepository
+from app.utils.image_keys import derive_raw_key_from_asset_url
 from app.core.json_monster_config import (
     MonsterJsonAttributes,
     MonsterJsonSkillAttributes,
@@ -161,9 +162,7 @@ class ImportExportService:
                 if raw_image_key:
                     raw_key = raw_image_key
                 elif image_url:
-                    name = PurePosixPath(image_url).name
-                    stem = PurePosixPath(name).stem
-                    raw_key = f"monsters/{stem}.png"
+                    raw_key = derive_raw_key_from_asset_url(image_url)
                 else:
                     logger.warning(f"Could not derive raw key for image {im.id}")
                     continue
