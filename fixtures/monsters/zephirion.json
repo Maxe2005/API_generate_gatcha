@@ -1,0 +1,63 @@
+{
+    "name": "Zéphirion",
+    "element": "WIND",
+    "rank": "EPIC",
+    "stats": {
+        "hp": 560,
+        "atk": 135,
+        "def": 80,
+        "vit": 150
+    },
+    "description_carte": "Esprit du vent d'ouest, messager des tempêtes. Nul ne l'a jamais vu deux fois au même endroit.",
+    "description_visuelle": "An ethereal wind spirit with a body of swirling translucent air currents and silver feathers, leaving trails of glowing wisps. Its face is a serene mask of pale jade. Background: high mountain peaks above a sea of clouds.",
+    "skills": [
+        {
+            "name": "Rafale Perçante",
+            "description": "Décoche une flèche de vent comprimé.",
+            "damage": 65,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Pas du Zéphyr",
+            "description": "Se déplace comme le vent, augmentant son agilité.",
+            "damage": 0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.35
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Lames Tourbillonnantes",
+            "description": "Entoure l'ennemi d'un vortex de lames d'air.",
+            "damage": 115,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.7
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Colère de l'Ouest",
+            "description": "Invoque la grande tempête, frappant tous les ennemis.",
+            "damage": 175,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.85
+            },
+            "cooldown": 6,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        }
+    ]
+}

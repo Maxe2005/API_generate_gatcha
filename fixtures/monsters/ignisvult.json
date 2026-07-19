@@ -1,0 +1,63 @@
+{
+    "name": "Ignis-Vult",
+    "element": "FIRE",
+    "rank": "EPIC",
+    "stats": {
+        "hp": 590,
+        "atk": 165,
+        "def": 75,
+        "vit": 130
+    },
+    "description_carte": "Vautour de braise qui plane au-dessus des champs de bataille. Ses serres incandescentes fondent l'acier des armures.",
+    "description_visuelle": "A majestic vulture made of embers and flames, with wings trailing sparks and molten talons. Its eyes glow like coals. Background: a scorched battlefield under a dark red sky.",
+    "skills": [
+        {
+            "name": "Serres Ardentes",
+            "description": "Lacère l'ennemi de ses serres en fusion.",
+            "damage": 75,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Piqué Incendiaire",
+            "description": "Fond sur sa proie à pleine vitesse, l'embrasant à l'impact.",
+            "damage": 120,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.8
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Nuée de Cendres",
+            "description": "Aveugle les ennemis dans un nuage de cendres brûlantes.",
+            "damage": 45,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.3
+            },
+            "cooldown": 4,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Renaissance de Braise",
+            "description": "Se consume pour restaurer une partie de ses PV.",
+            "damage": 0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.25
+            },
+            "cooldown": 6,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        }
+    ]
+}

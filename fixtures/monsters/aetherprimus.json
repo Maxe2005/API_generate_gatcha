@@ -1,0 +1,75 @@
+{
+    "name": "Aether-Primus",
+    "element": "LIGHT",
+    "rank": "LEGENDARY",
+    "stats": {
+        "hp": 850,
+        "atk": 190,
+        "def": 120,
+        "vit": 110
+    },
+    "description_carte": "Premier-né de la lumière originelle. Gardien des lois cosmiques, il ne descend des cieux qu'aux heures les plus sombres.",
+    "description_visuelle": "A radiant celestial being of pure light wearing ornate golden armor, six wings of shimmering aether, holding a spear of condensed starlight. Background: a cosmic cathedral of light beams and floating golden rings.",
+    "skills": [
+        {
+            "name": "Éclat Primordial",
+            "description": "Projette un trait de lumière pure.",
+            "damage": 85,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Bénédiction Céleste",
+            "description": "Se soigne d'une fraction de ses PV maximum.",
+            "damage": 0,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.25
+            },
+            "cooldown": 4,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Lance de l'Aube",
+            "description": "Transperce l'ennemi d'une lance de lumière condensée.",
+            "damage": 160,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.85
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Aegis Lumineux",
+            "description": "Dresse un bouclier de lumière qui absorbe les assauts.",
+            "damage": 0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 5,
+            "lvlMax": 5,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Verdict Cosmique",
+            "description": "Fait s'abattre la lumière du jugement sur tous les ennemis.",
+            "damage": 310,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 1.1
+            },
+            "cooldown": 7,
+            "lvlMax": 5,
+            "rank": "LEGENDARY"
+        }
+    ]
+}

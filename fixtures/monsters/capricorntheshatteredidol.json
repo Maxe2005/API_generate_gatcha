@@ -19,7 +19,7 @@
                 "stat": "ATK",
                 "percent": 0.7
             },
-            "cooldown": 1.5,
+            "cooldown": 2,
             "lvlMax": 5.0,
             "rank": "COMMON"
         },
@@ -31,7 +31,7 @@
                 "stat": "DEF",
                 "percent": 0.6
             },
-            "cooldown": 2.5,
+            "cooldown": 3,
             "lvlMax": 5.0,
             "rank": "RARE"
         },

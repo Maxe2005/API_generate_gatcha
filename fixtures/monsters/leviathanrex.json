@@ -1,0 +1,75 @@
+{
+    "name": "Leviathan-Rex",
+    "element": "WATER",
+    "rank": "LEGENDARY",
+    "stats": {
+        "hp": 980,
+        "atk": 185,
+        "def": 150,
+        "vit": 60
+    },
+    "description_carte": "Roi des océans primordiaux. Son passage soulève des raz-de-marée et son rugissement fait trembler les continents.",
+    "description_visuelle": "A gargantuan sea serpent king with a crowned head of coral and bone, armored in barnacle-crusted scales, coiling through a stormy ocean. Lightning reflects off its massive body. Background: a tempest at sea with towering waves.",
+    "skills": [
+        {
+            "name": "Coup de Nageoire",
+            "description": "Balaie l'ennemi d'un revers de sa nageoire colossale.",
+            "damage": 100,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Rugissement Primordial",
+            "description": "Terrifie les ennemis, réduisant leur attaque.",
+            "damage": 0,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.3
+            },
+            "cooldown": 4,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Raz-de-Marée",
+            "description": "Soulève une vague titanesque qui submerge le champ de bataille.",
+            "damage": 200,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.9
+            },
+            "cooldown": 5,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        },
+        {
+            "name": "Armure de Corail",
+            "description": "Renforce ses écailles d'une couche de corail ancien.",
+            "damage": 0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.5
+            },
+            "cooldown": 5,
+            "lvlMax": 5,
+            "rank": "LEGENDARY"
+        },
+        {
+            "name": "Jugement des Océans",
+            "description": "Invoque toute la puissance des mers en un déluge dévastateur.",
+            "damage": 320,
+            "ratio": {
+                "stat": "HP",
+                "percent": 0.4
+            },
+            "cooldown": 8,
+            "lvlMax": 5,
+            "rank": "LEGENDARY"
+        }
+    ]
+}

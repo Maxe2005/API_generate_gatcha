@@ -1,0 +1,63 @@
+{
+    "name": "Lithe-Ondine",
+    "element": "WATER",
+    "rank": "RARE",
+    "stats": {
+        "hp": 520,
+        "atk": 95,
+        "def": 70,
+        "vit": 120
+    },
+    "description_carte": "Nymphe des eaux vives, insaisissable comme le courant. Sa danse hypnotique désarme les plus féroces guerriers.",
+    "description_visuelle": "A slender water nymph with translucent aqua skin, flowing hair made of liquid water, and a graceful dancer's pose. Ribbons of water swirl around her. Background: a moonlit river with glowing lotus flowers.",
+    "skills": [
+        {
+            "name": "Lame d'Écume",
+            "description": "Frappe l'ennemi d'un fouet d'eau tranchant.",
+            "damage": 60,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.5
+            },
+            "cooldown": 1,
+            "lvlMax": 5,
+            "rank": "COMMON"
+        },
+        {
+            "name": "Danse des Marées",
+            "description": "Augmente la vitesse du lanceur pendant deux tours.",
+            "damage": 0,
+            "ratio": {
+                "stat": "VIT",
+                "percent": 0.3
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Étreinte du Courant",
+            "description": "Enserre l'ennemi dans un tourbillon, réduisant sa vitesse.",
+            "damage": 80,
+            "ratio": {
+                "stat": "ATK",
+                "percent": 0.6
+            },
+            "cooldown": 3,
+            "lvlMax": 5,
+            "rank": "RARE"
+        },
+        {
+            "name": "Voile de Brume",
+            "description": "S'entoure d'une brume protectrice qui renforce la défense.",
+            "damage": 0,
+            "ratio": {
+                "stat": "DEF",
+                "percent": 0.4
+            },
+            "cooldown": 4,
+            "lvlMax": 5,
+            "rank": "EPIC"
+        }
+    ]
+}

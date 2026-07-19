@@ -9,8 +9,10 @@ Python/FastAPI microservice that generates Gatcha monster profiles with AI: **Go
 ## Commands
 
 ```bash
+make env                           # bootstrap .env / .env.docker from examples
 make install                       # create .venv + install requirements.txt
 make run                           # uvicorn app.main:app --reload on :8000 (needs Postgres/Redis/MinIO up)
+make seed / seed-process / seed-dry-run   # seed fixtures/ into Postgres+MinIO (idempotent)
 
 # Standalone docker stack (api + celery + postgres:5434 + redis + minio + pgadmin)
 make d-up / d-down / d-logs / d-restart      # uses .env.docker
@@ -67,7 +69,8 @@ Every monster lives in `monsters_state` with a state from `MonsterStateEnum` (`a
 
 ### Storage & validation
 
-- Images go to MinIO buckets `raw-assets`/`game-assets`; default images are seeded at startup (`MinioClientWrapper.ensure_default_images`). Monsters support multiple images with one default (`monster_image_model` / `image_service`).
+- Images go to MinIO buckets `raw-assets`/`game-assets`, linked by the naming convention `game-assets/<stem>.webp` ↔ `raw-assets/monsters/<stem>.png` centralized in `app/utils/image_keys.py`. Monsters support multiple images with one default (`monster_image_model` / `image_service`).
+- Fixtures live in `fixtures/` (`monsters/<slug>.json` paired 1:1 with `images/<slug>.png`); `scripts/seed_fixtures.py` (via `make seed`) seeds them idempotently into Postgres+MinIO with deterministic uuid5 monster_ids.
 - Validation rules (stat ranges, enums, types) are centralized in `ValidationConstants` in `app/core/constants.py` (aliased as `ValidationRules` in config) and applied by composable validators in `app/services/validation_service.py`. Gemini output failing validation lands the monster in `DEFECTIVE` instead of crashing.
 - Transmission to `API_invocations` (`app/clients/invocation_api.py`, `app/services/transmission_service.py`) retries per `INVOCATION_API_*` settings and records attempts/errors on `monsters_state`.
 
