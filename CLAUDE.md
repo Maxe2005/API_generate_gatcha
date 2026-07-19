@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git workflow (required)
+
+For any piece of work beyond a trivial one-line fix: create a dedicated branch (`feat/...`, `fix/...`, `perf/...`) from `development`, commit in atomic steps with conventional-commit messages in French (`feat:`/`fix:`/`perf:`/`docs:` plus a body explaining the why), then merge back with `--no-ff`. Never commit sizeable work directly on `development` or `master`.
+
 ## What this service is
 
 Python/FastAPI microservice that generates Gatcha monster profiles with AI: **Google Gemini** for stats/text (`GEMINI_API_KEY`), **Banana.dev** for pixel-art images (`BANANA_API_KEY`). It is a git submodule of the GatchaApi root repo; approved monsters are transmitted to `API_invocations`. This service does **not** validate caller tokens on its own endpoints — it relies on network isolation.
