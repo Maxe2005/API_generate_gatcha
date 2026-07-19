@@ -1,24 +1,32 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help env install run clean seed seed-process seed-dry-run docker-up docker-down db-migrate db-shell db-backup db-reset db-alembic-revision db-alembic-up db-alembic-down pgadmin backup-all restore-all backup-list \
-	global-up global-down global-down-v global-reset-volumes global-ps global-logs global-build global-restart\
-	global-celery-up global-celery-down global-celery-logs global-celery-build global-celery-restart
+# Ce service se lance exclusivement via le docker-compose.yaml du projet
+# orchestrateur (GatchaApi), dont ce dépôt est un sous-module.
+# Il n'y a plus de docker-compose local : les cibles docker ci-dessous
+# pilotent la stack racine, restreinte à ce service (et son worker Celery).
+COMPOSE = docker compose -f ../docker-compose.yaml
+SVC = api-generate-gatcha
+
+.PHONY: help env install run clean seed seed-process seed-dry-run \
+	db-shell db-reset db-stats db-alembic-revision db-alembic-up db-alembic-up-one db-alembic-down \
+	pgadmin backup-all restore-all backup-list \
+	up down down-v reset-volumes ps logs build restart \
+	celery-up celery-down celery-logs celery-build celery-restart
 
 # Variables
 PYTHON = python3
 VENV = .venv
 BIN = $(VENV)/bin
-POSTGRES_CONTAINER = gatcha_postgres
+POSTGRES_CONTAINER = postgres-generate-gatcha
 POSTGRES_USER = gatcha_user
 POSTGRES_DB = gatcha_db
 
 help: ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-env: ## Crée .env et .env.docker depuis les exemples s'ils n'existent pas
+env: ## Crée .env depuis .env.example s'il n'existe pas (pour le dev local uniquement)
 	@test -f .env || (cp .env.example .env && echo "✅ .env créé depuis .env.example")
-	@test -f .env.docker || (cp .env.docker.example .env.docker && echo "✅ .env.docker créé depuis .env.docker.example")
-	@echo "ℹ️  Renseignez GEMINI_API_KEY dans .env et .env.docker"
+	@echo "ℹ️  Renseignez GEMINI_API_KEY dans .env (dev local). En docker, la config vient du .env du projet racine."
 
 install: ## Crée l'environnement virtuel et installe les dépendances
 	$(PYTHON) -m venv $(VENV)
@@ -34,31 +42,62 @@ clean: ## Nettoie les fichiers temporaires et le venv
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -exec rm -f {} +
 
-d-up: ## Construit et lance les conteneurs Docker en arrière-plan
-	docker-compose up -d --build
-	@echo "🚀 Serveur lancé sur http://localhost:8000"
+# ===== Docker (via la stack racine) =====
 
-d-down: ## Arrête et supprime les conteneurs Docker
-	docker-compose down
+up: ## Build (if needed) and start this service (via the orchestrator stack)
+	$(COMPOSE) up -d --build $(SVC)
 
-d-logs: ## Affiche les logs du conteneur API
-	docker-compose logs -f api
+down: ## Stop and remove this service (keeps volumes)
+	$(COMPOSE) down $(SVC)
 
-d-restart: ## Redémarre tous les conteneurs
-	docker-compose restart
-	@echo "🔄 Conteneurs redémarrés"
+down-v: ## Stop this service and remove the stack volumes (destructive: wipes DB/minio data)
+	$(COMPOSE) down -v $(SVC)
+
+reset-volumes: ## Reset volumes and restart this service fresh
+	$(COMPOSE) down -v $(SVC)
+	$(COMPOSE) up -d $(SVC)
+
+ps: ## Show status of this service's container
+	$(COMPOSE) ps $(SVC)
+
+logs: ## Tail logs for this service
+	$(COMPOSE) logs -f $(SVC)
+
+build: ## Build this service's image
+	$(COMPOSE) build $(SVC)
+
+restart: ## Rebuild and restart this service (config/code change)
+	$(COMPOSE) down $(SVC)
+	$(COMPOSE) up -d --build $(SVC)
+
+celery-up: ## Start the Celery worker
+	$(COMPOSE) up -d --build celery
+
+celery-down: ## Stop the Celery worker
+	$(COMPOSE) down celery
+
+celery-logs: ## Tail logs for the Celery worker
+	$(COMPOSE) logs -f celery
+
+celery-build: ## Build the Celery worker image
+	$(COMPOSE) build celery
+
+celery-restart: ## Rebuild and restart the Celery worker
+	$(COMPOSE) down celery
+	$(COMPOSE) up -d --build celery
 
 # ===== PostgreSQL =====
 
 db-shell: ## Ouvre un shell psql dans le conteneur PostgreSQL
 	docker exec -it $(POSTGRES_CONTAINER) psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 
-db-reset: ## Reset complet de la base (⚠️  supprime toutes les données)
-	@echo "⚠️  ATTENTION: Cette commande va supprimer toutes les données PostgreSQL!"
+db-reset: ## Reset complet de la base (⚠️  supprime toutes les données de ce service)
+	@echo "⚠️  ATTENTION: Cette commande va supprimer toutes les données PostgreSQL de ce service!"
 	@read -p "Êtes-vous sûr? [y/N] " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
-		docker-compose down -v; \
-		docker-compose up -d; \
+		$(COMPOSE) rm -sf postgres-generate-gatcha; \
+		docker volume ls -q | grep postgres_generate_gatcha_data | xargs -r docker volume rm; \
+		$(COMPOSE) up -d postgres-generate-gatcha; \
 		sleep 5; \
 		echo "✅ Base de données réinitialisée"; \
 	else \
@@ -90,7 +129,7 @@ db-stats: ## Affiche des statistiques sur la base
 pgadmin: ## Ouvre pgAdmin dans le navigateur
 	@echo "🌐 Ouverture de pgAdmin..."
 	@echo "URL: http://localhost:5050"
-	@echo "Email: admin@gatcha.local"
+	@echo "Email: admin@admin.com"
 	@echo "Password: admin"
 	@xdg-open http://localhost:5050 2>/dev/null || open http://localhost:5050 2>/dev/null || echo "Ouvrez manuellement: http://localhost:5050"
 
@@ -116,49 +155,3 @@ seed-process: ## Seed puis transition des monstres (PENDING_REVIEW / DEFECTIVE)
 
 seed-dry-run: ## Affiche le plan de seed sans toucher à la DB ni à MinIO
 	$(BIN)/python scripts/seed_fixtures.py --dry-run
-
-# ===== As a Submodule =====
-
-global-up: ## Start the service (if not already running)
-	docker compose -f ../docker-compose.yaml up -d --build api-generate-gatcha
-
-global-down: ## Stop the service (if running)
-	docker compose -f ../docker-compose.yaml down api-generate-gatcha
-
-global-down-v: ## Stop the service and remove its volumes (destructive: wipes all DB/minio data)
-	docker compose -f ../docker-compose.yaml down -v api-generate-gatcha
-
-global-reset-volumes: ## Reset all volumes and restart the service fresh
-	docker compose -f ../docker-compose.yaml down -v api-generate-gatcha
-	docker compose -f ../docker-compose.yaml up -d api-generate-gatcha
-
-global-ps: ## Show status of all containers in the service
-	docker compose -f ../docker-compose.yaml ps api-generate-gatcha
-
-global-logs: ## Tail logs for this service
-	docker compose -f ../docker-compose.yaml logs -f api-generate-gatcha
-
-global-build: ## Build this service images
-	docker compose -f ../docker-compose.yaml build api-generate-gatcha
-
-global-restart: ## Rebuild and restart this service (config/code change)
-	docker compose -f ../docker-compose.yaml down api-generate-gatcha
-	docker compose -f ../docker-compose.yaml up -d --build api-generate-gatcha
-
-# For celery tasks, you can use the following commands:
-
-global-celery-up: ## Start the service (if not already running)
-	docker compose -f ../docker-compose.yaml up -d --build celery
-
-global-celery-down: ## Stop the service (if running)
-	docker compose -f ../docker-compose.yaml down celery
-
-global-celery-logs: ## Tail logs for this service
-	docker compose -f ../docker-compose.yaml logs -f celery
-
-global-celery-build: ## Build this service images
-	docker compose -f ../docker-compose.yaml build celery
-
-global-celery-restart: ## Rebuild and restart this service (config/code change)
-	docker compose -f ../docker-compose.yaml down celery
-	docker compose -f ../docker-compose.yaml up -d --build celery

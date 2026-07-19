@@ -9,21 +9,17 @@ Python/FastAPI microservice that generates Gatcha monster profiles with AI: **Go
 ## Commands
 
 ```bash
-make env                           # bootstrap .env / .env.docker from examples
+make env                           # bootstrap .env from .env.example (local dev only)
 make install                       # create .venv + install requirements.txt
 make run                           # uvicorn app.main:app --reload on :8000 (needs Postgres/Redis/MinIO up)
 make seed / seed-process / seed-dry-run   # seed fixtures/ into Postgres+MinIO (idempotent)
 
-# Standalone docker stack (api + celery + postgres:5434 + redis + minio + pgadmin)
-make d-up / d-down / d-logs / d-restart      # uses .env.docker
-
-# When run as part of the whole GatchaApi stack (root docker-compose.yaml)
-make global-restart                # rebuild + restart api-generate-gatcha
-make global-celery-restart         # rebuild + restart the celery worker
-make global-logs / global-celery-logs
+# Docker — all targets drive the ROOT GatchaApi docker-compose.yaml (no local compose exists)
+make up / down / restart / logs / build          # api-generate-gatcha
+make celery-up / celery-down / celery-restart / celery-logs   # the celery worker
 ```
 
-**Do not run the standalone compose and the root-repo compose at the same time** — same container names/ports.
+**This service is launched exclusively via the root repo's `docker-compose.yaml`** — in docker, all config comes from the root repo's `.env` (via `env_file`) plus `environment:` overrides in the root compose.
 
 ### Tests
 
@@ -44,14 +40,14 @@ No lint/format tooling is configured.
 make db-alembic-revision MSG="description"   # autogenerate revision
 make db-alembic-up                           # upgrade to head (REV=... for a specific rev)
 make db-alembic-down REV=-1
-make db-shell                                # psql into gatcha_postgres container
+make db-shell                                # psql into postgres-generate-gatcha container
 ```
 
-The scripts run `python -m alembic` on the host, so activate the venv and have Postgres reachable per your `.env` (localhost:5434 with the standalone compose). Note: `init_db()` in `app/models/base.py` also runs `Base.metadata.create_all()` at app startup, so on a fresh DB tables can exist before any migration ran — keep models and Alembic revisions in sync.
+The scripts run `python -m alembic` on the host, so activate the venv and have Postgres reachable per your `.env` (localhost:5434, the host port exposed by the root stack). Note: `init_db()` in `app/models/base.py` also runs `Base.metadata.create_all()` at app startup, so on a fresh DB tables can exist before any migration ran — keep models and Alembic revisions in sync.
 
 ### Environment
 
-Config is pydantic-settings (`app/core/config.py`) loading `.env`. Two templates that differ only in hostnames: `.env.example` (localhost, for `make run`) and `.env.docker.example` (docker service names `postgres`/`redis`, used by `docker-compose.yml` via `env_file: .env.docker`). Exception: the Celery broker URL is **hardcoded** to `redis://redis:6379/0` in `app/celery_worker.py` — the worker only resolves inside docker.
+Config is pydantic-settings (`app/core/config.py`) loading `.env` (real environment variables take precedence over the file). One template: `.env.example` (localhost hostnames, for `make run` against the root stack's exposed ports). In docker there is no local env file at all (`.env` is dockerignored): the root repo's compose injects everything via `env_file` (root `.env`) + `environment:`. The Celery broker/backend URL is built from `REDIS_HOST`/`REDIS_PORT` in `app/celery_worker.py`.
 
 ## Architecture
 

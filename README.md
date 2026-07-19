@@ -39,17 +39,22 @@ Un fichier `Makefile` est fourni pour simplifier les tâches courantes.
    ```
    L'API sera accessible sur `http://localhost:8000`.
 
-### Avec Docker
+### Avec Docker (via l'orchestrateur)
 
-1. **Lancer l'environnement complet** :
+Ce service se lance **exclusivement** via le dépôt orchestrateur [GatchaApi](https://github.com/Maxe2005/GatchaApi) et son `docker-compose.yaml` racine (il n'y a plus de `docker-compose.yml` local dans ce dépôt). La config docker (clés API, Postgres, Redis, MinIO) vient du `.env` **racine** du projet GatchaApi.
+
+1. **Lancer ce service (et son worker Celery)** depuis ce dossier :
    ```bash
-   make d-up
+   make up          # rebuild + démarre api-generate-gatcha via ../docker-compose.yaml
+   make celery-up   # idem pour le worker Celery
    ```
 
-2. **Arrêter l'environnement** :
+2. **Arrêter** :
    ```bash
-   make d-down
+   make down / make celery-down
    ```
+
+En docker, l'API est exposée sur le port hôte **8084** (`http://localhost:8084/docs`).
 
 ## 📚 Documentation API
 
@@ -112,7 +117,7 @@ make restore-all BACKUP_NAME=avant_test
 
 Notes :
 - Par defaut, la restauration MinIO n efface pas les fichiers existants. Pour forcer une synchro stricte, utilisez `MINIO_REMOVE=true`.
-- Les identifiants et le reseau Docker sont ceux de `docker-compose.yml` et peuvent etre modifies via des variables d environnement.
+- Les identifiants et le reseau Docker sont ceux du `docker-compose.yaml` racine du projet GatchaApi et peuvent etre modifies via des variables d environnement (`POSTGRES_CONTAINER`, `DOCKER_NETWORK`, ...).
 
 ## 🧪 Exemple d'Appel
 

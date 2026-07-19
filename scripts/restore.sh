@@ -12,7 +12,7 @@ fi
 
 BACKUP_PATH="$BACKUP_ROOT/$BACKUP_NAME"
 
-POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-gatcha_postgres}"
+POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-postgres-generate-gatcha}"
 POSTGRES_USER="${POSTGRES_USER:-gatcha_user}"
 POSTGRES_DB="${POSTGRES_DB:-gatcha_db}"
 
@@ -20,7 +20,7 @@ MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-admin}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-password123}"
 MINIO_HOST="${MINIO_HOST:-minio}"
 MINIO_PORT="${MINIO_PORT:-9000}"
-DOCKER_NETWORK="${DOCKER_NETWORK:-api_generate_gatcha_gatcha_network}"
+DOCKER_NETWORK="${DOCKER_NETWORK:-gatchaapi_api_network}"
 
 SQL_FILE="$BACKUP_PATH/postgres/${POSTGRES_DB}.sql"
 if [[ ! -f "$SQL_FILE" ]]; then

@@ -21,9 +21,9 @@ class Settings(BaseSettings):
     BANANA_API_KEY: str = ""
 
     # PostgreSQL
-    # Défauts alignés sur le contexte docker : hostname du service compose,
+    # Défauts alignés sur la stack racine (GatchaApi/docker-compose.yaml) :
     # port interne 5432 (5434 n'est que le port exposé côté hôte)
-    POSTGRES_HOST: str = "postgres"
+    POSTGRES_HOST: str = "postgres-generate-gatcha"
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str = "gatcha_user"
     POSTGRES_PASSWORD: str = "gatcha_password"
@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     MINIO_PUBLIC_URL: str = "http://localhost:9000"
 
     # API Invocation
-    INVOCATION_API_URL: str = "http://host.docker.internal:8085"
+    INVOCATION_API_URL: str = "http://api-invocations:8080"
     INVOCATION_API_TIMEOUT: int = 30
     INVOCATION_API_MAX_RETRIES: int = 3
     INVOCATION_API_RETRY_DELAY: int = 2
