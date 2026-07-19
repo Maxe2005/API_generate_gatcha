@@ -529,9 +529,13 @@ class MonsterValidationService:
         self.enum_validator = MonsterEnumValidator()
         self.range_validator = MonsterRangeValidator()
 
-    def validate(self, monster_data: Dict[str, Any], is_image: bool = True) -> ValidationResult:
+    def validate(
+        self, monster_data: Dict[str, Any], is_image: bool = False
+    ) -> ValidationResult:
         """
-        Complete validation of monster JSON
+        Complete validation of monster JSON.
+        Par défaut ne valide que la structure/enums/ranges ; passer
+        is_image=True pour exiger en plus une ImageUrl valide.
         Returns ValidationResult with all errors found
         """
         # Run all validators

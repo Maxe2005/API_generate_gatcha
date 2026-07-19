@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends, WebSocket
 from sqlalchemy.orm import Session
-from app.core.config import get_settings
 from app.schemas.req_res_api import MonsterCreateRequest, BatchMonsterRequest
 from app.services.gatcha_service import GatchaService
 from app.models.base import get_db
+from app.utils.ws_relay import relay_batch_messages
 
 import uuid
 from app.services.tasks import generate_monsters
-import redis.asyncio as aioredis
-import asyncio
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,27 +43,4 @@ def generate_monster_batch(request: BatchMonsterRequest):
 
 @router.websocket("/ws/{batch_id}")
 async def websocket_batch(websocket: WebSocket, batch_id: str):
-    settings = get_settings()
-    await websocket.accept()
-    logger.info(f"WebSocket connecté pour batch_id={batch_id}")
-    redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0", decode_responses=True)
-    pubsub = redis.pubsub()
-    await pubsub.subscribe(f"batch:{batch_id}")
-    try:
-        while True:
-            message = await pubsub.get_message(
-                ignore_subscribe_messages=True, timeout=1.0
-            )
-            if message and message["type"] == "message":
-                msg = message["data"]
-                logger.info(f"Envoi WebSocket batch_id={batch_id} : {msg[:100]}")
-                await websocket.send_text(msg)
-                if msg == "Génération terminée":
-                    break
-            await asyncio.sleep(0.1)
-    finally:
-        await pubsub.unsubscribe(f"batch:{batch_id}")
-        await pubsub.close()
-        await redis.close()
-    await websocket.close()
-    logger.info(f"WebSocket fermé pour batch_id={batch_id}")
+    await relay_batch_messages(websocket, batch_id)

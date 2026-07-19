@@ -9,10 +9,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, WebSocket
 from sqlalchemy.orm import Session
 import logging
 import uuid
-import asyncio
-import redis.asyncio as aioredis
 
 from app.models.base import get_db
+from app.utils.ws_relay import relay_batch_messages
 from app.services.image_service import ImageService
 from app.clients.banana import BananaClient
 from app.schemas.image import (
@@ -26,7 +25,6 @@ from app.schemas.image import (
 )
 from app.services.signed_urls_service import generate_signed_urls
 from app.services.tasks import generate_custom_image
-from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -233,29 +231,4 @@ async def websocket_image_generation(websocket: WebSocket, batch_id: str):
         websocket: Connexion WebSocket
         batch_id: ID du batch de génération
     """
-    settings = get_settings()
-    await websocket.accept()
-    logger.info(f"WebSocket connecté pour batch_id={batch_id}")
-    redis = await aioredis.from_url(
-        f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0", decode_responses=True
-    )
-    pubsub = redis.pubsub()
-    await pubsub.subscribe(f"batch:{batch_id}")
-    try:
-        while True:
-            message = await pubsub.get_message(
-                ignore_subscribe_messages=True, timeout=1.0
-            )
-            if message and message["type"] == "message":
-                msg = message["data"]
-                logger.info(f"Envoi WebSocket batch_id={batch_id} : {msg[:100]}")
-                await websocket.send_text(msg)
-                if msg == "Génération terminée":
-                    break
-            await asyncio.sleep(0.1)
-    finally:
-        await pubsub.unsubscribe(f"batch:{batch_id}")
-        await pubsub.close()
-        await redis.close()
-    await websocket.close()
-    logger.info(f"WebSocket fermé pour batch_id={batch_id}")
+    await relay_batch_messages(websocket, batch_id)
