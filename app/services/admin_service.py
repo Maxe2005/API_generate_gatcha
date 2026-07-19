@@ -596,9 +596,10 @@ class AdminService:
                     ]
 
                     # Mettre à jour les métadonnées avec les erreurs
+                    # (l'état reste GENERATED : c'est perform_transition qui
+                    # applique GENERATED → DEFECTIVE, sinon la transition est rejetée)
                     monster.metadata.is_valid = False
                     monster.metadata.validation_errors = validation_errors
-                    monster.metadata.state = MonsterStateEnum.DEFECTIVE
                     monster.metadata.updated_at = datetime.now(timezone.utc)
 
                     # Sauvegarder les métadonnées mises à jour
