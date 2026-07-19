@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install run clean docker-up docker-down db-migrate db-shell db-backup db-reset db-alembic-revision db-alembic-up db-alembic-down pgadmin backup-all restore-all backup-list \
+.PHONY: help env install run clean docker-up docker-down db-migrate db-shell db-backup db-reset db-alembic-revision db-alembic-up db-alembic-down pgadmin backup-all restore-all backup-list \
 	global-up global-down global-down-v global-reset-volumes global-ps global-logs global-build global-restart\
 	global-celery-up global-celery-down global-celery-logs global-celery-build global-celery-restart
 
@@ -14,6 +14,11 @@ POSTGRES_DB = gatcha_db
 
 help: ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+env: ## Crée .env et .env.docker depuis les exemples s'ils n'existent pas
+	@test -f .env || (cp .env.example .env && echo "✅ .env créé depuis .env.example")
+	@test -f .env.docker || (cp .env.docker.example .env.docker && echo "✅ .env.docker créé depuis .env.docker.example")
+	@echo "ℹ️  Renseignez GEMINI_API_KEY dans .env et .env.docker"
 
 install: ## Crée l'environnement virtuel et installe les dépendances
 	$(PYTHON) -m venv $(VENV)

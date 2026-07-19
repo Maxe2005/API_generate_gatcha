@@ -21,8 +21,10 @@ class Settings(BaseSettings):
     BANANA_API_KEY: str = ""
 
     # PostgreSQL
+    # Défauts alignés sur le contexte docker : hostname du service compose,
+    # port interne 5432 (5434 n'est que le port exposé côté hôte)
     POSTGRES_HOST: str = "postgres"
-    POSTGRES_PORT: int = 5434
+    POSTGRES_PORT: int = 5432
     POSTGRES_USER: str = "gatcha_user"
     POSTGRES_PASSWORD: str = "gatcha_password"
     POSTGRES_DB: str = "gatcha_db"
