@@ -80,9 +80,7 @@ class MonsterStateManager:
         MonsterStateEnum.REJECTED,
     ]
 
-    def can_transition(
-        self, from_state: MonsterStateEnum, to_state: MonsterStateEnum
-    ) -> bool:
+    def can_transition(self, from_state: MonsterStateEnum, to_state: MonsterStateEnum) -> bool:
         """Vérifie si une transition est valide"""
         return to_state in self.VALID_TRANSITIONS.get(from_state, [])
 
@@ -114,9 +112,7 @@ class MonsterStateManager:
         current_state = metadata.state
 
         if not self.can_transition(current_state, to_state):
-            raise StateTransitionError(
-                f"Invalid transition from {current_state} to {to_state}"
-            )
+            raise StateTransitionError(f"Invalid transition from {current_state} to {to_state}")
 
         # Enregistrer la transition
         transition = StateTransition(
@@ -132,9 +128,7 @@ class MonsterStateManager:
         metadata.updated_at = datetime.now(timezone.utc)
         metadata.history.append(transition)
 
-        logger.info(
-            f"Monster {metadata.monster_id}: {current_state} → {to_state} (by {actor})"
-        )
+        logger.info(f"Monster {metadata.monster_id}: {current_state} → {to_state} (by {actor})")
 
         return metadata
 
@@ -164,22 +158,16 @@ class MonsterStateManager:
         if updated_metadata.history:
             # Sauvegarder la dernière transition qui vient d'être ajoutée
             last_transition = updated_metadata.history[-1]
-            self.state_repository.save_transition(
-                updated_metadata.monster_id, last_transition
-            )
+            self.state_repository.save_transition(updated_metadata.monster_id, last_transition)
 
         # 4. Si transition vers PENDING_REVIEW, orchestrer la transition JSON → DB structurée
         if to_state == MonsterStateEnum.PENDING_REVIEW:
-            monster_state = self.state_repository.get_db_object(
-                updated_metadata.monster_id
-            )
+            monster_state = self.state_repository.get_db_object(updated_metadata.monster_id)
             data: Dict[str, Any] = monster_state.monster_data  # type: ignore
             if not data:
                 logger.error("Monster data is required for database transition")
                 raise ValueError("Monster data is required for database transition")
-            self.transition_repository.create_structured_monster_from_json(
-                monster_state, data
-            )
+            self.transition_repository.create_structured_monster_from_json(monster_state, data)
 
         return updated_metadata
 

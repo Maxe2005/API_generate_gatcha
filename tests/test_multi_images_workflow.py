@@ -9,7 +9,6 @@ Ce script teste les nouvelles fonctionnalités :
 """
 
 import requests
-import json
 from typing import Dict, Any
 
 # Configuration
@@ -64,9 +63,7 @@ def get_monster_images(monster_id: str) -> Dict[str, Any]:
         print(f"   ID de l'image: {default.get('id', 'N/A')}")
 
     for idx, img in enumerate(images_data.get("images", []), 1):
-        print(
-            f"   {idx}. {img['image_name']} (default: {img['is_default']}) - ID: {img['id']}"
-        )
+        print(f"   {idx}. {img['image_name']} (default: {img['is_default']}) - ID: {img['id']}")
 
     return images_data
 
@@ -157,9 +154,7 @@ def main():
     custom_image = generate_custom_image(monster_id)
     if not custom_image:
         print("\n⚠️ La génération d'image personnalisée a échoué")
-        print(
-            "   Cela peut être normal si l'API Gemini a des limites de quota ou de connexion"
-        )
+        print("   Cela peut être normal si l'API Gemini a des limites de quota ou de connexion")
         # On continue quand même pour récupérer les images
     else:
         # Attendre que l'image soit bien créée

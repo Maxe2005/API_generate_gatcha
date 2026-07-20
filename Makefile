@@ -7,7 +7,7 @@
 COMPOSE = docker compose -f ../docker-compose.yaml
 SVC = api-generate-gatcha
 
-.PHONY: help env install run clean seed seed-process seed-dry-run \
+.PHONY: help env install install-dev run test lint format format-check clean seed seed-process seed-dry-run \
 	db-shell db-reset db-stats db-alembic-revision db-alembic-up db-alembic-up-one db-alembic-down \
 	pgadmin backup-all restore-all backup-list \
 	up down down-v reset-volumes ps logs build restart \
@@ -34,8 +34,23 @@ install: ## Crée l'environnement virtuel et installe les dépendances
 	$(BIN)/pip install -r requirements.txt
 	@echo "✅ Installation terminée. Activez avec 'source .venv/bin/activate'"
 
+install-dev: ## Installe en plus l'outillage de dev (ruff)
+	$(BIN)/pip install -r requirements-dev.txt
+
 run: ## Lance le serveur API en local (nécessite 'make install' d'abord)
 	$(BIN)/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+test: ## Lance les tests unitaires purs (aucun service externe requis)
+	$(BIN)/python -m pytest tests/test_validation_service.py tests/test_update_events.py tests/test_security.py tests/test_state_manager.py -v
+
+lint: ## Vérifie le code avec ruff (nécessite 'make install-dev')
+	$(BIN)/ruff check .
+
+format: ## Formate le code avec ruff (écrit les fichiers)
+	$(BIN)/ruff format .
+
+format-check: ## Vérifie le formatage sans écrire (utilisé en CI)
+	$(BIN)/ruff format --check .
 
 clean: ## Nettoie les fichiers temporaires et le venv
 	rm -rf $(VENV)

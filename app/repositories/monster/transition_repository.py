@@ -7,7 +7,6 @@ Crée des monstres structurés à partir de JSON.
 Gère la transition JSON → Monster structuré + Skills.
 """
 
-from os import name
 from typing import Optional, Dict, Any
 import logging
 
@@ -79,12 +78,8 @@ class TransitionRepository:
                 vit=monster_json[MonsterJsonAttributes.STATS.value][
                     MonsterJsonStatsAttributes.VIT.value
                 ],
-                description_carte=monster_json[
-                    MonsterJsonAttributes.DESCRIPTION_CARD.value
-                ],
-                description_visuelle=monster_json[
-                    MonsterJsonAttributes.DESCRIPTION_VISUAL.value
-                ],
+                description_carte=monster_json[MonsterJsonAttributes.DESCRIPTION_CARD.value],
+                description_visuelle=monster_json[MonsterJsonAttributes.DESCRIPTION_VISUAL.value],
                 image_url=monster_json.get(MonsterJsonAttributes.IMAGE_URL.value),
             )
 
@@ -96,9 +91,7 @@ class TransitionRepository:
                 skill = Skill(
                     monster_id=monster.id,
                     name=skill_data[MonsterJsonSkillAttributes.NAME.value],
-                    description=skill_data[
-                        MonsterJsonSkillAttributes.DESCRIPTION.value
-                    ],
+                    description=skill_data[MonsterJsonSkillAttributes.DESCRIPTION.value],
                     damage=skill_data[MonsterJsonSkillAttributes.DAMAGE.value],
                     cooldown=skill_data[MonsterJsonSkillAttributes.COOLDOWN.value],
                     lvl_max=skill_data[MonsterJsonSkillAttributes.LVL_MAX.value],
@@ -137,9 +130,7 @@ class TransitionRepository:
             self.db.commit()
             self.db.refresh(monster)
 
-            logger.info(
-                f"Created structured monster from JSON for {monster_state.monster_id}"
-            )
+            logger.info(f"Created structured monster from JSON for {monster_state.monster_id}")
             return monster
 
         except Exception as e:

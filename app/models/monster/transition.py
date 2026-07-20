@@ -40,9 +40,7 @@ class StateTransitionModel(Base):
 
     from_state = Column(SQLEnum(MonsterStateEnum), nullable=True)
     to_state = Column(SQLEnum(MonsterStateEnum), nullable=False)
-    timestamp = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     actor = Column(String, nullable=False)  # system|admin|user
     note = Column(Text, nullable=True)
 

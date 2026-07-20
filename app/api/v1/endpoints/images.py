@@ -136,9 +136,7 @@ async def set_default_image(
     """
     try:
         result = image_service.set_default_image(monster_id, request.image_id)
-        logger.info(
-            f"Image {request.image_id} définie comme défaut pour le monstre {monster_id}"
-        )
+        logger.info(f"Image {request.image_id} définie comme défaut pour le monstre {monster_id}")
         return result
     except ValueError as e:
         logger.error(f"Erreur de validation: {e}")
@@ -211,9 +209,7 @@ async def rename_image(
     description="Reçoit une liste d'objets {id, url} et retourne des URLs présignées pour les high-res correspondants.",
     dependencies=[Depends(require_auth)],
 )
-async def get_signed_urls(
-    items: list[SignedUrlRequestItem]
-):
+async def get_signed_urls(items: list[SignedUrlRequestItem]):
     try:
         return generate_signed_urls(items)
     except ValueError as e:

@@ -24,9 +24,7 @@ class ValidationError:
     """Represents a single validation error"""
 
     field: str
-    error_type: (
-        str  # "type_mismatch", "enum_invalid", "value_out_of_range", "missing_field"
-    )
+    error_type: str  # "type_mismatch", "enum_invalid", "value_out_of_range", "missing_field"
     message: str
 
 
@@ -103,9 +101,7 @@ class EnumValidator:
     """Validates enum-like string values"""
 
     @staticmethod
-    def validate_enum(
-        value: str, allowed_values: set, field_name: str
-    ) -> Tuple[bool, str]:
+    def validate_enum(value: str, allowed_values: set, field_name: str) -> Tuple[bool, str]:
         """
         Validate value is in allowed set
         Returns (is_valid, error_message)
@@ -222,14 +218,10 @@ class MonsterStructureValidator:
             expected_type,
         ) in MonsterStructureValidator.REQUIRED_TOP_LEVEL_FIELDS.items():
             if field not in monster_data:
-                result.add_error(
-                    field, "missing_field", f"Required field '{field}' is missing"
-                )
+                result.add_error(field, "missing_field", f"Required field '{field}' is missing")
                 continue
 
-            is_valid, error_msg = TypeValidator.validate_type(
-                monster_data[field], expected_type
-            )
+            is_valid, error_msg = TypeValidator.validate_type(monster_data[field], expected_type)
             if not is_valid:
                 result.add_error(field, "type_mismatch", error_msg)
 
@@ -250,9 +242,7 @@ class MonsterStructureValidator:
                     )
                     continue
 
-                is_valid, error_msg = TypeValidator.validate_type(
-                    stats[field], expected_type
-                )
+                is_valid, error_msg = TypeValidator.validate_type(stats[field], expected_type)
                 if not is_valid:
                     result.add_error(f"stats.{field}", "type_mismatch", error_msg)
 
@@ -260,9 +250,7 @@ class MonsterStructureValidator:
         if MonsterJsonAttributes.SKILLS.value in monster_data and isinstance(
             monster_data[MonsterJsonAttributes.SKILLS.value], list
         ):
-            for idx, skill in enumerate(
-                monster_data[MonsterJsonAttributes.SKILLS.value]
-            ):
+            for idx, skill in enumerate(monster_data[MonsterJsonAttributes.SKILLS.value]):
                 if not isinstance(skill, dict):
                     result.add_error(
                         f"skills[{idx}]",
@@ -283,13 +271,9 @@ class MonsterStructureValidator:
                         )
                         continue
 
-                    is_valid, error_msg = TypeValidator.validate_type(
-                        skill[field], expected_type
-                    )
+                    is_valid, error_msg = TypeValidator.validate_type(skill[field], expected_type)
                     if not is_valid:
-                        result.add_error(
-                            f"skills[{idx}].{field}", "type_mismatch", error_msg
-                        )
+                        result.add_error(f"skills[{idx}].{field}", "type_mismatch", error_msg)
 
                 # Check ratio structure
                 if MonsterJsonSkillAttributes.RATIO.value in skill and isinstance(
@@ -338,9 +322,7 @@ class MonsterEnumValidator:
                 MonsterJsonAttributes.ELEMENT.value,
             )
             if not is_valid:
-                result.add_error(
-                    MonsterJsonAttributes.ELEMENT.value, "enum_invalid", error_msg
-                )
+                result.add_error(MonsterJsonAttributes.ELEMENT.value, "enum_invalid", error_msg)
 
         # Validate rank
         if MonsterJsonAttributes.RANK.value in monster_data:
@@ -350,17 +332,13 @@ class MonsterEnumValidator:
                 MonsterJsonAttributes.RANK.value,
             )
             if not is_valid:
-                result.add_error(
-                    MonsterJsonAttributes.RANK.value, "enum_invalid", error_msg
-                )
+                result.add_error(MonsterJsonAttributes.RANK.value, "enum_invalid", error_msg)
 
         # Validate skill stats
         if MonsterJsonAttributes.SKILLS.value in monster_data and isinstance(
             monster_data[MonsterJsonAttributes.SKILLS.value], list
         ):
-            for idx, skill in enumerate(
-                monster_data[MonsterJsonAttributes.SKILLS.value]
-            ):
+            for idx, skill in enumerate(monster_data[MonsterJsonAttributes.SKILLS.value]):
                 if isinstance(skill, dict):
                     # Validate skill rank
                     if MonsterJsonSkillAttributes.RANK.value in skill:
@@ -370,9 +348,7 @@ class MonsterEnumValidator:
                             f"skills[{idx}].rank",
                         )
                         if not is_valid:
-                            result.add_error(
-                                f"skills[{idx}].rank", "enum_invalid", error_msg
-                            )
+                            result.add_error(f"skills[{idx}].rank", "enum_invalid", error_msg)
 
                     # Validate ratio stat
                     if MonsterJsonSkillAttributes.RATIO.value in skill and isinstance(
@@ -419,9 +395,7 @@ class MonsterRangeValidator:
                         stats[stat_name], min_val, max_val, f"stats.{stat_name}"
                     )
                     if not is_valid:
-                        result.add_error(
-                            f"stats.{stat_name}", "value_out_of_range", error_msg
-                        )
+                        result.add_error(f"stats.{stat_name}", "value_out_of_range", error_msg)
 
         # Validate description_carte length
         if MonsterJsonAttributes.DESCRIPTION_CARD.value in monster_data:
@@ -437,9 +411,7 @@ class MonsterRangeValidator:
         if MonsterJsonAttributes.SKILLS.value in monster_data and isinstance(
             monster_data[MonsterJsonAttributes.SKILLS.value], list
         ):
-            for idx, skill in enumerate(
-                monster_data[MonsterJsonAttributes.SKILLS.value]
-            ):
+            for idx, skill in enumerate(monster_data[MonsterJsonAttributes.SKILLS.value]):
                 if isinstance(skill, dict):
                     # Validate damage
                     if MonsterJsonSkillAttributes.DAMAGE.value in skill:
@@ -529,9 +501,7 @@ class MonsterValidationService:
         self.enum_validator = MonsterEnumValidator()
         self.range_validator = MonsterRangeValidator()
 
-    def validate(
-        self, monster_data: Dict[str, Any], is_image: bool = False
-    ) -> ValidationResult:
+    def validate(self, monster_data: Dict[str, Any], is_image: bool = False) -> ValidationResult:
         """
         Complete validation of monster JSON.
         Par défaut ne valide que la structure/enums/ranges ; passer
@@ -573,9 +543,7 @@ class MonsterValidationService:
 
         is_valid, error_msg = URLValidator.validate_url(image_url)
         if not is_valid:
-            result.add_error(
-                MonsterJsonAttributes.IMAGE_URL.value, "invalid_url", error_msg
-            )
+            result.add_error(MonsterJsonAttributes.IMAGE_URL.value, "invalid_url", error_msg)
 
         result.is_valid = len(result.errors) == 0
         return result

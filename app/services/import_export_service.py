@@ -56,9 +56,7 @@ class ImportExportService:
             MonsterJsonAttributes.ELEMENT.value: monster.element.value
             if monster.element.value
             else None,
-            MonsterJsonAttributes.RANK.value: monster.rank.value
-            if monster.rank.value
-            else None,
+            MonsterJsonAttributes.RANK.value: monster.rank.value if monster.rank.value else None,
             MonsterJsonAttributes.STATS.value: {
                 MonsterJsonStatsAttributes.HP.value: monster.hp,
                 MonsterJsonStatsAttributes.ATK.value: monster.atk,
@@ -135,17 +133,19 @@ class ImportExportService:
 
     def _serialize_update_events(self, mid: str) -> List[Dict[str, Any]]:
         events = self.update_repo.get_by_monster_id(mid)
-        return [e.__dict__ for e in events] # type: ignore
+        return [e.__dict__ for e in events]  # type: ignore
 
-    def _collect_images_and_write(self, mid: str, monster_struct, zf: zipfile.ZipFile) -> List[Dict[str, Any]]:
+    def _collect_images_and_write(
+        self, mid: str, monster_struct, zf: zipfile.ZipFile
+    ) -> List[Dict[str, Any]]:
         images_list: List[Dict[str, Any]] = []
         imgs = self.image_repo.get_images_by_monster_id(monster_struct.id)  # type: ignore
         for im in imgs:
-            id_v = int(im.id) if im.id else None # type: ignore
-            raw_image_key = str(im.raw_image_key) if im.raw_image_key else None # type: ignore
-            image_url = str(im.image_url) if im.image_url else None # type: ignore
-            image_name = str(im.image_name) if im.image_name else None # type: ignore
-            prompt = str(im.prompt) if im.prompt else None # type: ignore
+            id_v = int(im.id) if im.id else None  # type: ignore
+            raw_image_key = str(im.raw_image_key) if im.raw_image_key else None  # type: ignore
+            image_url = str(im.image_url) if im.image_url else None  # type: ignore
+            image_name = str(im.image_name) if im.image_name else None  # type: ignore
+            prompt = str(im.prompt) if im.prompt else None  # type: ignore
             images_list.append(
                 {
                     "id": id_v,
@@ -173,7 +173,9 @@ class ImportExportService:
                 obj.release_conn()
                 zf.writestr(f"{mid}/images/{PurePosixPath(raw_key).name}", data)
             except Exception as e:
-                logger.warning(f"Could not fetch raw image {mid} {raw_key if raw_key else 'unknown'}: {e}")
+                logger.warning(
+                    f"Could not fetch raw image {mid} {raw_key if raw_key else 'unknown'}: {e}"
+                )
 
         return images_list
 
@@ -199,9 +201,9 @@ class ImportExportService:
                     monster_data = self._read_json_from_zip(zf, root, "monster.json")
                     meta = self._read_json_from_zip(zf, root, "meta.json")
 
-                    skip_root, meta_obj = self._save_state_from_meta(meta, monster_data, root, summary)
-
-                    imgs = self._read_json_from_zip(zf, root, "images/images.json") or []
+                    skip_root, meta_obj = self._save_state_from_meta(
+                        meta, monster_data, root, summary
+                    )
 
                     if skip_root:
                         continue
@@ -209,7 +211,9 @@ class ImportExportService:
                     self._upload_images_from_zip(zf, root)
 
                     if meta_obj:
-                        append_struct = self._prepare_structured_monster_for_transmit(meta_obj, monster_data)
+                        append_struct = self._prepare_structured_monster_for_transmit(
+                            meta_obj, monster_data
+                        )
                         if append_struct:
                             monsters_to_transmit.append(append_struct)
 
@@ -239,7 +243,13 @@ class ImportExportService:
         except KeyError:
             return None
 
-    def _save_state_from_meta(self, meta: Optional[Dict[str, Any]], monster_data: Optional[Dict[str, Any]], root: str, summary: Dict[str, Any]) -> Tuple[bool, Optional[Any]]:
+    def _save_state_from_meta(
+        self,
+        meta: Optional[Dict[str, Any]],
+        monster_data: Optional[Dict[str, Any]],
+        root: str,
+        summary: Dict[str, Any],
+    ) -> Tuple[bool, Optional[Any]]:
         # returns (skip_root, meta_obj)
         skip_root = False
         meta_obj = None
@@ -252,7 +262,9 @@ class ImportExportService:
             try:
                 existing = self.state_repo.get(meta_obj.monster_id)
                 if existing:
-                    summary.setdefault("skipped", []).append({"root": root, "reason": "monster_exists"})
+                    summary.setdefault("skipped", []).append(
+                        {"root": root, "reason": "monster_exists"}
+                    )
                     skip_root = True
                 else:
                     self.state_repo.save(meta_obj, monster_data)
@@ -279,11 +291,15 @@ class ImportExportService:
                 raw_key = f"monsters/{stem}.png"
                 try:
                     if not self.minio.object_exists(self.settings.MINIO_BUCKET_RAW, raw_key):
-                        self.minio.upload_image(self.settings.MINIO_BUCKET_RAW, raw_key, data, content_type="image/png")
+                        self.minio.upload_image(
+                            self.settings.MINIO_BUCKET_RAW, raw_key, data, content_type="image/png"
+                        )
                     else:
                         logger.info(f"Raw image already exists, skipping upload: {raw_key}")
                 except Exception:
-                    self.minio.upload_image(self.settings.MINIO_BUCKET_RAW, raw_key, data, content_type="image/png")
+                    self.minio.upload_image(
+                        self.settings.MINIO_BUCKET_RAW, raw_key, data, content_type="image/png"
+                    )
 
                 try:
                     from app.utils.image_utils import optimize_for_web
@@ -291,19 +307,33 @@ class ImportExportService:
                     webp_io = optimize_for_web(data)
                     webp_name = f"{stem}.webp"
                     try:
-                        if not self.minio.object_exists(self.settings.MINIO_BUCKET_ASSETS, webp_name):
-                            self.minio.upload_image(self.settings.MINIO_BUCKET_ASSETS, webp_name, webp_io.getvalue(), content_type="image/webp")
+                        if not self.minio.object_exists(
+                            self.settings.MINIO_BUCKET_ASSETS, webp_name
+                        ):
+                            self.minio.upload_image(
+                                self.settings.MINIO_BUCKET_ASSETS,
+                                webp_name,
+                                webp_io.getvalue(),
+                                content_type="image/webp",
+                            )
                         else:
                             logger.info(f"Webp already exists, skipping upload: {webp_name}")
                     except Exception:
-                        self.minio.upload_image(self.settings.MINIO_BUCKET_ASSETS, webp_name, webp_io.getvalue(), content_type="image/webp")
+                        self.minio.upload_image(
+                            self.settings.MINIO_BUCKET_ASSETS,
+                            webp_name,
+                            webp_io.getvalue(),
+                            content_type="image/webp",
+                        )
                 except Exception:
                     logger.warning(f"Could not create webp for {rel}")
 
             except Exception as e:
                 logger.warning(f"Failed to import image {name}: {e}")
 
-    def _prepare_structured_monster_for_transmit(self, meta_obj, monster_data: Optional[Dict[str, Any]]):
+    def _prepare_structured_monster_for_transmit(
+        self, meta_obj, monster_data: Optional[Dict[str, Any]]
+    ):
         from app.core.constants import MonsterStateEnum
 
         try:
@@ -311,9 +341,13 @@ class ImportExportService:
                 db_state = self.state_repo.get_db_object(meta_obj.monster_id)
                 if db_state and (not db_state.monster) and monster_data:
                     try:
-                        self.transition_repo.create_structured_monster_from_json(db_state, monster_data)
+                        self.transition_repo.create_structured_monster_from_json(
+                            db_state, monster_data
+                        )
                     except Exception as e:
-                        logger.warning(f"Could not create structured monster for {meta_obj.monster_id}: {e}")
+                        logger.warning(
+                            f"Could not create structured monster for {meta_obj.monster_id}: {e}"
+                        )
 
                 monster_struct = self.monster_repo.get_by_uuid(meta_obj.monster_id)
                 return monster_struct

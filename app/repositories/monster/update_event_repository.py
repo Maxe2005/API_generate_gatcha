@@ -67,9 +67,7 @@ class UpdateEventRepository:
         try:
             # Récupérer l'ID DB du MonsterState
             monster_state = (
-                self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
+                self.db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
             )
 
             if not monster_state:
@@ -120,9 +118,7 @@ class UpdateEventRepository:
         """
         try:
             monster_state = (
-                self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
+                self.db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
             )
 
             if not monster_state:
@@ -145,9 +141,7 @@ class UpdateEventRepository:
         """Supprime tous les événements d'update d'un monstre"""
         try:
             monster_state = (
-                self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
+                self.db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
             )
 
             if not monster_state:
@@ -183,7 +177,5 @@ class UpdateEventRepository:
             skip_validation=bool(event.skip_validation),  # type: ignore
             changed_fields=list(event.changed_fields) if event.changed_fields else [],  # type: ignore
             diff_payload=dict(event.diff_payload) if event.diff_payload else None,  # type: ignore
-            request_context=dict(event.request_context)
-            if event.request_context
-            else None,  # type: ignore
+            request_context=dict(event.request_context) if event.request_context else None,  # type: ignore
         )

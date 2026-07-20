@@ -27,9 +27,7 @@ class BaseClient:
         url = f"{self.base_url}{endpoint}"
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.post(
-                    url, json=payload, headers=self.headers, timeout=30.0
-                )
+                response = await client.post(url, json=payload, headers=self.headers, timeout=30.0)
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPStatusError as e:

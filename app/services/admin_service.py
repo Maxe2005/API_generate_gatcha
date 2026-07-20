@@ -58,9 +58,7 @@ class AdminService:
         self.structure_repository = TransitionRepository(db)
         self.monster_repository = MonsterRepository(db)
         self.update_event_repository = UpdateEventRepository(db)
-        self.state_manager = MonsterStateManager(
-            self.state_repository, self.structure_repository
-        )
+        self.state_manager = MonsterStateManager(self.state_repository, self.structure_repository)
         self.validation_service = MonsterValidationService()
         self.modification_service = MonsterModificationService(db)
         self.db = db
@@ -217,9 +215,7 @@ class AdminService:
         if not monster.monster_data:
             raise ValueError("Monster data is missing")
 
-        validation_result = self.validation_service.validate(
-            monster.monster_data, is_image=True
-        )
+        validation_result = self.validation_service.validate(monster.monster_data, is_image=True)
         if not validation_result.is_valid:
             raise ValueError(
                 "Cannot correct monster: current data is still invalid. Please update the monster data first.",
@@ -276,7 +272,7 @@ class AdminService:
         if structured_monster:
             structured_monster = self.monster_repository.get_by_uuid(monster_id)
             old_data = map_structured_to_json(structured_monster)
-        else :
+        else:
             old_data = monster.monster_data.copy() if monster.monster_data else {}
 
         # Valider les nouvelles données si nécessaire
@@ -300,7 +296,6 @@ class AdminService:
                 for e in validation_result.errors
             ]
 
-        
         if (
             structured_monster
             != monster.metadata.state
@@ -481,9 +476,7 @@ class AdminService:
             recent_activity=recent_activity[:10],
         )
 
-    def get_stats_by_state(
-        self, state: MonsterStateEnum
-    ) -> MonsterStatsByStateResponse:
+    def get_stats_by_state(self, state: MonsterStateEnum) -> MonsterStatsByStateResponse:
         """
         Récupère les statistiques min/moyenne/max des stats par état minimum.
 
@@ -551,9 +544,7 @@ class AdminService:
 
                 # Valider les données
                 if not monster.monster_data:
-                    logger.warning(
-                        f"Monster data is missing for monster_id: {monster_id}"
-                    )
+                    logger.warning(f"Monster data is missing for monster_id: {monster_id}")
                     continue
                 validation_result = self.validation_service.validate(
                     monster.monster_data, is_image=True
@@ -582,9 +573,7 @@ class AdminService:
                         }
                     )
 
-                    logger.info(
-                        f"Monster {monster_id} validated and moved to PENDING_REVIEW"
-                    )
+                    logger.info(f"Monster {monster_id} validated and moved to PENDING_REVIEW")
 
                 else:
                     # Préparer les erreurs de validation
@@ -628,15 +617,11 @@ class AdminService:
                         }
                     )
 
-                    logger.warning(
-                        f"Monster {monster_id} invalid and moved to DEFECTIVE"
-                    )
+                    logger.warning(f"Monster {monster_id} invalid and moved to DEFECTIVE")
 
             except Exception as e:
                 logger.error(f"Error processing monster {monster_id}: {e}")
-                details.append(
-                    {"monster_id": monster_id, "action": "error", "error": str(e)}
-                )
+                details.append({"monster_id": monster_id, "action": "error", "error": str(e)})
 
         logger.info(
             f"Processing complete: {moved_to_pending_review} to PENDING_REVIEW, "

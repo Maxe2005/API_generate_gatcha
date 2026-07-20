@@ -47,4 +47,3 @@ class SkillUpdate(BaseModel):
     rank: Optional[str] = None
     ratio_stat: Optional[str] = None
     ratio_percent: Optional[float] = None
-

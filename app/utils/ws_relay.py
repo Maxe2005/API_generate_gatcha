@@ -38,9 +38,7 @@ async def relay_batch_messages(websocket: WebSocket, batch_id: str) -> None:
     await pubsub.subscribe(f"batch:{batch_id}")
     try:
         while True:
-            message = await pubsub.get_message(
-                ignore_subscribe_messages=True, timeout=1.0
-            )
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
             if message and message["type"] == "message":
                 msg = message["data"]
                 logger.info(f"Envoi WebSocket batch_id={batch_id} : {msg[:100]}")

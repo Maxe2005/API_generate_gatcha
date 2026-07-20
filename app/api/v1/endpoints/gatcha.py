@@ -27,20 +27,18 @@ def generate_monster_card(request: MonsterCreateRequest):
     Retourne un batch_id pour le suivi via WebSocket.
     """
     batch_id = str(uuid.uuid4())
-    generate_monsters.delay(batch_id, 1, request.prompt) # pyright: ignore[reportFunctionMemberAccess]
+    generate_monsters.delay(batch_id, 1, request.prompt)  # pyright: ignore[reportFunctionMemberAccess]
     return {"batch_id": batch_id}
 
 
-@router.post(
-    "/generate-batch", response_model=dict, dependencies=[Depends(require_auth)]
-)
+@router.post("/generate-batch", response_model=dict, dependencies=[Depends(require_auth)])
 def generate_monster_batch(request: BatchMonsterRequest):
     """
     Lance la génération batch en tâche de fond (Celery).
     Retourne un batch_id pour le suivi via WebSocket.
     """
     batch_id = str(uuid.uuid4())
-    generate_monsters.delay(batch_id, request.n, request.prompt) # pyright: ignore[reportFunctionMemberAccess]
+    generate_monsters.delay(batch_id, request.n, request.prompt)  # pyright: ignore[reportFunctionMemberAccess]
     return {"batch_id": batch_id}
 
 

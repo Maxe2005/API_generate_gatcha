@@ -35,9 +35,7 @@ def _patch_transport(monkeypatch, handler):
             kwargs["transport"] = httpx.MockTransport(handler)
             super().__init__(*args, **kwargs)
 
-    monkeypatch.setattr(
-        "app.clients.auth_api.httpx.AsyncClient", _PatchedAsyncClient
-    )
+    monkeypatch.setattr("app.clients.auth_api.httpx.AsyncClient", _PatchedAsyncClient)
 
 
 class TestAuthApiClient:
@@ -104,9 +102,7 @@ class TestRequireAuthDependency:
 
         _patch_transport(monkeypatch, handler)
 
-        ctx = await require_auth(
-            authorization="Bearer my-token", x_internal_api_key=None
-        )
+        ctx = await require_auth(authorization="Bearer my-token", x_internal_api_key=None)
         assert ctx.username == "bob"
         assert ctx.token == "my-token"
 

@@ -37,7 +37,9 @@ class Monster(Base):
 
     # Identifiant
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    monster_uuid = Column(String, unique=True, index=True, nullable=False)  # UUID pour référence externe
+    monster_uuid = Column(
+        String, unique=True, index=True, nullable=False
+    )  # UUID pour référence externe
 
     # Relation vers MonsterState (1-to-1)
     monster_state_id = Column(
@@ -67,9 +69,7 @@ class Monster(Base):
     image_url = Column(String, nullable=True)  # URL de l'image par défaut
 
     # Timestamps
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -93,6 +93,4 @@ class Monster(Base):
     )
 
     def __repr__(self):
-        return (
-            f"<Monster(name='{self.name}', element='{self.element}', rank='{self.rank}')>"
-        )
+        return f"<Monster(name='{self.name}', element='{self.element}', rank='{self.rank}')>"

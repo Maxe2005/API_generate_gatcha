@@ -48,12 +48,8 @@ class MonsterImageResponse(MonsterImageBase):
 class MonsterImageListResponse(BaseModel):
     """Schéma de réponse pour la liste des images d'un monstre"""
 
-    images: list[MonsterImageResponse] = Field(
-        default_factory=list, description="Liste des images"
-    )
-    default_image: Optional[MonsterImageResponse] = Field(
-        None, description="Image par défaut"
-    )
+    images: list[MonsterImageResponse] = Field(default_factory=list, description="Liste des images")
+    default_image: Optional[MonsterImageResponse] = Field(None, description="Image par défaut")
 
 
 class SetDefaultImageRequest(BaseModel):
@@ -80,8 +76,6 @@ class SignedUrlResponseItem(BaseModel):
 
     id: int = Field(..., description="ID interne de l'image")
     input_url: str = Field(..., description="URL low-res fournie en entrée")
-    signed_url: Optional[str] = Field(
-        None, description="URL présignée pour accéder au high-res"
-    )
+    signed_url: Optional[str] = Field(None, description="URL présignée pour accéder au high-res")
     expires_in: int = Field(0, description="Durée de validité en secondes")
     error: Optional[str] = Field(None, description="Message d'erreur si non générée")

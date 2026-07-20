@@ -34,9 +34,7 @@ def map_monster_to_summary(metadata: MonsterMetadata, monster: Monster):
     )
 
 
-def map_monster_metadata_to_summary(
-    metadata: MonsterMetadata, monster: MonsterWithMetadata
-):
+def map_monster_metadata_to_summary(metadata: MonsterMetadata, monster: MonsterWithMetadata):
     """
     Mappe un monstre issu du json brut et ses métadonnées vers un MonsterSummary.
     """
@@ -58,9 +56,7 @@ def map_monster_metadata_to_summary(
         element=monster.monster_data.get(
             MonsterJsonAttributes.ELEMENT.value, ElementEnum.UNKNOWN.value
         ),
-        rank=monster.monster_data.get(
-            MonsterJsonAttributes.RANK.value, RankEnum.UNKNOWN.value
-        ),
+        rank=monster.monster_data.get(MonsterJsonAttributes.RANK.value, RankEnum.UNKNOWN.value),
         state=metadata.state,
         created_at=metadata.created_at,
         updated_at=metadata.updated_at,
@@ -154,6 +150,7 @@ def map_json_monster(monster_json: MonsterBase) -> Dict[str, Any]:
         ],
         "image_url": monster_json.ImageUrl,
     }
+
 
 def map_structured_to_json(monster: Monster) -> Dict[str, Any]:
     return {

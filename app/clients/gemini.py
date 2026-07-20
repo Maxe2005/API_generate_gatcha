@@ -45,9 +45,7 @@ class GeminiClient:
 
                     # Parse and Clean JSON
                     text_response = response.text
-                    clean_json = (
-                        text_response.replace("```json", "").replace("```", "").strip()
-                    )
+                    clean_json = text_response.replace("```json", "").replace("```", "").strip()
                     return json.loads(clean_json)
 
                 except Exception as e:
@@ -80,17 +78,13 @@ class GeminiClient:
                 raise ValueError("Gemini returned an empty list for monster profile")
         return result
 
-    async def generate_batch_brainstorm(
-        self, n: int, user_prompt: str
-    ) -> List[Dict[str, Any]]:
+    async def generate_batch_brainstorm(self, n: int, user_prompt: str) -> List[Dict[str, Any]]:
         """Brainstorms n monsters without skills."""
         prompt = GatchaPrompts.BATCH_BRAINSTORM(n=n, user_prompt=user_prompt)
         result = await self._execute_prompt(prompt)
         return result if isinstance(result, list) else [result]
 
-    async def generate_batch_skills(
-        self, monsters: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    async def generate_batch_skills(self, monsters: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Takes a list of monsters and adds skills."""
         monsters_json = json.dumps(monsters, indent=2, ensure_ascii=False)
         prompt = GatchaPrompts.BATCH_SKILLS(monsters_json=monsters_json)

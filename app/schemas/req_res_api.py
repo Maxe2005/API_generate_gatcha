@@ -46,9 +46,7 @@ class MonsterWithValidationStatus(BaseModel):
     """Monster response with validation status"""
 
     monster: MonsterResponse
-    is_valid: bool = Field(
-        ..., description="Whether the monster passed all validations"
-    )
+    is_valid: bool = Field(..., description="Whether the monster passed all validations")
     validation_errors: Optional[List[ValidationErrorDetail]] = Field(
         default=None, description="List of validation errors if is_valid is False"
     )

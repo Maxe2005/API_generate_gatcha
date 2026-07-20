@@ -94,9 +94,7 @@ class InvocationApiClient(BaseClient):
             "skills": skills,
         }
 
-    async def create_monster(
-        self, monster: Monster, token: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def create_monster(self, monster: Monster, token: Optional[str] = None) -> Dict[str, Any]:
         """
         Envoie un monstre à l'API d'invocation.
 
@@ -128,17 +126,11 @@ class InvocationApiClient(BaseClient):
                     logger.debug(f"Invocation API response: {response.text}")
 
                     if response.status_code in [200, 201]:
-                        logger.info(
-                            f"Monster '{payload['name']}' transmitted successfully"
-                        )
+                        logger.info(f"Monster '{payload['name']}' transmitted successfully")
                         return response.json()
                     else:
-                        error_msg = (
-                            f"API returned {response.status_code}: {response.text}"
-                        )
-                        logger.warning(
-                            f"Attempt {attempt}/{self.max_retries} failed: {error_msg}"
-                        )
+                        error_msg = f"API returned {response.status_code}: {response.text}"
+                        logger.warning(f"Attempt {attempt}/{self.max_retries} failed: {error_msg}")
 
                         if attempt < self.max_retries:
                             await asyncio.sleep(self.retry_delay * attempt)
@@ -150,14 +142,10 @@ class InvocationApiClient(BaseClient):
                 if attempt < self.max_retries:
                     await asyncio.sleep(self.retry_delay * attempt)
                 else:
-                    raise InvocationApiError(
-                        f"Timeout after {self.max_retries} attempts"
-                    )
+                    raise InvocationApiError(f"Timeout after {self.max_retries} attempts")
 
             except httpx.RequestError as e:
-                logger.error(
-                    f"Request error on attempt {attempt}/{self.max_retries}: {e}"
-                )
+                logger.error(f"Request error on attempt {attempt}/{self.max_retries}: {e}")
                 if attempt < self.max_retries:
                     await asyncio.sleep(self.retry_delay * attempt)
                 else:

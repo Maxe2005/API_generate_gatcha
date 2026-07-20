@@ -78,9 +78,7 @@ async def list_monsters(
 
 
 @router.get("/monsters/{monster_id}", response_model=MonsterDetail)
-async def get_monster_detail(
-    monster_id: str, service: AdminService = Depends(get_admin_service)
-):
+async def get_monster_detail(monster_id: str, service: AdminService = Depends(get_admin_service)):
     """
     Récupère les détails complets d'un monstre.
 
@@ -443,12 +441,10 @@ async def get_validation_rules():
         "valid_elements": list(ValidationRules.VALID_ELEMENTS),
         "valid_ranks": list(ValidationRules.VALID_RANKS),
         "stat_limits": {
-            k: {"min": v[0], "max": v[1]}
-            for k, v in ValidationRules.STAT_LIMITS.items()
+            k: {"min": v[0], "max": v[1]} for k, v in ValidationRules.STAT_LIMITS.items()
         },
         "skill_limits": {
-            k: {"min": v[0], "max": v[1]}
-            for k, v in ValidationRules.SKILL_LIMITS.items()
+            k: {"min": v[0], "max": v[1]} for k, v in ValidationRules.SKILL_LIMITS.items()
         },
         "lvl_max": ValidationRules.LVL_MAX,
         "max_card_description_length": ValidationRules.MAX_CARD_DESCRIPTION_LENGTH,

@@ -71,9 +71,7 @@ class MonsterStateRepository:
             monster=db_monster_state.monster is not None,  # type: ignore
         )
 
-    def save(
-        self, metadata: MonsterMetadata, monster_data: Optional[Dict] = None
-    ) -> bool:
+    def save(self, metadata: MonsterMetadata, monster_data: Optional[Dict] = None) -> bool:
         """
         Sauvegarde/met à jour un état de monstre et ses métadonnées.
 
@@ -150,9 +148,7 @@ class MonsterStateRepository:
         try:
             # Récupérer l'objet MonsterState
             monster_state = (
-                self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
+                self.db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
             )
 
             if not monster_state:
@@ -185,11 +181,7 @@ class MonsterStateRepository:
     def get_db_object(self, monster_id: str) -> Optional[MonsterState]:
         """Récupère l'objet DB MonsterState pour un monster_id donné"""
         try:
-            return (
-                self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
-            )
+            return self.db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
         except Exception as e:
             logger.error(f"Failed to get DB object for monster {monster_id}: {e}")
             return None
@@ -198,9 +190,7 @@ class MonsterStateRepository:
         """Récupère un monstre avec ses métadonnées"""
         try:
             db_monster_state = (
-                self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
+                self.db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
             )
 
             if not db_monster_state:
@@ -269,9 +259,7 @@ class MonsterStateRepository:
         """Supprime un monstre et ses métadonnées"""
         try:
             db_monster_state = (
-                self.db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
+                self.db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
             )
 
             if not db_monster_state:

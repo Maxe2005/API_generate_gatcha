@@ -62,9 +62,7 @@ class UpdateEventModel(Base):
     )  # {field: {before: ..., after: ...}} pour champs modifiés
 
     # Métadonnées supplémentaires
-    request_context = Column(
-        JSON, nullable=True
-    )  # Métadonnées: trace_id, correlation_id, etc.
+    request_context = Column(JSON, nullable=True)  # Métadonnées: trace_id, correlation_id, etc.
 
     # Relation optionnelle vers MonsterState
     monster_state = relationship("MonsterState", foreign_keys=[monster_state_db_id])
