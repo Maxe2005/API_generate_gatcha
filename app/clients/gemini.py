@@ -1,9 +1,13 @@
 from google import genai
+from google.genai import types
 from typing import Dict, Any, List, Union
 import json
+import logging
 import asyncio
 from app.core.config import get_settings
 from app.core.prompts import GatchaPrompts
+
+logger = logging.getLogger(__name__)
 
 
 class GeminiClient:
@@ -15,7 +19,7 @@ class GeminiClient:
     def __init__(self):
         settings = get_settings()
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.model_name = "gemini-2.0-flash"
+        self.model_name = settings.GEMINI_TEXT_MODEL
         self._lock = asyncio.Lock()
 
     async def _execute_prompt(
@@ -32,6 +36,10 @@ class GeminiClient:
             return self.client.models.generate_content(
                 model=self.model_name,
                 contents=prompt,
+                # Mode JSON natif : plus fiable qu'un strip manuel de ```json```
+                # sur la réponse texte (fragile dès que le modèle change de
+                # formatage). Gemini renvoie alors du JSON brut, déjà valide.
+                config=types.GenerateContentConfig(response_mime_type="application/json"),
             )
 
         async with self._lock:
@@ -43,10 +51,7 @@ class GeminiClient:
                     if not response.text:
                         raise ValueError("Empty response from Gemini")
 
-                    # Parse and Clean JSON
-                    text_response = response.text
-                    clean_json = text_response.replace("```json", "").replace("```", "").strip()
-                    return json.loads(clean_json)
+                    return json.loads(response.text)
 
                 except Exception as e:
                     error_str = str(e)
@@ -55,8 +60,10 @@ class GeminiClient:
                         "429" in error_str or "RESOURCE_EXHAUSTED" in error_str
                     ) and attempt < retries - 1:
                         sleep_time = base_delay * (2**attempt)
-                        logger_msg = f"⚠️ Gemini Rate Limit (Attempt {attempt + 1}/{retries}). Retrying in {sleep_time}s..."
-                        print(logger_msg)
+                        logger.warning(
+                            f"Gemini rate limit (attempt {attempt + 1}/{retries}). "
+                            f"Retrying in {sleep_time}s..."
+                        )
                         await asyncio.sleep(sleep_time)
                         continue
 
