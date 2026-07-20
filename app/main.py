@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
     import_export,
 )
 from app.core.config import get_settings
+from app.core.security import require_auth
 from app.models.base import init_db
 from scripts.seed_fixtures import seed_fixtures
 import os
@@ -80,21 +81,25 @@ app.include_router(
     nano_banana.router,
     prefix=f"{settings.API_V1_STR}/nano-banana",
     tags=["nano-banana"],
+    dependencies=[Depends(require_auth)],
 )
 app.include_router(
     admin.router,
     prefix=f"{settings.API_V1_STR}/admin",
     tags=["admin"],
+    dependencies=[Depends(require_auth)],
 )
 app.include_router(
     import_export.router,
     prefix=f"{settings.API_V1_STR}/external",
     tags=["external"],
+    dependencies=[Depends(require_auth)],
 )
 app.include_router(
     transmission.router,
     prefix=f"{settings.API_V1_STR}/transmission",
     tags=["transmission"],
+    dependencies=[Depends(require_auth)],
 )
 app.include_router(
     images.router,

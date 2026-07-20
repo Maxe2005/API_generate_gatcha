@@ -11,6 +11,7 @@ import logging
 import uuid
 
 from app.models.base import get_db
+from app.core.security import require_auth
 from app.utils.ws_relay import relay_batch_messages
 from app.services.image_service import ImageService
 from app.clients.banana import BananaClient
@@ -43,6 +44,7 @@ def get_image_service(db: Session = Depends(get_db)) -> ImageService:
     status_code=status.HTTP_202_ACCEPTED,
     summary="Générer une nouvelle image pour un monstre",
     description="Génère une nouvelle image personnalisée pour un monstre existant avec un prompt personnalisé en arrière-plan (Celery).",
+    dependencies=[Depends(require_auth)],
 )
 async def generate_custom_image_endpoint(
     request: MonsterImageCreate,
@@ -111,6 +113,7 @@ async def get_monster_images(
     response_model=MonsterImageResponse,
     summary="Définir l'image par défaut d'un monstre",
     description="Définit une image comme image par défaut pour un monstre. Retire le flag des autres images.",
+    dependencies=[Depends(require_auth)],
 )
 async def set_default_image(
     monster_id: str,
@@ -158,6 +161,7 @@ async def set_default_image(
     response_model=MonsterImageResponse,
     summary="Renommer une image d'un monstre",
     description="Renomme une image existante d'un monstre.",
+    dependencies=[Depends(require_auth)],
 )
 async def rename_image(
     monster_id: str,
@@ -205,6 +209,7 @@ async def rename_image(
     response_model=list[SignedUrlResponseItem],
     summary="Générer des URLs présignées pour accéder aux high-res",
     description="Reçoit une liste d'objets {id, url} et retourne des URLs présignées pour les high-res correspondants.",
+    dependencies=[Depends(require_auth)],
 )
 async def get_signed_urls(
     items: list[SignedUrlRequestItem]
