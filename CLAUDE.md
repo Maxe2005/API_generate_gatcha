@@ -8,7 +8,7 @@ For any piece of work beyond a trivial one-line fix: create a dedicated branch (
 
 ## What this service is
 
-Python/FastAPI microservice that generates Gatcha monster profiles with AI: **Google Gemini** for stats/text (`GEMINI_API_KEY`), **Banana.dev** for pixel-art images (`BANANA_API_KEY`). It is a git submodule of the GatchaApi root repo; approved monsters are transmitted to `API_invocations`. This service does **not** validate caller tokens on its own endpoints — it relies on network isolation.
+Python/FastAPI microservice that generates Gatcha monster profiles with AI: **Google Gemini** for stats/text (`GEMINI_API_KEY`), **Banana.dev** for pixel-art images (`BANANA_API_KEY`). It is a git submodule of the GatchaApi root repo; approved monsters are transmitted to `API_invocations`. The sensitive routes (`/admin/*`, `/monsters/generate*`, `/nano-banana/*`, `/external/*`, `/transmission/*`, and the mutating `/monsters/images/*` routes) require either a Bearer token verified against `API_authentification`'s `POST /user/verify-token` (`app/clients/auth_api.py`, same contract as the Java services' `AuthInterceptor`) or an `X-Internal-Api-Key` matching `INTERNAL_API_KEY` (machine-to-machine, disabled when unset) — see `app/core/security.py::require_auth`. Read-only GETs and the WebSocket relays stay unauthenticated (browsers can't attach custom headers to a native WebSocket handshake). The verified username is used as the transition actor instead of the client-supplied `admin_name` field, and the caller's token is forwarded to `API_invocations` on transmission (needed when `app.auth.enabled` is on there).
 
 ## Commands
 

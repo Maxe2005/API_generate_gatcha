@@ -7,7 +7,7 @@ Client pour communiquer avec l'API d'invocation.
 
 import httpx
 import asyncio
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import logging
 from enum import Enum
 
@@ -35,6 +35,18 @@ class InvocationApiClient(BaseClient):
         self.timeout = timeout
         self.max_retries = 3
         self.retry_delay = 2
+
+    @staticmethod
+    def _headers(token: Optional[str]) -> Dict[str, str]:
+        """
+        En-têtes de la requête. Transmet le token porteur de l'appelant original
+        (cohérent avec le pattern déjà utilisé par API_invocations lui-même) quand
+        `app.auth.enabled` est activé côté API_invocations et exige une identité.
+        """
+        headers = {"accept": "*/*", "Content-Type": "application/json"}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        return headers
 
     @staticmethod
     def _serialize_enum(value: Any) -> Any:
@@ -82,12 +94,15 @@ class InvocationApiClient(BaseClient):
             "skills": skills,
         }
 
-    async def create_monster(self, monster: Monster) -> Dict[str, Any]:
+    async def create_monster(
+        self, monster: Monster, token: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Envoie un monstre à l'API d'invocation.
 
         Args:
             monster: Objet Monster dans notre format
+            token: token porteur de l'appelant original à transmettre (optionnel)
 
         Returns:
             Réponse de l'API d'invocation
@@ -97,7 +112,7 @@ class InvocationApiClient(BaseClient):
         """
         # Convertir au format de l'API d'invocation
         payload = self._map_monster_to_invocation_format(monster)
-        print(f"Payload for Invocation API: {payload}")
+        logger.debug(f"Payload for Invocation API: {payload}")
 
         endpoint = f"{self.base_url}/api/invocation/monsters/create"
 
@@ -108,9 +123,9 @@ class InvocationApiClient(BaseClient):
                     response = await client.post(
                         endpoint,
                         json=payload,
-                        headers={"accept": "*/*", "Content-Type": "application/json"},
+                        headers=self._headers(token),
                     )
-                    print(f"Invocation API response: {response.json()}")
+                    logger.debug(f"Invocation API response: {response.text}")
 
                     if response.status_code in [200, 201]:
                         logger.info(
@@ -150,10 +165,16 @@ class InvocationApiClient(BaseClient):
 
         raise InvocationApiError("Max retries exceeded")
 
-    async def create_monsters_batch(self, monsters: list[Monster]) -> Dict[str, Any]:
+    async def create_monsters_batch(
+        self, monsters: list[Monster], token: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Envoie un batch de monstres à l'API d'invocation en une seule requête.
         Inclut l'uuid du monstre sous la clé `uuid` pour préserver l'identifiant.
+
+        Args:
+            monsters: monstres à transmettre
+            token: token porteur de l'appelant original à transmettre (optionnel)
         """
         payloads = []
         for monster in monsters:
@@ -170,7 +191,7 @@ class InvocationApiClient(BaseClient):
                     response = await client.post(
                         endpoint,
                         json={"monsters": payloads},
-                        headers={"accept": "*/*", "Content-Type": "application/json"},
+                        headers=self._headers(token),
                     )
                     if response.status_code in [200, 201]:
                         logger.info("Batch transmitted successfully")

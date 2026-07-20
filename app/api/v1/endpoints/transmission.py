@@ -9,6 +9,7 @@ import logging
 
 from app.services.transmission_service import TransmissionService
 from app.core.config import get_settings
+from app.core.security import AuthContext, require_auth
 from app.models.base import get_db
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ async def transmit_monster(
     monster_id: str,
     force: bool = False,
     service: TransmissionService = Depends(get_transmission_service),
+    auth: AuthContext = Depends(require_auth),
 ):
     """
     Transmet un monstre approuvé vers l'API d'invocation.
@@ -35,7 +37,9 @@ async def transmit_monster(
     - Retry automatique en cas d'échec
     """
     try:
-        result = await service.transmit_monster(monster_id, force)
+        result = await service.transmit_monster(
+            monster_id, force, admin_name=auth.username, auth_token=auth.token
+        )
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -48,6 +52,7 @@ async def transmit_monster(
 async def transmit_batch(
     max_count: Optional[int] = None,
     service: TransmissionService = Depends(get_transmission_service),
+    auth: AuthContext = Depends(require_auth),
 ):
     """
     Transmet tous les monstres approuvés en batch.
@@ -57,7 +62,7 @@ async def transmit_batch(
     Retourne un rapport détaillé avec succès et échecs.
     """
     try:
-        result = await service.transmit_all_approved(max_count)
+        result = await service.transmit_all_approved(max_count, auth_token=auth.token)
         return result
     except Exception as e:
         logger.error(f"Error in batch transmission: {e}")

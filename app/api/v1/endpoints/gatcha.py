@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, WebSocket
 from sqlalchemy.orm import Session
 from app.schemas.req_res_api import MonsterCreateRequest, BatchMonsterRequest
 from app.services.gatcha_service import GatchaService
+from app.core.security import require_auth
 from app.models.base import get_db
 from app.utils.ws_relay import relay_batch_messages
 
@@ -19,7 +20,7 @@ async def get_gatcha_service(db: Session = Depends(get_db)):
     return GatchaService(db)
 
 
-@router.post("/generate", response_model=dict)
+@router.post("/generate", response_model=dict, dependencies=[Depends(require_auth)])
 def generate_monster_card(request: MonsterCreateRequest):
     """
     Lance la génération d'un monstre en tâche de fond (Celery).
@@ -30,7 +31,9 @@ def generate_monster_card(request: MonsterCreateRequest):
     return {"batch_id": batch_id}
 
 
-@router.post("/generate-batch", response_model=dict)
+@router.post(
+    "/generate-batch", response_model=dict, dependencies=[Depends(require_auth)]
+)
 def generate_monster_batch(request: BatchMonsterRequest):
     """
     Lance la génération batch en tâche de fond (Celery).

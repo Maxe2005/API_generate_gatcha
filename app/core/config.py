@@ -47,6 +47,15 @@ class Settings(BaseSettings):
     INVOCATION_API_MAX_RETRIES: int = 3
     INVOCATION_API_RETRY_DELAY: int = 2
 
+    # API Authentification (vérification du token porteur — mêmes credentials que
+    # l'AuthInterceptor des services Java : POST /user/verify-token)
+    AUTH_API_URL: str = "http://api-authentification:8080"
+    AUTH_API_TIMEOUT: int = 5
+
+    # Clé interne optionnelle pour les appels machine-à-machine (scripts, CI, health-checks)
+    # qui ne portent pas de token utilisateur. Vide = mécanisme désactivé.
+    INTERNAL_API_KEY: str = ""
+
     # Transmission automatique
     AUTO_TRANSMIT_ENABLED: bool = False
     AUTO_TRANSMIT_INTERVAL_SECONDS: int = 300
