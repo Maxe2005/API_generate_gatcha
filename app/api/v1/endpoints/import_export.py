@@ -43,9 +43,9 @@ async def export_monsters(
     """Export des monstres. Body optionnel: {"uuids": ["uuid1", ...]}"""
     try:
         uuids = request.uuids if request else None
-        print(f"Exporting monsters with UUIDs: {uuids}")
+        logger.info(f"Exporting monsters with UUIDs: {uuids}")
         data = service.export_monsters(uuids)
-        print(f"Exported data size: {len(data)} bytes")
+        logger.info(f"Exported data size: {len(data)} bytes")
         headers = {
             "Content-Disposition": "attachment; filename=monsters_export.zip",
             "Content-Length": str(len(data)),
