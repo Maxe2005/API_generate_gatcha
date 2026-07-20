@@ -199,8 +199,6 @@ class SkillRepository:
             return True
 
         except Exception as e:
-            logger.error(
-                f"Failed to delete all skills for monster {monster_db_id}: {e}"
-            )
+            logger.error(f"Failed to delete all skills for monster {monster_db_id}: {e}")
             self.db.rollback()
             return False

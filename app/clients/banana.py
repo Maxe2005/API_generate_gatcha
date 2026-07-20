@@ -74,9 +74,7 @@ class BananaClient:
                     "429" in error_str or "RESOURCE_EXHAUSTED" in error_str
                 ) and attempt < max_retries - 1:
                     sleep_time = base_delay * (2**attempt)
-                    print(
-                        f"⚠️ Image Generation Rate Limit hit. Retrying in {sleep_time}s..."
-                    )
+                    print(f"⚠️ Image Generation Rate Limit hit. Retrying in {sleep_time}s...")
                     await asyncio.sleep(sleep_time)
                     continue
                 raise Exception(f"Image Generation Error: {str(e)}") from e

@@ -74,9 +74,7 @@ os.makedirs("app/static/images", exist_ok=True)
 os.makedirs(settings.METADATA_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-app.include_router(
-    gatcha.router, prefix=f"{settings.API_V1_STR}/monsters", tags=["monsters"]
-)
+app.include_router(gatcha.router, prefix=f"{settings.API_V1_STR}/monsters", tags=["monsters"])
 app.include_router(
     nano_banana.router,
     prefix=f"{settings.API_V1_STR}/nano-banana",

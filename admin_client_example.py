@@ -8,7 +8,6 @@ to review and correct defective monster JSONs.
 import requests
 import json
 from typing import List, Dict, Any
-from datetime import datetime
 
 
 class AdminClient:
@@ -49,9 +48,7 @@ class AdminClient:
 
         payload = {"corrected_data": corrected_data, "notes": notes}
 
-        response = requests.post(
-            f"{self.api_v1}/defective/{filename}/approve", json=payload
-        )
+        response = requests.post(f"{self.api_v1}/defective/{filename}/approve", json=payload)
         response.raise_for_status()
         return response.json()
 
@@ -62,9 +59,7 @@ class AdminClient:
 
         payload = {"reason": reason}
 
-        response = requests.post(
-            f"{self.api_v1}/defective/{filename}/reject", json=payload
-        )
+        response = requests.post(f"{self.api_v1}/defective/{filename}/reject", json=payload)
         response.raise_for_status()
         return response.json()
 
@@ -77,9 +72,7 @@ class AdminClient:
 
         payload = {"corrected_data": corrected_data, "notes": notes}
 
-        response = requests.put(
-            f"{self.api_v1}/defective/{filename}/update", json=payload
-        )
+        response = requests.put(f"{self.api_v1}/defective/{filename}/update", json=payload)
         response.raise_for_status()
         return response.json()
 
@@ -175,13 +168,13 @@ def workflow_fix_monster(filename: str):
     if corrected_data.get("element") not in rules["valid_elements"]:
         print(f"\n⚠️  Invalid element '{corrected_data['element']}'")
         corrected_data["element"] = "FIRE"  # Default fix
-        print(f"   Fixed to: FIRE")
+        print("   Fixed to: FIRE")
 
     # Fix rank if invalid
     if corrected_data.get("rank") not in rules["valid_ranks"]:
         print(f"\n⚠️  Invalid rank '{corrected_data['rank']}'")
         corrected_data["rank"] = "COMMON"  # Default fix
-        print(f"   Fixed to: COMMON")
+        print("   Fixed to: COMMON")
 
     # Validate corrections
     print("\n🔍 Validating corrections...")
@@ -196,7 +189,7 @@ def workflow_fix_monster(filename: str):
             filename, corrected_data, notes="Auto-fixed invalid enum values"
         )
 
-        print(f"✅ Monster approved!")
+        print("✅ Monster approved!")
         print(f"   New path: {result.get('new_path')}")
     else:
         print("❌ Corrections still have errors:")
@@ -238,16 +231,14 @@ def workflow_batch_review():
 
         # Simple heuristic: reject if too many errors
         if error_count > 5:
-            print(f"  → Too many errors, rejecting...")
+            print("  → Too many errors, rejecting...")
             try:
-                client.reject_monster(
-                    filename, f"Too many validation errors ({error_count})"
-                )
+                client.reject_monster(filename, f"Too many validation errors ({error_count})")
                 rejected += 1
             except Exception as e:
                 print(f"  ✗ Error: {e}")
         else:
-            print(f"  → Worth fixing, review manually")
+            print("  → Worth fixing, review manually")
 
     print(f"\n📊 Summary: {approved} approved, {rejected} rejected")
 
@@ -261,9 +252,7 @@ if __name__ == "__main__":
     try:
         workflow_review_defectives()
     except requests.exceptions.ConnectionError:
-        print(
-            "❌ Cannot connect to API. Make sure it's running on http://localhost:8000"
-        )
+        print("❌ Cannot connect to API. Make sure it's running on http://localhost:8000")
 
     # Example 2: Get validation rules
     print("\n2️⃣  Fetching validation rules...")

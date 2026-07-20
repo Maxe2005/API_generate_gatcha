@@ -66,7 +66,9 @@ def monster_json_structure_str(with_skills: bool = True):
     if with_skills:
         # Ajouter la structure des skills à celle du monstre
         structure = monster_json_structure()
-        structure[MonsterJsonAttributes.SKILLS.value] = [skill_json_structure(i + 1) for i in range(2)]
+        structure[MonsterJsonAttributes.SKILLS.value] = [
+            skill_json_structure(i + 1) for i in range(2)
+        ]
         return json.dumps(structure, indent=4, ensure_ascii=False)
     else:
         return json.dumps(monster_json_structure(), indent=4, ensure_ascii=False)
@@ -139,6 +141,7 @@ Output ONLY the valid JSON Array. Do not include markdown.
 
     # Alternative 3: 3D Render/Realistic Style
     IMAGE_GENERATION_REALISTIC = "3D rendered character of {prompt}, Unreal Engine 5 style, realistic textures, volumetric lighting, photorealistic environment. No text, no game UI, no frames or borders. Cinematic shot."
+
 
 if __name__ == "__main__":
     # Test rapide des prompts

@@ -133,9 +133,7 @@ class MonsterImageRepository:
         # Note: La comparaison directe avec SQLAlchemy Column ne fonctionne pas bien avec les types
         # On récupère la valeur de la colonne pour la comparer
         if int(image.monster_id) != int(monster_db_id):  # type: ignore
-            raise ValueError(
-                f"L'image {image_id} n'appartient pas au monstre {monster_db_id}"
-            )
+            raise ValueError(f"L'image {image_id} n'appartient pas au monstre {monster_db_id}")
 
         # Retirer le flag des autres images
         self._unset_default_images(monster_db_id)
@@ -145,9 +143,7 @@ class MonsterImageRepository:
         self.db.commit()
         self.db.refresh(image)
 
-        logger.info(
-            f"Image {image_id} définie comme défaut pour le monstre {monster_db_id}"
-        )
+        logger.info(f"Image {image_id} définie comme défaut pour le monstre {monster_db_id}")
         return image
 
     def _unset_default_images(self, monster_db_id: int) -> None:

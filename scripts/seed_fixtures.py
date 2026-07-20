@@ -90,9 +90,7 @@ def _collect_and_summarize(fixtures_dir: Path, pairs_only: bool) -> list[dict]:
 
     with_image = sum(1 for e in entries if e["image"])
     invalid = [e for e in entries if not e["is_valid"]]
-    logger.info(
-        f"{len(entries)} fixtures ({with_image} avec image, {len(invalid)} invalides)"
-    )
+    logger.info(f"{len(entries)} fixtures ({with_image} avec image, {len(invalid)} invalides)")
     for e in invalid:
         logger.warning(f"fixture invalide {e['slug']}: {'; '.join(e['errors'])}")
     return entries
@@ -161,11 +159,7 @@ def seed_fixtures(
             if entry["image"]:
                 seed_image(minio_client, settings, entry)
 
-            existing = (
-                db.query(MonsterState)
-                .filter(MonsterState.monster_id == monster_id)
-                .first()
-            )
+            existing = db.query(MonsterState).filter(MonsterState.monster_id == monster_id).first()
             if existing:
                 logger.info(f"= {slug} déjà en base ({existing.state}), sauté")
                 skipped += 1
@@ -179,8 +173,11 @@ def seed_fixtures(
                     generated_by="fixtures",
                     is_valid=entry["is_valid"],
                     validation_errors=(
-                        [{"field": "", "error_type": "fixture", "message": m}
-                         for m in entry["errors"]] or None
+                        [
+                            {"field": "", "error_type": "fixture", "message": m}
+                            for m in entry["errors"]
+                        ]
+                        or None
                     ),
                 )
             )
@@ -201,20 +198,27 @@ def seed_fixtures(
         db.close()
 
     logger.info("=" * 60)
-    logger.info(f"Seed terminé : {created} créés, {skipped} déjà présents"
-                + (f", {processed} traités" if process else ""))
+    logger.info(
+        f"Seed terminé : {created} créés, {skipped} déjà présents"
+        + (f", {processed} traités" if process else "")
+    )
     return {"created": created, "skipped": skipped, "processed": processed}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Seed des fixtures Postgres + MinIO")
     parser.add_argument("--fixtures-dir", default=str(FIXTURES_DIR))
-    parser.add_argument("--pairs-only", action="store_true",
-                        help="Ne seed que les monstres ayant une image associée")
-    parser.add_argument("--process", action="store_true",
-                        help="Valide et transitionne les monstres seedés")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Affiche le plan sans toucher à la DB ni à MinIO")
+    parser.add_argument(
+        "--pairs-only",
+        action="store_true",
+        help="Ne seed que les monstres ayant une image associée",
+    )
+    parser.add_argument(
+        "--process", action="store_true", help="Valide et transitionne les monstres seedés"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Affiche le plan sans toucher à la DB ni à MinIO"
+    )
     args = parser.parse_args()
 
     fixtures_dir = Path(args.fixtures_dir)

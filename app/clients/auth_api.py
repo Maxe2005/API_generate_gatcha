@@ -69,9 +69,7 @@ class AuthApiClient(BaseClient):
             try:
                 body = response.json()
             except ValueError as e:
-                raise AuthServiceUnavailableError(
-                    f"Réponse invalide de l'API auth: {e}"
-                ) from e
+                raise AuthServiceUnavailableError(f"Réponse invalide de l'API auth: {e}") from e
             user = body.get("username")
             if not user:
                 raise AuthTokenInvalidError("Réponse de vérification sans utilisateur")
@@ -82,7 +80,5 @@ class AuthApiClient(BaseClient):
         # aujourd'hui pour un token malformé au lieu d'un 401) est traitée comme
         # "token invalide" plutôt que "service indisponible". Seule une requête
         # qui n'obtient aucune réponse (service injoignable) est une vraie panne.
-        logger.warning(
-            f"Token refusé par l'API auth: {response.status_code} {response.text}"
-        )
+        logger.warning(f"Token refusé par l'API auth: {response.status_code} {response.text}")
         raise AuthTokenInvalidError(f"Token refusé ({response.status_code})")

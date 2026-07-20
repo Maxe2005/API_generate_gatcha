@@ -49,9 +49,7 @@ class MonsterState(Base):
         nullable=False,
         index=True,
     )
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -106,4 +104,6 @@ class MonsterState(Base):
             if self.monster_data is not None
             else "N/A"
         )
-        return f"<MonsterState(monster_id='{self.monster_id}', state='{self.state}', name='{name}')>"
+        return (
+            f"<MonsterState(monster_id='{self.monster_id}', state='{self.state}', name='{name}')>"
+        )

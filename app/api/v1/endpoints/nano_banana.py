@@ -14,9 +14,7 @@ async def generate_simple_image(
     aspect_ratio: str = Form(
         ..., description="Dimension ratio of the image, e.g., '1:1', '3:4', '16:9'"
     ),
-    image_size: str = Form(
-        ..., description="Size of the image, e.g., '1024x1024', '4K'"
-    ),
+    image_size: str = Form(..., description="Size of the image, e.g., '1024x1024', '4K'"),
     output_image_name: str = Form(
         ..., description="Name of the file to save (without extension or with .png)"
     ),
@@ -25,9 +23,7 @@ async def generate_simple_image(
         default=GeminiModelEnum.GEMINI_3_PRO_IMAGE,
         description="Modèle Gemini à utiliser pour la génération d'images",
     ),
-    image: Optional[UploadFile] = File(
-        None, description="Optional input image for generation"
-    ),
+    image: Optional[UploadFile] = File(None, description="Optional input image for generation"),
 ):
     """
     Generate an image directly using Nano Banana (Gemini) and save it locally.

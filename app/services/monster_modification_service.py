@@ -259,9 +259,7 @@ class MonsterModificationService:
         )
 
         if not skill:
-            raise MonsterModificationError(
-                f"Skill {skill_id} not found for monster {monster_id}"
-            )
+            raise MonsterModificationError(f"Skill {skill_id} not found for monster {monster_id}")
 
         # Appliquer les modifications
         update_data = updates.model_dump(exclude_unset=True)
@@ -317,14 +315,10 @@ class MonsterModificationService:
         )
 
         if not skill:
-            raise MonsterModificationError(
-                f"Skill {skill_id} not found for monster {monster_id}"
-            )
+            raise MonsterModificationError(f"Skill {skill_id} not found for monster {monster_id}")
 
         # Vérifier qu'on ne supprime pas la dernière skill
-        skill_count = (
-            self.db.query(Skill).filter(Skill.monster_id == monster.id).count()
-        )
+        skill_count = self.db.query(Skill).filter(Skill.monster_id == monster.id).count()
 
         if skill_count <= 1:
             raise MonsterModificationError(
@@ -447,9 +441,7 @@ class MonsterModificationService:
         # Récupérer le monstre directement par son ID de base de données
         monster = self.db.query(Monster).filter(Monster.id == monster_db_id).first()
         if not monster:
-            raise MonsterModificationError(
-                f"Monster with DB ID {monster_db_id} not found"
-            )
+            raise MonsterModificationError(f"Monster with DB ID {monster_db_id} not found")
 
         # Mettre à jour les champs
         monster.image_url = image_url  # type: ignore
@@ -457,6 +449,4 @@ class MonsterModificationService:
         monster.updated_at = datetime.now(timezone.utc)  # type: ignore
 
         self.db.commit()
-        logger.info(
-            f"Updated image_url and description_visuelle for monster ID {monster_db_id}"
-        )
+        logger.info(f"Updated image_url and description_visuelle for monster ID {monster_db_id}")

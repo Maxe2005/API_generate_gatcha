@@ -29,9 +29,7 @@ def generate_monsters(batch_id: str, monster_count: int, prompt: str | None = No
             asyncio.run(service.create_monster(prompt or "", batch_id))
         else:
             # Génération batch
-            asyncio.run(
-                service.create_batch_monsters(monster_count, prompt or "", batch_id)
-            )
+            asyncio.run(service.create_batch_monsters(monster_count, prompt or "", batch_id))
     except Exception as e:
         import traceback
         from app.utils.send_messages_utils import send_info_message
@@ -39,9 +37,7 @@ def generate_monsters(batch_id: str, monster_count: int, prompt: str | None = No
         tb = traceback.format_exc()
         print(f"[CeleryTaskError] {e}\n{tb}")
         # Envoi d'un message d'erreur au front
-        asyncio.run(
-            send_info_message(batch_id, f"Erreur critique lors de la génération : {e}")
-        )
+        asyncio.run(send_info_message(batch_id, f"Erreur critique lors de la génération : {e}"))
     finally:
         # Toujours publier le message terminal, sinon les WebSockets abonnés
         # au batch ne se ferment jamais (échec Gemini, quota, crash...)
@@ -88,9 +84,7 @@ def generate_custom_image(
         print(f"[CeleryTaskError] {e}\n{tb}")
         # Envoi d'un message d'erreur au front
         asyncio.run(
-            send_info_message(
-                batch_id, f"Erreur critique lors de la génération d'image : {e}"
-            )
+            send_info_message(batch_id, f"Erreur critique lors de la génération d'image : {e}")
         )
     finally:
         # Toujours publier le message terminal pour fermer les WebSockets abonnés

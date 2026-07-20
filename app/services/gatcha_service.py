@@ -33,9 +33,7 @@ class GatchaService:
         self.validation_service = MonsterValidationService()
         self.state_repository = MonsterStateRepository(db)
         self.structure_repository = TransitionRepository(db)
-        self.state_manager = MonsterStateManager(
-            self.state_repository, self.structure_repository
-        )
+        self.state_manager = MonsterStateManager(self.state_repository, self.structure_repository)
         self.image_repository = MonsterImageRepository(db)
         self.settings = get_settings()
         self.db = db
@@ -65,9 +63,7 @@ class GatchaService:
         """
         visual_prompt = monster_data.get("description_visuelle", fallback_prompt)
         try:
-            result = await self.banana_client.generate_pixel_art(
-                visual_prompt, filename_base
-            )
+            result = await self.banana_client.generate_pixel_art(visual_prompt, filename_base)
             return result["image_url"], result["raw_image_key"]
         except Exception as e:
             logger.error(f"Failed to generate image: {e}")
@@ -89,9 +85,7 @@ class GatchaService:
         monster_id = str(uuid.uuid4())
 
         # VALIDATION STEP: Validate monster JSON
-        validation_result = self.validation_service.validate(
-            monster_data, is_image=False
-        )
+        validation_result = self.validation_service.validate(monster_data, is_image=False)
 
         # Generate image even if invalid for review
         image_url, raw_image_key = await self._generate_image(
@@ -170,9 +164,7 @@ class GatchaService:
                 actor="system",
                 note="Monster marked as defective after validation failure",
             )
-            logger.warning(
-                "Monster validation failed: %s", monster_data.get("name", "unknown")
-            )
+            logger.warning("Monster validation failed: %s", monster_data.get("name", "unknown"))
             logger.warning(validation_result.get_error_summary())
 
         return MonsterResponse(**monster_data)
@@ -204,9 +196,7 @@ class GatchaService:
             return None
 
         # Step 2: Assets & Save (with validation)
-        result = await self._process_monster_asset(
-            profile_data, prompt, batch_id=batch_id
-        )
+        result = await self._process_monster_asset(profile_data, prompt, batch_id=batch_id)
         logger.info(f"Monster '{result.name}' created")
         run_async(send_monster_update(batch_id, result.model_dump()))
         return result
@@ -221,16 +211,12 @@ class GatchaService:
         3. Generate images (sequentially)
         All with validation
         """
-        logger.info(
-            f"🚀 Starting batch generation for {n} monsters (Prompt: '{prompt}')."
-        )
+        logger.info(f"🚀 Starting batch generation for {n} monsters (Prompt: '{prompt}').")
 
         # Step 1: Brainstorming
         logger.info("Step 1/3: Brainstorming concepts...")
         try:
-            monsters_base = await self.gemini_client.generate_batch_brainstorm(
-                n, prompt
-            )
+            monsters_base = await self.gemini_client.generate_batch_brainstorm(n, prompt)
         except Exception as e:
             logger.error(f"Erreur lors de la génération des concepts Gemini : {e}")
             if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
@@ -248,9 +234,7 @@ class GatchaService:
                     )
                 )
             return []
-        logger.info(
-            f"✅ Brainstorming complete: {len(monsters_base)} concepts generated."
-        )
+        logger.info(f"✅ Brainstorming complete: {len(monsters_base)} concepts generated.")
         run_async(
             send_info_message(
                 batch_id,
@@ -276,9 +260,7 @@ class GatchaService:
 
             chunk = monsters_base[i : i + chunk_size]
             try:
-                chunk_with_skills = await self.gemini_client.generate_batch_skills(
-                    chunk
-                )
+                chunk_with_skills = await self.gemini_client.generate_batch_skills(chunk)
                 monsters_complete.extend(chunk_with_skills)
             except Exception as e:
                 logger.error(f"Erreur lors de la génération des skills Gemini : {e}")
@@ -301,9 +283,7 @@ class GatchaService:
 
         logger.info(f"   Skills Progress: [{'▓' * 20}] 100% - Skills generated.")
         run_async(
-            send_info_message(
-                batch_id, "Details & Skills generation complete for all monsters."
-            )
+            send_info_message(batch_id, "Details & Skills generation complete for all monsters.")
         )
 
         # Step 3: Image generation & Saving (Sequentially for now to be safe, could be gathered)
@@ -320,9 +300,7 @@ class GatchaService:
                 f"   Assets Progress: [{bar}] {percent}% - Processing '{monster_name}' ({idx}/{total_monsters})"
             )
 
-            response = await self._process_monster_asset(
-                monster_data, prompt, batch_id=batch_id
-            )
+            response = await self._process_monster_asset(monster_data, prompt, batch_id=batch_id)
             result_responses.append(response)
             run_async(send_monster_update(batch_id, response.model_dump()))
 

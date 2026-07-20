@@ -22,9 +22,7 @@ config = context.config
 # reste du process. On saute cette étape quand l'appelant programmatique le
 # demande via config.attributes["configure_logger"] = False (pattern documenté
 # par Alembic pour l'usage "programmatic").
-if config.config_file_name is not None and config.attributes.get(
-    "configure_logger", True
-):
+if config.config_file_name is not None and config.attributes.get("configure_logger", True):
     fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # Load metadata for autogenerate support

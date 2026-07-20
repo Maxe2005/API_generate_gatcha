@@ -45,9 +45,7 @@ class MonsterImage(Base):
     is_default = Column(Boolean, default=False, nullable=False)
 
     # Métadonnées
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relations
     monster = relationship("Monster", back_populates="images")

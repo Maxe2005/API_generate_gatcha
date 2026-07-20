@@ -79,9 +79,7 @@ class CorrectionRequest(RequestContext):
 class UpdateMonsterRequest(RequestContext):
     """Requête pour modifier les données d'un monstre"""
 
-    monster_data: Dict[str, Any] = Field(
-        ..., description="Nouvelles données du monstre"
-    )
+    monster_data: Dict[str, Any] = Field(..., description="Nouvelles données du monstre")
     skip_validation: bool = Field(
         default=False,
         description="Autoriser les modifications même si les données ne sont pas valides",

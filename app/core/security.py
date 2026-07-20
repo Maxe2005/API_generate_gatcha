@@ -62,9 +62,7 @@ async def require_auth(
     if settings.INTERNAL_API_KEY and x_internal_api_key:
         if compare_digest(x_internal_api_key, settings.INTERNAL_API_KEY):
             return AuthContext(username="internal-service", token=None)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Clé interne invalide"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Clé interne invalide")
 
     if not authorization:
         raise HTTPException(

@@ -27,16 +27,26 @@ make celery-up / celery-down / celery-restart / celery-logs   # the celery worke
 
 ### Tests
 
-No pytest.ini and no `make test` target. Run with the venv's pytest:
+Still no `pytest.ini`, but `make test` now runs the pure unit test files (`test_validation_service.py`, `test_update_events.py`, `test_security.py`, `test_state_manager.py` — none need a database or external services):
 
 ```bash
-.venv/bin/pytest tests/test_validation_service.py tests/test_update_events.py   # pure unit tests, no services needed
+make test                                                                       # all pure unit tests
 .venv/bin/pytest tests/test_validation_service.py::TestTypeValidator::test_valid_string  # single test
 ```
 
-`tests/test_multi_images_workflow.py` is **not** a pytest suite — it's an integration script hitting `http://localhost:8000` (and imports `requests`, which is not in requirements.txt); run it only against a live stack.
+`tests/test_multi_images_workflow.py` is **not** a pytest suite — it's an integration script hitting `http://localhost:8000`; run it only against a live stack.
 
-No lint/format tooling is configured.
+### Lint & format
+
+`ruff` is configured (`pyproject.toml`, ruleset `E4,E7,E9,F` — real Pyflakes/pycodestyle errors, not a style overhaul). Install with `make install-dev` (adds `requirements-dev.txt` on top of the runtime deps), then:
+
+```bash
+make lint            # ruff check .
+make format          # ruff format . (writes)
+make format-check    # ruff format --check . (used in CI, no writes)
+```
+
+`.github/workflows/ci.yml` runs `lint` + `format-check` + `make test` on push/PR to `development`/`master`.
 
 ### Database migrations (Alembic)
 

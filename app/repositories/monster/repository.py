@@ -62,11 +62,7 @@ class MonsterRepository:
             Monster si trouvé, None sinon
         """
         try:
-            return (
-                self.db.query(Monster)
-                .filter(Monster.monster_uuid == monster_uuid)
-                .first()
-            )
+            return self.db.query(Monster).filter(Monster.monster_uuid == monster_uuid).first()
         except Exception as e:
             logger.error(f"Failed to get monster by UUID {monster_uuid}: {e}")
             return None
@@ -83,14 +79,10 @@ class MonsterRepository:
         """
         try:
             return (
-                self.db.query(Monster)
-                .filter(Monster.monster_state_id == monster_state_id)
-                .first()
+                self.db.query(Monster).filter(Monster.monster_state_id == monster_state_id).first()
             )
         except Exception as e:
-            logger.error(
-                f"Failed to get monster by monster_state_id {monster_state_id}: {e}"
-            )
+            logger.error(f"Failed to get monster by monster_state_id {monster_state_id}: {e}")
             return None
 
     def get_all(self) -> list[Monster]:

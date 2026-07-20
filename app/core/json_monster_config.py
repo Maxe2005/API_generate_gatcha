@@ -3,6 +3,7 @@ from enum import Enum
 NB_SKILLS_MIN = 4
 NB_SKILLS_MAX = 6
 
+
 class MonsterJsonAttributes(Enum):
     NAME = "name"
     ELEMENT = "element"
@@ -14,11 +15,13 @@ class MonsterJsonAttributes(Enum):
     IMAGE_URL = "ImageUrl"
     RAW_IMAGE_KEY = "RawImageKey"
 
+
 class MonsterJsonStatsAttributes(Enum):
     HP = "hp"
     ATK = "atk"
     DEF = "def"
     VIT = "vit"
+
 
 class MonsterJsonSkillAttributes(Enum):
     NAME = "name"
@@ -29,9 +32,11 @@ class MonsterJsonSkillAttributes(Enum):
     RANK = "rank"
     RATIO = "ratio"
 
+
 class MonsterJsonSkillRatioAttributes(Enum):
     STAT = "stat"
     PERCENT = "percent"
+
 
 # Utilisation :
 # MonsterJsonAttributes.NAME.value

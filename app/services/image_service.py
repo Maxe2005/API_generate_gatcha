@@ -62,20 +62,12 @@ class ImageService:
         # Générer l'image via BananaClient (qui gère aussi l'upload MinIO)
         image_name = f"{monster_name.lower().replace(' ', '_')}_default"
         try:
-            result = await self.banana_client.generate_pixel_art(
-                description_visuelle, image_name
-            )
+            result = await self.banana_client.generate_pixel_art(description_visuelle, image_name)
         except Exception as e:
-            logger.error(
-                f"Erreur Banana lors de la génération d'image par défaut : {e}"
-            )
+            logger.error(f"Erreur Banana lors de la génération d'image par défaut : {e}")
             from app.utils.send_messages_utils import send_error_message, run_async
 
-            run_async(
-                send_error_message(
-                    str(monster_db_id), f"Erreur Banana (image défaut): {e}"
-                )
-            )
+            run_async(send_error_message(str(monster_db_id), f"Erreur Banana (image défaut): {e}"))
             return None
 
         # Sauvegarder dans la base de données
@@ -131,14 +123,8 @@ class ImageService:
             image_url = result["image_url"]
             raw_image_key = result["raw_image_key"]
         except Exception as e:
-            logger.error(
-                f"Erreur Banana lors de la génération d'image personnalisée : {e}"
-            )
-            run_async(
-                send_error_message(
-                    str(monster_id), f"Erreur Banana (image custom): {e}"
-                )
-            )
+            logger.error(f"Erreur Banana lors de la génération d'image personnalisée : {e}")
+            run_async(send_error_message(str(monster_id), f"Erreur Banana (image custom): {e}"))
             return None
 
         # Sauvegarder dans la base de données
@@ -219,21 +205,15 @@ class ImageService:
                 f"Champs image_url et description_visuelle mis à jour pour le monstre {monster_id}"
             )
         except Exception as e:
-            logger.error(
-                f"Erreur lors de la mise à jour de image_url et description_visuelle: {e}"
-            )
+            logger.error(f"Erreur lors de la mise à jour de image_url et description_visuelle: {e}")
             raise
         logger.info("Données du monstre mises à jour avec la nouvelle image par défaut")
 
-        logger.info(
-            f"Image {image_id} définie comme défaut pour le monstre {monster_id}"
-        )
+        logger.info(f"Image {image_id} définie comme défaut pour le monstre {monster_id}")
 
         return MonsterImageResponse.model_validate(db_image)
 
-    def rename_image(
-        self, monster_id: str, image_id: int, new_name: str
-    ) -> MonsterImageResponse:
+    def rename_image(self, monster_id: str, image_id: int, new_name: str) -> MonsterImageResponse:
         """
         Renomme une image d'un monstre.
 
@@ -259,15 +239,11 @@ class ImageService:
             raise ValueError(f"Image avec ID {image_id} non trouvée")
 
         if int(image.monster_id) != int(monster.id):  # type: ignore
-            raise ValueError(
-                f"L'image {image_id} n'appartient pas au monstre {monster_id}"
-            )
+            raise ValueError(f"L'image {image_id} n'appartient pas au monstre {monster_id}")
 
         # Renommer l'image
         db_image = self.image_repo.rename_image(image_id, new_name)
 
-        logger.info(
-            f"Image {image_id} du monstre {monster_id} renommée en '{new_name}'"
-        )
+        logger.info(f"Image {image_id} du monstre {monster_id} renommée en '{new_name}'")
 
         return MonsterImageResponse.model_validate(db_image)

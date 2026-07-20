@@ -24,16 +24,12 @@ logger = logging.getLogger(__name__)
 class TransmissionService:
     """Service de transmission des monstres vers l'API d'invocation"""
 
-    def __init__(
-        self, db: Session, invocation_api_url: str = "http://host.docker.internal:8085"
-    ):
+    def __init__(self, db: Session, invocation_api_url: str = "http://host.docker.internal:8085"):
         self.invocation_client = InvocationApiClient(base_url=invocation_api_url)
         self.repository = MonsterRepository(db)
         self.state_repository = MonsterStateRepository(db)
         self.structure_repository = TransitionRepository(db)
-        self.state_manager = MonsterStateManager(
-            self.state_repository, self.structure_repository
-        )
+        self.state_manager = MonsterStateManager(self.state_repository, self.structure_repository)
 
     async def transmit_monster(
         self,
@@ -79,15 +75,11 @@ class TransmissionService:
             }
 
         if metadata.state != MonsterStateEnum.APPROVED and not force:
-            raise ValueError(
-                f"Monster must be in APPROVED state, current: {metadata.state}"
-            )
+            raise ValueError(f"Monster must be in APPROVED state, current: {metadata.state}")
 
         # Tenter la transmission
         try:
-            response = await self.invocation_client.create_monster(
-                monster, token=auth_token
-            )
+            response = await self.invocation_client.create_monster(monster, token=auth_token)
 
             # Mettre à jour les métadonnées
             metadata.transmitted_at = datetime.now(timezone.utc)
@@ -100,7 +92,9 @@ class TransmissionService:
                 metadata,
                 MonsterStateEnum.TRANSMITTED,
                 actor=admin_name,
-                note="Successfully transmitted to invocation API" if not force else "Monster retransmitted successfully",
+                note="Successfully transmitted to invocation API"
+                if not force
+                else "Monster retransmitted successfully",
             )
 
             logger.info(f"Monster {monster_id} transmitted successfully")
@@ -153,13 +147,9 @@ class TransmissionService:
 
         for metadata in approved_monsters:
             try:
-                await self.transmit_monster(
-                    metadata.monster_id, auth_token=auth_token
-                )
+                await self.transmit_monster(metadata.monster_id, auth_token=auth_token)
                 results["success"] += 1
-                results["details"].append(
-                    {"monster_id": metadata.monster_id, "status": "success"}
-                )
+                results["details"].append({"monster_id": metadata.monster_id, "status": "success"})
             except Exception as e:
                 results["failed"] += 1
                 results["details"].append(

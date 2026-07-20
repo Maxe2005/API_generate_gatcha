@@ -22,9 +22,13 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
 class ExportRequest(BaseModel):
     """Schéma d'entrée pour l'export des monstres"""
-    uuids: Optional[list[str]] = Field(None, description="Liste des UUIDs des monstres à exporter (optionnel)")
+
+    uuids: Optional[list[str]] = Field(
+        None, description="Liste des UUIDs des monstres à exporter (optionnel)"
+    )
 
 
 def get_import_export_service(db: Session = Depends(get_db)) -> ImportExportService:

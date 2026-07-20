@@ -4,7 +4,7 @@ Utility: compute_changed_fields
 Contient la fonction `compute_changed_fields` utilisée pour détecter
 les changements entre deux snapshots JSON, avec gestion fine des listes.
 """
-from typing import Dict, Any
+
 import json
 from difflib import SequenceMatcher
 
@@ -82,7 +82,9 @@ def compute_changed_fields(before: dict, after: dict, prefix: str = "") -> dict:
                 for _id in set(before_map.keys()) & set(after_map.keys()):
                     b_item = before_map[_id]
                     a_item = after_map[_id]
-                    nested = compute_changed_fields(b_item, a_item, f"{path_prefix}[{id_key}={_id}]")
+                    nested = compute_changed_fields(
+                        b_item, a_item, f"{path_prefix}[{id_key}={_id}]"
+                    )
                     changed_fields.extend(nested["changed_fields"])
                     diff_payload.update(nested["diff_payload"])
                 return

@@ -53,7 +53,9 @@ class TestEnumValidator:
 
     def test_enum_non_string(self):
         is_valid, msg = EnumValidator.validate_enum(
-            123, ValidationRules.VALID_ELEMENTS, "element"  # type: ignore
+            123,
+            ValidationRules.VALID_ELEMENTS,
+            "element",  # type: ignore
         )
         assert is_valid is False
 

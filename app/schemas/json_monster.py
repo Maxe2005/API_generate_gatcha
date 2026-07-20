@@ -41,8 +41,6 @@ class MonsterBase(BaseModel):
         ...,
         description="Description du monstre pour la carte (visible au joueur). Moins de 200 caractères.",
     )
-    description_visuelle: str = Field(
-        ..., description="Description visuelle détaillée."
-    )
+    description_visuelle: str = Field(..., description="Description visuelle détaillée.")
     skills: List[Skill]
     ImageUrl: str = Field(..., description="URL de l'image du monstre")
