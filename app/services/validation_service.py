@@ -12,6 +12,8 @@ from app.core.json_monster_config import (
     MonsterJsonStatsAttributes,
     MonsterJsonSkillAttributes,
     MonsterJsonSkillRatioAttributes,
+    NB_SKILLS_MAX,
+    NB_SKILLS_MIN,
 )
 import logging
 from urllib.parse import urlparse
@@ -250,7 +252,17 @@ class MonsterStructureValidator:
         if MonsterJsonAttributes.SKILLS.value in monster_data and isinstance(
             monster_data[MonsterJsonAttributes.SKILLS.value], list
         ):
-            for idx, skill in enumerate(monster_data[MonsterJsonAttributes.SKILLS.value]):
+            skills_list = monster_data[MonsterJsonAttributes.SKILLS.value]
+            nb_skills = len(skills_list)
+            if not (NB_SKILLS_MIN <= nb_skills <= NB_SKILLS_MAX):
+                result.add_error(
+                    MonsterJsonAttributes.SKILLS.value,
+                    "value_out_of_range",
+                    f"Monster must have between {NB_SKILLS_MIN} and {NB_SKILLS_MAX} skills, "
+                    f"got {nb_skills}",
+                )
+
+            for idx, skill in enumerate(skills_list):
                 if not isinstance(skill, dict):
                     result.add_error(
                         f"skills[{idx}]",

@@ -134,7 +134,14 @@ class ValidationConstants:
     MAX_PERCENT: float = 2.0
 
     # Limites diverses
-    LVL_MAX: int = 100
+    # Le contenu réel (fixtures + génération live) utilise systématiquement 5,
+    # occasionnellement 10 pour les compétences COMMON — jamais au-delà.
+    # 100 laissait passer n'importe quelle valeur hallucinée par Gemini sans
+    # filtrer grand-chose ; 20 garde de la marge sur l'usage observé tout en
+    # rejetant les valeurs clairement aberrantes. API_invocations accepte de
+    # toute façon une plage bien plus large (1-9999, configurable) côté aval :
+    # cette borne ne reflète qu'une convention de contenu, pas une règle dure.
+    LVL_MAX: int = 20
     MAX_CARD_DESCRIPTION_LENGTH: int = 200
 
     # Dictionnaires pour un accès facilité
