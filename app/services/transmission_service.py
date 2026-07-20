@@ -36,7 +36,11 @@ class TransmissionService:
         )
 
     async def transmit_monster(
-        self, monster_id: str, force: bool = False, admin_name: str = "system"
+        self,
+        monster_id: str,
+        force: bool = False,
+        admin_name: str = "system",
+        auth_token: Optional[str] = None,
     ) -> dict:
         """
         Transmet un monstre vers l'API d'invocation.
@@ -45,6 +49,8 @@ class TransmissionService:
             monster_id: ID du monstre à transmettre
             force: Si True, retransmet même si déjà transmis
             admin_name: Nom de l'administrateur effectuant la transmission
+            auth_token: token porteur de l'appelant original, transmis à
+                API_invocations (nécessaire si `app.auth.enabled` y est actif)
 
         Returns:
             dict avec le résultat de la transmission
@@ -79,7 +85,9 @@ class TransmissionService:
 
         # Tenter la transmission
         try:
-            response = await self.invocation_client.create_monster(monster)
+            response = await self.invocation_client.create_monster(
+                monster, token=auth_token
+            )
 
             # Mettre à jour les métadonnées
             metadata.transmitted_at = datetime.now(timezone.utc)
@@ -117,12 +125,16 @@ class TransmissionService:
 
             raise
 
-    async def transmit_all_approved(self, max_count: Optional[int] = None) -> dict:
+    async def transmit_all_approved(
+        self, max_count: Optional[int] = None, auth_token: Optional[str] = None
+    ) -> dict:
         """
         Transmet tous les monstres approuvés.
 
         Args:
             max_count: Nombre maximum à transmettre (None = tous)
+            auth_token: token porteur de l'appelant original, transmis à
+                API_invocations pour chaque monstre du batch
 
         Returns:
             dict avec les résultats de la transmission
@@ -141,7 +153,9 @@ class TransmissionService:
 
         for metadata in approved_monsters:
             try:
-                await self.transmit_monster(metadata.monster_id)
+                await self.transmit_monster(
+                    metadata.monster_id, auth_token=auth_token
+                )
                 results["success"] += 1
                 results["details"].append(
                     {"monster_id": metadata.monster_id, "status": "success"}

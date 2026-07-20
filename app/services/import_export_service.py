@@ -177,10 +177,17 @@ class ImportExportService:
 
         return images_list
 
-    async def import_monsters(self, zip_bytes: bytes) -> Dict[str, Any]:
+    async def import_monsters(
+        self, zip_bytes: bytes, auth_token: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Importe les monstres depuis une archive zip (format attendu décrit dans l'API).
         Retourne un résumé sommaire.
+
+        Args:
+            zip_bytes: contenu de l'archive zip
+            auth_token: token porteur de l'appelant original, transmis à
+                API_invocations pour le batch de transmission post-import
         """
         summary: Dict[str, Any] = {"imported": [], "skipped": [], "errors": []}
         buf = io.BytesIO(zip_bytes)
@@ -215,7 +222,9 @@ class ImportExportService:
                     from app.clients.invocation_api import InvocationApiClient
 
                     client = InvocationApiClient(base_url=self.settings.INVOCATION_API_URL)
-                    resp = await client.create_monsters_batch(monsters_to_transmit)
+                    resp = await client.create_monsters_batch(
+                        monsters_to_transmit, token=auth_token
+                    )
                     summary["batch_response"] = resp
                 except Exception as e:
                     logger.exception(f"Failed to transmit batch after import: {e}")

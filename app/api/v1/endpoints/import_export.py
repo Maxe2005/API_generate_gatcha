@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 import logging
 
 from app.models.base import get_db
+from app.core.security import AuthContext, require_auth
 from app.services.import_export_service import ImportExportService
 
 logger = logging.getLogger(__name__)
@@ -55,11 +56,12 @@ async def export_monsters(
 async def import_monsters(
     file: UploadFile = File(...),
     service: ImportExportService = Depends(get_import_export_service),
+    auth: AuthContext = Depends(require_auth),
 ):
     """Import des monstres depuis un fichier zip uploadé."""
     try:
         content = await file.read()
-        result = await service.import_monsters(content)
+        result = await service.import_monsters(content, auth_token=auth.token)
         return {"status": "ok", "result": result}
     except Exception as e:
         logger.exception("Error importing monsters")
