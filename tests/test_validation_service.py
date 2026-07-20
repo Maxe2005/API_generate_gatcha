@@ -13,6 +13,22 @@ from app.services.validation_service import (
 from app.core.config import ValidationRules
 
 
+def make_valid_skills(count: int) -> list:
+    """Build `count` minimally-valid skill dicts for tests unrelated to skills."""
+    return [
+        {
+            "name": f"Skill {i}",
+            "description": "Test skill",
+            "damage": 100.0,
+            "ratio": {"stat": "ATK", "percent": 1.0},
+            "cooldown": 2,
+            "lvlMax": 5.0,
+            "rank": "RARE",
+        }
+        for i in range(count)
+    ]
+
+
 class TestTypeValidator:
     def test_valid_string(self):
         is_valid, msg = TypeValidator.validate_type("test", "string")
@@ -95,20 +111,7 @@ class TestMonsterValidation:
             },
             "description_carte": "A mighty fire dragon.",
             "description_visuelle": "A large dragon breathing flames.",
-            "skills": [
-                {
-                    "name": "Fire Breath",
-                    "description": "Breathes fire",
-                    "damage": 150.0,
-                    "ratio": {
-                        "stat": "ATK",
-                        "percent": 1.5,
-                    },
-                    "cooldown": 2,
-                    "lvlMax": 3.0,
-                    "rank": "RARE",
-                }
-            ],
+            "skills": make_valid_skills(4),
         }
 
     def test_valid_monster(self, validator, valid_monster):
@@ -176,6 +179,39 @@ class TestMonsterValidation:
         assert "errors" in result_dict
         assert result_dict["error_count"] > 0
 
+    def test_too_few_skills_is_invalid(self, validator, valid_monster):
+        # NB_SKILLS_MIN=4 (app/core/json_monster_config.py) : les prompts
+        # demandent 4 à 6 compétences, mais rien ne l'imposait avant ce test.
+        valid_monster["skills"] = make_valid_skills(3)
+        result = validator.validate(valid_monster)
+        assert result.is_valid is False
+        assert any(e.field == "skills" for e in result.errors)
+
+    def test_too_many_skills_is_invalid(self, validator, valid_monster):
+        valid_monster["skills"] = make_valid_skills(7)  # NB_SKILLS_MAX=6
+        result = validator.validate(valid_monster)
+        assert result.is_valid is False
+        assert any(e.field == "skills" for e in result.errors)
+
+    def test_skill_count_within_bounds_is_valid(self, validator, valid_monster):
+        for count in (4, 5, 6):
+            valid_monster["skills"] = make_valid_skills(count)
+            result = validator.validate(valid_monster)
+            assert result.is_valid is True, f"Failed for {count} skills: {result.errors}"
+
+    def test_skill_lvl_max_out_of_range(self, validator, valid_monster):
+        # LVL_MAX=20 (app/core/constants.py) : le contenu réel utilise 5,
+        # occasionnellement 10 — 87 est clairement une valeur aberrante.
+        valid_monster["skills"][0]["lvlMax"] = 87.0
+        result = validator.validate(valid_monster)
+        assert result.is_valid is False
+        assert any("lvlMax" in e.field for e in result.errors)
+
+    def test_skill_lvl_max_within_range_is_valid(self, validator, valid_monster):
+        valid_monster["skills"][0]["lvlMax"] = 20.0
+        result = validator.validate(valid_monster)
+        assert result.is_valid is True
+
 
 # Example usage demonstrations
 class TestValidationExamples:
@@ -209,7 +245,7 @@ class TestValidationExamples:
                 },
                 "description_carte": "Test",
                 "description_visuelle": "Test",
-                "skills": [],
+                "skills": make_valid_skills(4),
             }
 
             result = validator.validate(monster)
