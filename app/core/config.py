@@ -18,7 +18,13 @@ class Settings(BaseSettings):
 
     # External API Keys (Loaded from environment variables)
     GEMINI_API_KEY: str = ""
-    BANANA_API_KEY: str = ""
+
+    # Modèle Gemini utilisé pour la génération de texte/stats (GeminiClient).
+    # Distinct de GeminiModelEnum (app/core/constants.py), qui liste les modèles
+    # *image*. "gemini-2.0-flash" (l'ancien défaut en dur) n'existe plus côté API
+    # ("model ... is no longer available") — gemini-flash-latest est le modèle
+    # texte courant vérifié fonctionnel avec ce projet au moment de l'écriture.
+    GEMINI_TEXT_MODEL: str = "gemini-flash-latest"
 
     # PostgreSQL
     # Défauts alignés sur la stack racine (GatchaApi/docker-compose.yaml) :

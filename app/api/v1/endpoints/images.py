@@ -14,7 +14,7 @@ from app.models.base import get_db
 from app.core.security import require_auth
 from app.utils.ws_relay import relay_batch_messages
 from app.services.image_service import ImageService
-from app.clients.banana import BananaClient
+from app.clients.image_generation_client import ImageGenerationClient
 from app.schemas.image import (
     MonsterImageCreate,
     MonsterImageResponse,
@@ -34,8 +34,8 @@ router = APIRouter(prefix="/images")
 
 def get_image_service(db: Session = Depends(get_db)) -> ImageService:
     """Dependency pour obtenir le service d'images"""
-    banana_client = BananaClient()
-    return ImageService(db, banana_client)
+    image_client = ImageGenerationClient()
+    return ImageService(db, image_client)
 
 
 @router.post(
