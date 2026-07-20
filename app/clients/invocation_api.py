@@ -27,7 +27,7 @@ class InvocationApiError(Exception):
 class InvocationApiClient(BaseClient):
     """
     Client pour communiquer avec l'API d'invocation.
-    Suit le pattern des autres clients (Gemini, Banana).
+    Suit le pattern des autres clients (Gemini, ImageGenerationClient).
     """
 
     def __init__(self, base_url: str = "http://localhost:8085", timeout: int = 30):
