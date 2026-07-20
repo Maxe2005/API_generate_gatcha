@@ -13,8 +13,19 @@ from app.core.config import get_settings
 config = context.config
 
 # Interpret the config file for Python logging.
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+# Ce fichier est aussi exécuté à chaud, en process, par app.models.base.init_db()
+# (démarrage d'uvicorn, scripts/seed_fixtures.py) — pas seulement via la CLI
+# `alembic`. fileConfig() reconfigure le logger root d'après [logger_root] dans
+# alembic.ini (niveau WARN, handler stderr dédié) quoi qu'il arrive, y compris
+# avec disable_existing_loggers=False : ça écrasait silencieusement le logging
+# déjà configuré par l'application hôte (niveau, RotatingFileHandler) pour le
+# reste du process. On saute cette étape quand l'appelant programmatique le
+# demande via config.attributes["configure_logger"] = False (pattern documenté
+# par Alembic pour l'usage "programmatic").
+if config.config_file_name is not None and config.attributes.get(
+    "configure_logger", True
+):
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # Load metadata for autogenerate support
 settings = get_settings()

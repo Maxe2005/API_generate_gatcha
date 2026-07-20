@@ -47,7 +47,7 @@ make db-alembic-down REV=-1
 make db-shell                                # psql into postgres-generate-gatcha container
 ```
 
-The scripts run `python -m alembic` on the host, so activate the venv and have Postgres reachable per your `.env` (localhost:5434, the host port exposed by the root stack). Note: `init_db()` in `app/models/base.py` also runs `Base.metadata.create_all()` at app startup, so on a fresh DB tables can exist before any migration ran — keep models and Alembic revisions in sync.
+The scripts run `python -m alembic` on the host, so activate the venv and have Postgres reachable per your `.env` (localhost:5434, the host port exposed by the root stack). `init_db()` in `app/models/base.py` is Alembic's only entrypoint now — no more parallel `Base.metadata.create_all()` — and runs `alembic upgrade head` programmatically at app startup and from `scripts/seed_fixtures.py` (both idempotent). It detects a DB bootstrapped by the old `create_all()` path (tables present but no `alembic_version`) and stamps `head` instead of replaying the baseline, which would fail on already-existing relations; a genuinely empty DB runs the full migration chain. `alembic/env.py` skips `fileConfig()`'s logging setup when invoked this way (`config.attributes["configure_logger"] = False`) since it otherwise clobbers the host app's own logging (root logger level/handlers) — keep models and Alembic revisions in sync regardless, since the stamp path trusts that invariant.
 
 ### Environment
 
