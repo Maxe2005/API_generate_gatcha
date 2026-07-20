@@ -1,7 +1,7 @@
 # Gatcha Monster Generator API
 
 API Python modulaire basée sur FastAPI pour la génération de profils de monstres "Gatcha" via l'IA.
-Ce projet utilise **Google Gemini** pour la génération de texte/stats et **Banana.dev** pour la génération d'images (Pixel Art).
+Ce projet utilise **Google Gemini** pour la génération de texte/stats et pour la génération d'images (Pixel Art).
 
 L'architecture respecte les principes **SOLID** et **DRY**.
 
@@ -9,7 +9,7 @@ L'architecture respecte les principes **SOLID** et **DRY**.
 
 - Python 3.11+
 - Docker & Docker Compose (optionnel mais recommandé)
-- Clés API pour Gemini et Banana.dev
+- Clé API Gemini
 
 ## 🚀 Installation & Configuration
 
@@ -18,8 +18,6 @@ L'architecture respecte les principes **SOLID** et **DRY**.
    Copiez le fichier `.env` (il est déjà créé avec des placeholders) et remplissez vos clés :
    ```bash
    GEMINI_API_KEY=votre_cle_ici
-   BANANA_API_KEY=votre_cle_ici
-   BANANA_MODEL_KEY=votre_model_key_ici
    ```
 
 ## 🛠️ Utilisation Rapide (Makefile)
@@ -134,7 +132,7 @@ Notes :
 ## 📂 Structure du Projet
 
 - `app/api` : Routes et Endpoints.
-- `app/clients` : Clients HTTP externes (Gemini, Banana).
+- `app/clients` : Clients HTTP externes (Gemini texte/image, MinIO, API invocation, API authentification).
 - `app/core` : Configuration globale.
 - `app/schemas` : Modèles de données (Pydantic).
 - `app/services` : Logique métier.
