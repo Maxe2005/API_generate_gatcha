@@ -12,7 +12,6 @@ from app.repositories.monster.transition_repository import TransitionRepository
 from app.schemas.req_res_api import MonsterResponse
 from app.core.constants import MonsterStateEnum
 from app.schemas.metadata import MonsterMetadata
-from app.repositories.monster_image_repository import MonsterImageRepository
 from app.utils.send_messages_utils import (
     send_info_message,
     send_monster_update,
@@ -34,7 +33,6 @@ class GatchaService:
         self.state_repository = MonsterStateRepository(db)
         self.structure_repository = TransitionRepository(db)
         self.state_manager = MonsterStateManager(self.state_repository, self.structure_repository)
-        self.image_repository = MonsterImageRepository(db)
         self.settings = get_settings()
         self.db = db
 

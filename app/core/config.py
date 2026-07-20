@@ -62,10 +62,6 @@ class Settings(BaseSettings):
     # qui ne portent pas de token utilisateur. Vide = mécanisme désactivé.
     INTERNAL_API_KEY: str = ""
 
-    # Transmission automatique
-    AUTO_TRANSMIT_ENABLED: bool = False
-    AUTO_TRANSMIT_INTERVAL_SECONDS: int = 300
-
     # Redis Configuration
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379

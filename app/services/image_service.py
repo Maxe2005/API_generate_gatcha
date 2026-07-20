@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.repositories.monster_image_repository import MonsterImageRepository
 from app.repositories.monster import MonsterRepository
-from app.services.mappeur.image_mappeur import map_image_to_response
+from app.services.mapper.image_mapper import map_image_to_response
 from app.services.monster_modification_service import MonsterModificationService
 from app.clients.image_generation_client import ImageGenerationClient
 from app.schemas.image import MonsterImageResponse, MonsterImageListResponse
@@ -37,52 +37,6 @@ class ImageService:
         self.monster_repo = MonsterRepository(db)
         self.monster_mod_service = MonsterModificationService(db)
         self.image_client = image_client
-
-    async def create_default_image_for_monster(
-        self, monster_db_id: int, description_visuelle: str, monster_name: str
-    ) -> MonsterImageResponse | None:
-        """
-        Crée l'image par défaut pour un monstre lors de sa génération.
-
-        Args:
-            monster_db_id: ID de base de données du monstre
-            description_visuelle: Description visuelle du monstre
-            monster_name: Nom du monstre
-
-        Returns:
-            MonsterImageResponse: L'image créée ou None si une erreur survient
-
-        Raises:
-            Exception: En cas d'erreur de génération ou de stockage
-        """
-        logger.info(
-            f"Génération de l'image par défaut pour le monstre {monster_name} (ID: {monster_db_id})"
-        )
-
-        # Générer l'image via ImageGenerationClient (qui gère aussi l'upload MinIO)
-        image_name = f"{monster_name.lower().replace(' ', '_')}_default"
-        try:
-            result = await self.image_client.generate_pixel_art(description_visuelle, image_name)
-        except Exception as e:
-            logger.error(f"Erreur lors de la génération d'image par défaut : {e}")
-            from app.utils.send_messages_utils import send_error_message, run_async
-
-            run_async(
-                send_error_message(str(monster_db_id), f"Erreur génération image (défaut): {e}")
-            )
-            return None
-
-        # Sauvegarder dans la base de données
-        db_image = self.image_repo.create_image(
-            monster_db_id=monster_db_id,
-            image_name=image_name,
-            image_url=result["image_url"],
-            raw_image_key=result["raw_image_key"],
-            prompt=description_visuelle,
-            is_default=True,
-        )
-
-        return map_image_to_response(db_image)
 
     async def create_custom_image_for_monster(
         self,
