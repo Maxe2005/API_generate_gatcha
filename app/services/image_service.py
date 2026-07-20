@@ -12,7 +12,7 @@ from app.repositories.monster_image_repository import MonsterImageRepository
 from app.repositories.monster import MonsterRepository
 from app.services.mappeur.image_mappeur import map_image_to_response
 from app.services.monster_modification_service import MonsterModificationService
-from app.clients.banana import BananaClient
+from app.clients.image_generation_client import ImageGenerationClient
 from app.schemas.image import MonsterImageResponse, MonsterImageListResponse
 from app.utils.send_messages_utils import send_error_message, run_async
 
@@ -24,19 +24,19 @@ class ImageService:
     Service pour gérer la génération et la gestion des images de monstres.
     """
 
-    def __init__(self, db: Session, banana_client: BananaClient):
+    def __init__(self, db: Session, image_client: ImageGenerationClient):
         """
         Initialise le service.
 
         Args:
             db: Session de base de données
-            banana_client: Client pour la génération d'images
+            image_client: Client pour la génération d'images
         """
         self.db = db
         self.image_repo = MonsterImageRepository(db)
         self.monster_repo = MonsterRepository(db)
         self.monster_mod_service = MonsterModificationService(db)
-        self.banana_client = banana_client
+        self.image_client = image_client
 
     async def create_default_image_for_monster(
         self, monster_db_id: int, description_visuelle: str, monster_name: str
@@ -59,15 +59,17 @@ class ImageService:
             f"Génération de l'image par défaut pour le monstre {monster_name} (ID: {monster_db_id})"
         )
 
-        # Générer l'image via BananaClient (qui gère aussi l'upload MinIO)
+        # Générer l'image via ImageGenerationClient (qui gère aussi l'upload MinIO)
         image_name = f"{monster_name.lower().replace(' ', '_')}_default"
         try:
-            result = await self.banana_client.generate_pixel_art(description_visuelle, image_name)
+            result = await self.image_client.generate_pixel_art(description_visuelle, image_name)
         except Exception as e:
-            logger.error(f"Erreur Banana lors de la génération d'image par défaut : {e}")
+            logger.error(f"Erreur lors de la génération d'image par défaut : {e}")
             from app.utils.send_messages_utils import send_error_message, run_async
 
-            run_async(send_error_message(str(monster_db_id), f"Erreur Banana (image défaut): {e}"))
+            run_async(
+                send_error_message(str(monster_db_id), f"Erreur génération image (défaut): {e}")
+            )
             return None
 
         # Sauvegarder dans la base de données
@@ -114,17 +116,17 @@ class ImageService:
             f"Génération d'une image personnalisée '{image_name}' pour le monstre {monster_id} avec le modèle {model}"
         )
 
-        # Générer l'image via BananaClient (qui gère aussi l'upload MinIO)
+        # Générer l'image via ImageGenerationClient (qui gère aussi l'upload MinIO)
         safe_image_name = image_name.lower().replace(" ", "_")
         try:
-            result = await self.banana_client.generate_pixel_art(
+            result = await self.image_client.generate_pixel_art(
                 custom_prompt, safe_image_name, model
             )
             image_url = result["image_url"]
             raw_image_key = result["raw_image_key"]
         except Exception as e:
-            logger.error(f"Erreur Banana lors de la génération d'image personnalisée : {e}")
-            run_async(send_error_message(str(monster_id), f"Erreur Banana (image custom): {e}"))
+            logger.error(f"Erreur lors de la génération d'image personnalisée : {e}")
+            run_async(send_error_message(str(monster_id), f"Erreur génération image (custom): {e}"))
             return None
 
         # Sauvegarder dans la base de données

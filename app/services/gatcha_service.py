@@ -5,7 +5,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from app.clients.gemini import GeminiClient
-from app.clients.banana import BananaClient
+from app.clients.image_generation_client import ImageGenerationClient
 from app.core.json_monster_config import MonsterJsonAttributes
 from app.repositories.monster.state_repository import MonsterStateRepository
 from app.repositories.monster.transition_repository import TransitionRepository
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 class GatchaService:
     def __init__(self, db: Session):
         self.gemini_client = GeminiClient()
-        self.banana_client = BananaClient()
+        self.image_client = ImageGenerationClient()
         self.validation_service = MonsterValidationService()
         self.state_repository = MonsterStateRepository(db)
         self.structure_repository = TransitionRepository(db)
@@ -63,12 +63,12 @@ class GatchaService:
         """
         visual_prompt = monster_data.get("description_visuelle", fallback_prompt)
         try:
-            result = await self.banana_client.generate_pixel_art(visual_prompt, filename_base)
+            result = await self.image_client.generate_pixel_art(visual_prompt, filename_base)
             return result["image_url"], result["raw_image_key"]
         except Exception as e:
             logger.error(f"Failed to generate image: {e}")
             if batch_id:
-                run_async(send_error_message(batch_id, f"Erreur Banana (image): {e}"))
+                run_async(send_error_message(batch_id, f"Erreur génération image: {e}"))
             return "", ""
 
     async def _process_monster_asset(

@@ -1,5 +1,8 @@
+import logging
+
 from google import genai
 from app.core.config import get_settings
+from app.core.constants import GeminiModelEnum
 from app.core.prompts import GatchaPrompts
 from app.clients.minio_client import MinioClientWrapper
 from PIL import Image
@@ -9,25 +12,29 @@ import io
 import uuid
 from google.genai.types import ContentListUnionDict
 
+logger = logging.getLogger(__name__)
 
-# We keep the name BananaClient to minimize refactoring in other files,
-# but internally it now uses Google's GenAI as requested.
-class BananaClient:
+
+class ImageGenerationClient:
     """
-    Client for Image Generation.
-    Now uses Google GenAI (Flash Image) as per updated requirements,
-    replacing the original Banana.dev implementation.
+    Client for image generation via Google GenAI (Gemini image models).
+
+    Historical note: this class used to be called `BananaClient` and target
+    Banana.dev — the service was migrated to Gemini image generation, but the
+    name (and the unused `BANANA_API_KEY` setting) lingered until this rename.
     """
 
     def __init__(self):
         self.settings = get_settings()
-        # Using Gemini API Key for this "Banana" client since we switched providers
         self.client = genai.Client(api_key=self.settings.GEMINI_API_KEY)
         self.output_dir = "app/static/images"
         self.minio_client = MinioClientWrapper()
 
     async def generate_pixel_art(
-        self, prompt: str, filename_base: str, model: str = "gemini-3-pro-image-preview"
+        self,
+        prompt: str,
+        filename_base: str,
+        model: str = GeminiModelEnum.GEMINI_3_PRO_IMAGE.value,
     ) -> dict:
         """
         Generates an image using Google's Gemini-2.5-flash-image model.
@@ -74,7 +81,7 @@ class BananaClient:
                     "429" in error_str or "RESOURCE_EXHAUSTED" in error_str
                 ) and attempt < max_retries - 1:
                     sleep_time = base_delay * (2**attempt)
-                    print(f"⚠️ Image Generation Rate Limit hit. Retrying in {sleep_time}s...")
+                    logger.warning(f"Image generation rate limit hit. Retrying in {sleep_time}s...")
                     await asyncio.sleep(sleep_time)
                     continue
                 raise Exception(f"Image Generation Error: {str(e)}") from e
@@ -128,7 +135,7 @@ class BananaClient:
                     )
                     break
                 except Exception as e:
-                    print(f"Error processing image: {e}")
+                    logger.warning(f"Error processing image: {e}")
                     continue
 
         if not image_url:
@@ -144,7 +151,7 @@ class BananaClient:
         prompt: str,
         aspect_ratio: str,
         image_size: str,
-        model: str = "gemini-3-pro-image-preview",
+        model: str = GeminiModelEnum.GEMINI_3_PRO_IMAGE.value,
         image_input: Image.Image | None = None,
     ) -> bytes:
         """

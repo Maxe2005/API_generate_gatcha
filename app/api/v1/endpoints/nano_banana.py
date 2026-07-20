@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from typing import Optional
-from app.clients.banana import BananaClient
+from app.clients.image_generation_client import ImageGenerationClient
 from app.core.constants import GeminiModelEnum
 import os
 import io
@@ -35,7 +35,7 @@ async def generate_simple_image(
     - model: Modèle Gemini à utiliser (défaut: gemini-3-pro-image-preview)
     - image: Optional input image file
     """
-    client = BananaClient()
+    client = ImageGenerationClient()
     try:
         # Process input image if provided
         pil_image = None
