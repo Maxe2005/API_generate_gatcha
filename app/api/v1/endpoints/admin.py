@@ -22,6 +22,7 @@ from app.schemas.admin import (
 from app.schemas.update_event import TimelineEvent, MonsterHistory
 from app.core.constants import MonsterStateEnum
 from app.services.validation_service import MonsterValidationService
+from app.core.security import AuthContext, require_auth
 from app.models.base import get_db
 from app.repositories.monster.update_event_repository import UpdateEventRepository
 
@@ -194,6 +195,7 @@ async def review_monster(
     monster_id: str,
     request: ReviewRequest,
     service: AdminService = Depends(get_admin_service),
+    auth: AuthContext = Depends(require_auth),
 ):
     """
     Review un monstre (approve ou reject).
@@ -203,12 +205,14 @@ async def review_monster(
 
     Note: Le monstre doit être en état PENDING_REVIEW et avoir des données valides.
     Pour modifier les données avant review, utilisez la route /update.
+    L'acteur enregistré dans l'historique est l'identité vérifiée du token
+    (le champ `admin_name` du body n'est plus qu'indicatif, il n'est pas fiable).
     """
     try:
         metadata = service.review_monster(
             monster_id,
             request.notes,
-            admin_name=request.admin_name,
+            admin_name=auth.username,
         )
 
         return {
@@ -229,6 +233,7 @@ async def correct_defective_monster(
     monster_id: str,
     request: CorrectionRequest,
     service: AdminService = Depends(get_admin_service),
+    auth: AuthContext = Depends(require_auth),
 ):
     """
     Marque un monstre défectueux comme corrigé.
@@ -242,7 +247,7 @@ async def correct_defective_monster(
         metadata = service.correct_defective(
             monster_id,
             request.notes,
-            admin_name=request.admin_name,
+            admin_name=auth.username,
         )
 
         return {
@@ -263,6 +268,7 @@ async def update_monster_data(
     monster_id: str,
     request: UpdateMonsterRequest,
     service: AdminService = Depends(get_admin_service),
+    auth: AuthContext = Depends(require_auth),
 ):
     """
     Met à jour les données d'un monstre.
@@ -279,7 +285,7 @@ async def update_monster_data(
             request.monster_data,
             request.skip_validation,
             request.notes,
-            admin_name=request.admin_name,
+            admin_name=auth.username,
         )
 
         return {
@@ -301,6 +307,7 @@ async def reject_monster(
     monster_id: str,
     request: RejectMonsterRequest,
     service: AdminService = Depends(get_admin_service),
+    auth: AuthContext = Depends(require_auth),
 ):
     """
     Rejette un monstre.
@@ -313,7 +320,7 @@ async def reject_monster(
         metadata = service.reject_monster(
             monster_id,
             request.notes,
-            admin_name=request.admin_name,
+            admin_name=auth.username,
         )
 
         return {
