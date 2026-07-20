@@ -30,7 +30,7 @@ from app.schemas.admin import (
     DashboardStats,
     MonsterStatsByStateResponse,
 )
-from app.services.mappeur.monster_mapper import (
+from app.services.mapper.monster_mapper import (
     map_monster_to_json,
     map_monster_to_summary,
     map_monster_metadata_to_summary,
@@ -268,7 +268,8 @@ class AdminService:
         # Mémoriser l'état avant
         validation_before = monster.metadata.is_valid
         old_data = None
-        structured_monster = bool(monster.metadata.monster)
+        is_structured = bool(monster.metadata.monster)
+        structured_monster = is_structured
         if structured_monster:
             structured_monster = self.monster_repository.get_by_uuid(monster_id)
             old_data = map_structured_to_json(structured_monster)
@@ -296,16 +297,20 @@ class AdminService:
                 for e in validation_result.errors
             ]
 
-        if (
-            structured_monster
-            != monster.metadata.state
-            in [
-                MonsterStateEnum.PENDING_REVIEW,
-                MonsterStateEnum.APPROVED,
-            ]
-        ):
+        # Bug historique : `structured_monster != monster.metadata.state in [...]` est une
+        # comparaison chaînée Python (probablement involontaire) qui se réduit à
+        # `monster.metadata.state in [...]` puisque `structured_monster` (bool ou objet
+        # Monster) n'est jamais égal à un MonsterStateEnum — le warning se déclenchait
+        # donc systématiquement en PENDING_REVIEW/APPROVED, jamais sur une vraie
+        # incohérence. Comparaison correcte avec le flag booléen capturé avant sa
+        # réutilisation comme objet Monster ci-dessus.
+        state_expects_structured = monster.metadata.state in [
+            MonsterStateEnum.PENDING_REVIEW,
+            MonsterStateEnum.APPROVED,
+        ]
+        if is_structured != state_expects_structured:
             logger.warning(
-                f"Monster {monster_id} has inconsistent structured_monster={structured_monster} "
+                f"Monster {monster_id} has inconsistent structured_monster={is_structured} "
                 f"and state={monster.metadata.state}"
             )
         # Calculer les changed_fields et diff pour JSON

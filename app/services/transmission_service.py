@@ -24,7 +24,14 @@ logger = logging.getLogger(__name__)
 class TransmissionService:
     """Service de transmission des monstres vers l'API d'invocation"""
 
-    def __init__(self, db: Session, invocation_api_url: str = "http://host.docker.internal:8085"):
+    def __init__(self, db: Session, invocation_api_url: str):
+        """
+        Args:
+            invocation_api_url: URL de base d'API_invocations. Pas de défaut
+                piégeux ici : la seule instanciation (transmission.py) le
+                passe déjà explicitement depuis settings.INVOCATION_API_URL,
+                un défaut caché aurait juste servi à masquer un oubli.
+        """
         self.invocation_client = InvocationApiClient(base_url=invocation_api_url)
         self.repository = MonsterRepository(db)
         self.state_repository = MonsterStateRepository(db)

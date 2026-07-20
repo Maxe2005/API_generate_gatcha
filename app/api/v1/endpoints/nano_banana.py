@@ -26,7 +26,13 @@ async def generate_simple_image(
     image: Optional[UploadFile] = File(None, description="Optional input image for generation"),
 ):
     """
-    Generate an image directly using Nano Banana (Gemini) and save it locally.
+    Debug/manual-testing endpoint: generates an image via Gemini and writes it
+    to a local directory on the container's filesystem instead of MinIO.
+    Deliberately not wired into the monster pipeline (no monster_id, no DB
+    record, no MinIO upload) — it's a standalone way to try prompts/models,
+    not part of production generation. Requires auth like the rest of this
+    router (see main.py); the file is lost on container restart.
+
     Arguments:
     - aspect_ratio: e.g. "1:1", "3:4", "16:9"
     - image_size: e.g. "1024x1024" or logic supported by client (client uses "4K" but let's pass what user sends and let client/gemini validation handle it, though client expects logic)
