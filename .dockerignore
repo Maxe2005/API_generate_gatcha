@@ -9,3 +9,10 @@ __pycache__
 backups
 minio_data
 .pytest_cache
+logs
+classic_images_generated
+docs
+tests
+.github
+*.md
+!README.md
