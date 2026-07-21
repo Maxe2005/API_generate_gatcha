@@ -397,7 +397,7 @@ app/
 
 ## 📝 Notes importantes
 
-1. **Transmission automatique** : Par défaut désactivée, mais configurable
+1. **Transmission automatique** : non implémentée — la transmission vers `API_invocations` se fait via une action admin explicite (`POST /transmission/transmit/{monster_id}`), pas de scheduler
 2. **Validation humaine obligatoire** : Tous les monstres passent par `PENDING_REVIEW`
 3. **Idempotence** : Les transmissions sont idempotentes (retry safe)
 4. **Async tasks** : Prêt pour intégrer Celery/RQ si nécessaire plus tard
@@ -405,4 +405,4 @@ app/
 
 ## 🎯 Prochaines étapes
 
-Voir **IMPLEMENTATION_ROADMAP.md** pour le plan d'implémentation détaillé étape par étape.
+Voir **docs/archive/IMPLEMENTATION_ROADMAP.md** pour le plan d'implémentation historique (déjà réalisé) étape par étape.
