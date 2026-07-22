@@ -5,11 +5,10 @@ from app.core.config import get_settings
 from app.core.constants import GeminiModelEnum
 from app.core.prompts import GatchaPrompts
 from app.clients.minio_client import MinioClientWrapper
+from app.clients.image_storage import store_generated_image
 from PIL import Image
-from app.utils.image_utils import optimize_for_web
 import asyncio
 import io
-import uuid
 from google.genai.types import ContentListUnionDict
 
 logger = logging.getLogger(__name__)
@@ -22,42 +21,60 @@ class ImageGenerationClient:
     Historical note: this class used to be called `BananaClient` and target
     Banana.dev — the service was migrated to Gemini image generation, but the
     name (and the unused `BANANA_API_KEY` setting) lingered until this rename.
+
+    Second historical note: Gemini was later replaced by fal.ai
+    (`app/clients/fal_client.py`) as the *default* image provider — see
+    `app/clients/image_provider_factory.py`. This client is kept as a
+    supported alternative provider (selectable via `ImageProviderEnum.GEMINI`),
+    not because it's still the default.
     """
 
     def __init__(self):
         self.settings = get_settings()
         self.client = genai.Client(api_key=self.settings.GEMINI_API_KEY)
-        self.output_dir = "app/static/images"
         self.minio_client = MinioClientWrapper()
 
     async def generate_pixel_art(
         self,
         prompt: str,
         filename_base: str,
-        model: str = GeminiModelEnum.GEMINI_3_PRO_IMAGE.value,
+        model: str | None = None,
+        reference_image_bytes: bytes | None = None,
     ) -> dict:
         """
-        Generates an image using Google's Gemini-2.5-flash-image model.
+        Generates an image using a Gemini image model.
         Returns a dict with the MinIO URL and the raw image key.
         args:
             prompt: Visual description
             filename_base: sanitized monster name for the file
-            model: Gemini model to use for image generation
+            model: Gemini model to use for image generation (defaults to
+                GeminiModelEnum.GEMINI_3_PRO_IMAGE if not provided)
+            reference_image_bytes: optional reference image bytes for
+                image-to-image generation (e.g. keeping a monster's visual
+                identity when generating a skill-card image)
         Returns:
             dict with keys:
                 - image_url: URL of the optimized WebP image
                 - raw_image_key: Object key of the 4K PNG image (internal use only)
         """
+        model = model or GeminiModelEnum.GEMINI_3_PRO_IMAGE.value
         full_prompt = GatchaPrompts.IMAGE_GENERATION.format(prompt=prompt)
+        reference_image = (
+            Image.open(io.BytesIO(reference_image_bytes)) if reference_image_bytes else None
+        )
 
         # The SDK is synchronous, so we run it in a thread pool to avoid blocking FastAPI
         loop = asyncio.get_running_loop()
 
         # Wrapped function for the thread executor
         def _generate():
+            contents: ContentListUnionDict = [full_prompt]
+            if reference_image is not None:
+                contents.append(reference_image)
+
             response = self.client.models.generate_content(
-                model=model,  # Using 2.0-flash or 2.5 if available as per user request example implies newer models
-                contents=[full_prompt],
+                model=model,
+                contents=contents,
                 config=genai.types.GenerateContentConfig(
                     image_config=genai.types.ImageConfig(
                         aspect_ratio="2:3",
@@ -86,78 +103,44 @@ class ImageGenerationClient:
                     continue
                 raise Exception(f"Image Generation Error: {str(e)}") from e
 
-        image_url = ""
-        raw_image_key = ""
-
         if not response or not response.parts:
             raise Exception("No content parts found in response.")
+
+        result: dict | None = None
 
         # The snippet provided iterates over parts. We adapt that logic.
         for part in response.parts:
             # Inline data contains the image
             if part.inline_data is not None and part.inline_data.data:
-                # Get raw bytes directly
                 raw_bytes = part.inline_data.data
-
                 try:
-                    # Convert/Ensure to PNG using PIL
-                    image = Image.open(io.BytesIO(raw_bytes))
-                    img_byte_arr = io.BytesIO()
-                    image.save(img_byte_arr, format="PNG")
-                    img_bytes = img_byte_arr.getvalue()
-
-                    # Unique ID for this generation
-                    unique_id = uuid.uuid4()
-                    filename_raw = f"{filename_base}_{unique_id}.png"
-                    filename_asset = f"{filename_base}_{unique_id}.webp"
-
-                    # Store the raw image key for internal use
-                    raw_image_key = f"monsters/{filename_raw}"
-
-                    # 1. Upload Master (PNG 4K) to RAW bucket
-                    self.minio_client.upload_image(
-                        bucket_name=self.settings.MINIO_BUCKET_RAW,
-                        filename=raw_image_key,
-                        image_data=img_bytes,
-                        content_type="image/png",
-                    )
-
-                    # 2. Optimize for Web
-                    webp_io = optimize_for_web(img_bytes)
-                    webp_bytes = webp_io.getvalue()
-
-                    # 3. Upload Asset (WebP) to ASSETS bucket
-                    image_url = self.minio_client.upload_image(
-                        bucket_name=self.settings.MINIO_BUCKET_ASSETS,
-                        filename=filename_asset,
-                        image_data=webp_bytes,
-                        content_type="image/webp",
-                    )
+                    result = store_generated_image(raw_bytes, filename_base, self.minio_client)
                     break
                 except Exception as e:
                     logger.warning(f"Error processing image: {e}")
                     continue
 
-        if not image_url:
+        if not result:
             # Fallback or error if no image returned
             raise Exception(
                 "No image data found in response. Ensure the model supports image generation."
             )
 
-        return {"image_url": image_url, "raw_image_key": raw_image_key}
+        return result
 
     async def generate_custom_image(
         self,
         prompt: str,
         aspect_ratio: str,
         image_size: str,
-        model: str = GeminiModelEnum.GEMINI_3_PRO_IMAGE.value,
+        model: str | None = None,
         image_input: Image.Image | None = None,
     ) -> bytes:
         """
         Generates an image with custom parameters using Google's GenAI.
         Returns the raw image bytes (PNG).
         """
+        model = model or GeminiModelEnum.GEMINI_3_PRO_IMAGE.value
         # The SDK is synchronous, so we run it in a thread pool to avoid blocking FastAPI
         loop = asyncio.get_running_loop()
 

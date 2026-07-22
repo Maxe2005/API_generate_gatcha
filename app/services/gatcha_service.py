@@ -5,7 +5,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from app.clients.gemini import GeminiClient
-from app.clients.image_generation_client import ImageGenerationClient
+from app.clients.image_provider_factory import get_image_client
 from app.core.json_monster_config import MonsterJsonAttributes
 from app.repositories.monster.state_repository import MonsterStateRepository
 from app.repositories.monster.transition_repository import TransitionRepository
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class GatchaService:
     def __init__(self, db: Session):
         self.gemini_client = GeminiClient()
-        self.image_client = ImageGenerationClient()
+        self.image_client = get_image_client()
         self.validation_service = MonsterValidationService()
         self.state_repository = MonsterStateRepository(db)
         self.structure_repository = TransitionRepository(db)

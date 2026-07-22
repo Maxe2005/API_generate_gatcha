@@ -5,8 +5,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.services.gatcha_service import GatchaService
 from app.services.image_service import ImageService
-from app.clients.image_generation_client import ImageGenerationClient
-from app.core.constants import GeminiModelEnum
+from app.clients.image_provider_factory import get_image_client
+from app.core.constants import ImageProviderEnum
 from app.core.config import get_settings
 from app.utils.send_messages_utils import send_completion_message
 
@@ -55,7 +55,8 @@ def generate_custom_image(
     monster_id: str,
     image_name: str,
     custom_prompt: str,
-    model: str = GeminiModelEnum.GEMINI_3_PRO_IMAGE.value,
+    model: str | None = None,
+    provider: str = ImageProviderEnum.FAL.value,
 ):
     """
     Génère une image personnalisée pour un monstre en tâche de fond, publie sur Redis.
@@ -67,7 +68,7 @@ def generate_custom_image(
     engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
-    image_client = ImageGenerationClient()
+    image_client = get_image_client(ImageProviderEnum(provider))
     service = ImageService(db, image_client)
 
     try:
