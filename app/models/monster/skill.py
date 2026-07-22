@@ -63,6 +63,12 @@ class Skill(Base):
 
     # Relation
     monster = relationship("Monster", back_populates="skills")
+    images = relationship(
+        "SkillImage",
+        back_populates="skill",
+        cascade="all, delete-orphan",
+        order_by="SkillImage.created_at",
+    )
 
     def __repr__(self):
         return f"<Skill(name='{self.name}', damage={self.damage}, rank='{self.rank}')>"
