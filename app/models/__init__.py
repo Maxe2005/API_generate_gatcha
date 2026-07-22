@@ -9,7 +9,7 @@ Architecture refactorisée :
 - Skill : Table des compétences
 """
 
-from app.models.monster import MonsterState, Monster, Skill, StateTransitionModel
+from app.models.monster import MonsterState, Monster, Skill, SkillImage, StateTransitionModel
 from app.models.monster_image_model import MonsterImage
 from app.models.base import Base, get_db, init_db, engine
 
@@ -18,6 +18,7 @@ __all__ = [
     "MonsterState",
     "Monster",
     "Skill",
+    "SkillImage",
     "StateTransitionModel",
     "MonsterImage",
     "get_db",

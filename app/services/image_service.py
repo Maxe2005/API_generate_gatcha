@@ -13,6 +13,7 @@ from app.repositories.monster import MonsterRepository
 from app.services.mapper.image_mapper import map_image_to_response
 from app.services.monster_modification_service import MonsterModificationService
 from app.clients.image_generation_client import ImageGenerationClient
+from app.clients.fal_client import FalImageClient
 from app.schemas.image import MonsterImageResponse, MonsterImageListResponse
 from app.utils.send_messages_utils import send_error_message, run_async
 
@@ -24,13 +25,14 @@ class ImageService:
     Service pour gérer la génération et la gestion des images de monstres.
     """
 
-    def __init__(self, db: Session, image_client: ImageGenerationClient):
+    def __init__(self, db: Session, image_client: ImageGenerationClient | FalImageClient):
         """
         Initialise le service.
 
         Args:
             db: Session de base de données
-            image_client: Client pour la génération d'images
+            image_client: Client pour la génération d'images (Gemini ou fal.ai,
+                voir app/clients/image_provider_factory.py)
         """
         self.db = db
         self.image_repo = MonsterImageRepository(db)
@@ -43,7 +45,7 @@ class ImageService:
         monster_id: str,
         image_name: str,
         custom_prompt: str,
-        model: str = "gemini-3-pro-image-preview",
+        model: str | None = None,
     ) -> MonsterImageResponse | None:
         """
         Crée une nouvelle image personnalisée pour un monstre existant.
@@ -52,7 +54,8 @@ class ImageService:
             monster_id: UUID du monstre
             image_name: Nom de l'image à créer
             custom_prompt: Prompt personnalisé (sera injecté dans IMAGE_GENERATION)
-            model: Modèle Gemini à utiliser pour la génération d'images
+            model: Modèle à utiliser pour la génération d'images (défaut du
+                provider si non fourni)
 
         Returns:
             MonsterImageResponse: L'image créée ou None si une erreur survient

@@ -8,7 +8,7 @@ Schémas Pydantic pour la gestion des images de monstres
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
-from app.core.constants import GeminiModelEnum
+from app.core.constants import ImageProviderEnum
 
 
 class MonsterImageBase(BaseModel):
@@ -28,10 +28,14 @@ class MonsterImageCreate(BaseModel):
         ...,
         description="Prompt personnalisé (sera injecté dans IMAGE_GENERATION)",
     )
-    model: str = Field(
-        default=GeminiModelEnum.GEMINI_3_PRO_IMAGE.value,
-        description="Modèle Gemini à utiliser pour la génération d'images",
-        examples=["gemini-3-pro-image-preview", "gemini-3.1-flash-image"],
+    provider: ImageProviderEnum = Field(
+        default=ImageProviderEnum.FAL,
+        description="Provider de génération d'images à utiliser (fal.ai par défaut, Gemini en alternative)",
+    )
+    model: Optional[str] = Field(
+        default=None,
+        description="Modèle à utiliser pour la génération d'images (défaut du provider si non fourni)",
+        examples=["fal-ai/flux/dev", "gemini-3-pro-image-preview"],
     )
 
 

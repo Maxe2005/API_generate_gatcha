@@ -14,7 +14,7 @@ from app.models.base import get_db
 from app.core.security import require_auth
 from app.utils.ws_relay import relay_batch_messages
 from app.services.image_service import ImageService
-from app.clients.image_generation_client import ImageGenerationClient
+from app.clients.image_provider_factory import get_image_client
 from app.schemas.image import (
     MonsterImageCreate,
     MonsterImageResponse,
@@ -34,7 +34,7 @@ router = APIRouter(prefix="/images")
 
 def get_image_service(db: Session = Depends(get_db)) -> ImageService:
     """Dependency pour obtenir le service d'images"""
-    image_client = ImageGenerationClient()
+    image_client = get_image_client()
     return ImageService(db, image_client)
 
 
@@ -61,7 +61,7 @@ async def generate_custom_image_endpoint(
     """
     batch_id = str(uuid.uuid4())
     logger.info(
-        f"Lancement de la génération d'image: batch_id={batch_id}, monster_id={request.monster_id}, image_name={request.image_name}, model={request.model}"
+        f"Lancement de la génération d'image: batch_id={batch_id}, monster_id={request.monster_id}, image_name={request.image_name}, provider={request.provider.value}, model={request.model}"
     )
     generate_custom_image.delay(  # pyright: ignore[reportFunctionMemberAccess]
         batch_id,
@@ -69,6 +69,7 @@ async def generate_custom_image_endpoint(
         request.image_name,
         request.custom_prompt,
         request.model,
+        request.provider.value,
     )
     return {"batch_id": batch_id}
 

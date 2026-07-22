@@ -53,6 +53,19 @@ class Settings(BaseSettings):
     INVOCATION_API_MAX_RETRIES: int = 3
     INVOCATION_API_RETRY_DELAY: int = 2
 
+    # fal.ai — provider d'images par défaut (Gemini reste disponible en alternative).
+    # API queue-based : POST {FAL_API_BASE_URL}/{model}, header "Authorization: Key <clé>".
+    FAL_API_KEY: str = ""
+    FAL_API_BASE_URL: str = "https://queue.fal.run"
+    FAL_TIMEOUT: int = 90
+    FAL_MAX_RETRIES: int = 3
+    FAL_RETRY_DELAY: int = 2
+    FAL_POLL_INTERVAL_SECONDS: float = 1.5
+    FAL_MAX_POLL_ATTEMPTS: int = 80
+    # Slugs à vérifier contre le catalogue fal.ai courant avant mise en prod.
+    FAL_TEXT_TO_IMAGE_MODEL: str = "fal-ai/flux/dev"
+    FAL_IMAGE_TO_IMAGE_MODEL: str = "fal-ai/flux/dev/image-to-image"
+
     # API Authentification (vérification du token porteur — mêmes credentials que
     # l'AuthInterceptor des services Java : POST /user/verify-token)
     AUTH_API_URL: str = "http://api-authentification:8080"

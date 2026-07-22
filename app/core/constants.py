@@ -89,6 +89,19 @@ class GeminiModelEnum(EnumBase):
     GEMINI_2_FLASH_IMAGE = "gemini-2-flash-image"
 
 
+class ImageProviderEnum(EnumBase):
+    """
+    Provider utilisé pour la génération d'images.
+
+    FAL est le provider par défaut. GEMINI reste disponible comme alternative
+    (héritage historique : ce service utilisait exclusivement Gemini avant
+    l'intégration de fal.ai).
+    """
+
+    FAL = "fal"
+    GEMINI = "gemini"
+
+
 class StatEnum(EnumBase):
     """Stats possibles pour les ratios de compétences"""
 
