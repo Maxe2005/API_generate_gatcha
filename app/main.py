@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     admin,
     transmission,
     images,
+    skill_images,
     import_export,
 )
 from app.core.config import get_settings
@@ -103,6 +104,11 @@ app.include_router(
     images.router,
     prefix=f"{settings.API_V1_STR}/monsters",
     tags=["images"],
+)
+app.include_router(
+    skill_images.router,
+    prefix=settings.API_V1_STR,
+    tags=["skill-images"],
 )
 
 

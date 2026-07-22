@@ -142,6 +142,25 @@ Output ONLY the valid JSON Array. Do not include markdown.
     # Alternative 3: 3D Render/Realistic Style
     IMAGE_GENERATION_REALISTIC = "3D rendered character of {prompt}, Unreal Engine 5 style, realistic textures, volumetric lighting, photorealistic environment. No text, no game UI, no frames or borders. Cinematic shot."
 
+    @staticmethod
+    def SKILL_CARD_IMAGE(
+        monster_name: str,
+        monster_element: str,
+        skill_name: str,
+        skill_description: str,
+    ) -> str:
+        return (
+            f"{monster_name}, a {monster_element}-element gacha game monster, "
+            f"performing its skill '{skill_name}': {skill_description}. "
+            "Keep the EXACT SAME character design, proportions, colors and color "
+            "palette as the reference image — this must be recognizably the same "
+            "monster, not a redesign. Dynamic action pose clearly showcasing the "
+            "skill's effect, consistent art style and environment with the "
+            "reference. The image must be a clean character illustration WITHOUT "
+            "any text, writing, numbers, stats, UI elements, borders, card frames, "
+            "or game interface overlays. Masterpiece, high quality."
+        )
+
 
 if __name__ == "__main__":
     # Test rapide des prompts

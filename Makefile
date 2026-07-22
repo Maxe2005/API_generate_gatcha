@@ -41,7 +41,7 @@ run: ## Lance le serveur API en local (nécessite 'make install' d'abord)
 	$(BIN)/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 test: ## Lance les tests unitaires purs (aucun service externe requis)
-	$(BIN)/python -m pytest tests/test_validation_service.py tests/test_update_events.py tests/test_security.py tests/test_state_manager.py -v
+	$(BIN)/python -m pytest tests/test_validation_service.py tests/test_update_events.py tests/test_security.py tests/test_state_manager.py tests/test_fal_client.py -v
 
 lint: ## Vérifie le code avec ruff (nécessite 'make install-dev')
 	$(BIN)/ruff check .
