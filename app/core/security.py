@@ -12,6 +12,11 @@ Deux voies acceptées :
 Le service ne fait pas d'autorisation fine (rôles) : il s'agit d'un filtre
 "authentifié ou non", cohérent avec le reste de l'architecture qui délègue
 la vérité sur l'identité à API_authentification.
+
+En développement local, DEV_AUTH_BYPASS_ENABLED=true (dans le .env local, jamais
+committé) permet de court-circuiter entièrement cette vérification pour tester
+depuis Swagger UI sans coller de token : toutes les requêtes sont alors traitées
+comme authentifiées sous DEV_AUTH_BYPASS_USERNAME.
 """
 
 from dataclasses import dataclass
@@ -58,6 +63,9 @@ async def require_auth(
         HTTPException 500: API d'authentification injoignable ou en erreur.
     """
     settings = get_settings()
+
+    if settings.DEV_AUTH_BYPASS_ENABLED:
+        return AuthContext(username=settings.DEV_AUTH_BYPASS_USERNAME, token=None)
 
     if settings.INTERNAL_API_KEY and x_internal_api_key:
         if compare_digest(x_internal_api_key, settings.INTERNAL_API_KEY):

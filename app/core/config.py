@@ -75,6 +75,14 @@ class Settings(BaseSettings):
     # qui ne portent pas de token utilisateur. Vide = mécanisme désactivé.
     INTERNAL_API_KEY: str = ""
 
+    # Bypass d'authentification pour le développement local uniquement (ex: essais
+    # depuis Swagger UI sans avoir à coller un Bearer token à chaque requête).
+    # Par défaut désactivé. Ne JAMAIS activer en docker/prod : le .env racine y est
+    # partagé par tous les services et ce fichier local (.env, dockerignored) n'y est
+    # de toute façon pas lu.
+    DEV_AUTH_BYPASS_ENABLED: bool = False
+    DEV_AUTH_BYPASS_USERNAME: str = "admin"
+
     # Redis Configuration
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
