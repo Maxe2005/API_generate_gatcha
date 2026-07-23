@@ -63,6 +63,8 @@ The scripts run `python -m alembic` on the host, so activate the venv and have P
 
 Config is pydantic-settings (`app/core/config.py`) loading `.env` (real environment variables take precedence over the file). One template: `.env.example` (localhost hostnames, for `make run` against the root stack's exposed ports). In docker there is no local env file at all (`.env` is dockerignored): the root repo's compose injects everything via `env_file` (root `.env`) + `environment:`. The Celery broker/backend URL is built from `REDIS_HOST`/`REDIS_PORT` in `app/celery_worker.py`.
 
+**Any new environment variable this service needs must also be added to the root repo's `.env`/`.env.exemple`** (and to this service's `environment:`/`env_file` wiring in the root `docker-compose.yaml` if it's not already covered by the blanket `env_file`) — this repo's own `.env.example` only covers `make run` against a host-mode Python process, not the dockerized stack.
+
 ## Architecture
 
 Layering: `app/api/v1/endpoints` → `app/services` → `app/repositories` → `app/models` (SQLAlchemy), with `app/schemas` (Pydantic) at the edges and `app/clients` for external systems (Gemini text/image, MinIO, invocation API, auth API). All routers are mounted under `/api/v1` in `app/main.py`: `monsters` (generation + images), `admin`, `transmission`, `external` (import/export), `nano-banana`.
