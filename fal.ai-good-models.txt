@@ -1,0 +1,4 @@
+bytedance/seedream/v5/pro/text-to-image
+fal-ai/nano-banana-2
+
+fal-ai/meshy/v6-preview/image-to-3d
